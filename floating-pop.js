@@ -658,16 +658,18 @@ if (gameState === "Final" || gameState === "Game Over") {
     const gameplayContainer = document.getElementById("gameplay-info-container");
     if (!gameplayContainer) return; // Prevents errors if it doesn't exist
 
+    const isSpringTraining = data?.gameData?.game?.type === "S" || data?.gameData?.game?.type === "E";
+
     // 🚨 Safeguard: hide/remove video buttons for Spring Training games
-    if (data?.gameData?.game?.type === "S" || data?.gameData?.game?.type === "E") {
+    if (isSpringTraining) {
         const existingVideoButtons = document.getElementById("video-buttons");
         if (existingVideoButtons) {
             existingVideoButtons.style.display = "none";
         }
-        return; // Do not build video buttons
     }
 
     // **Add Video Buttons Section**
+    if (!isSpringTraining) {
     let videoButtonsContainer = document.getElementById("video-buttons");
     if (!videoButtonsContainer) {
         videoButtonsContainer = document.createElement("div");
@@ -908,6 +910,7 @@ if (gameState === "Final" || gameState === "Game Over") {
             }
         });
     }
+    }
 
     // **Check if Top Performers already exist**
     let topPerformersContainer = document.getElementById("top-performers");
@@ -917,7 +920,7 @@ if (gameState === "Final" || gameState === "Game Over") {
         topPerformersContainer.classList.add("top-performers-section"); // Add CSS class
 
         // **Extract top performers dynamically**
-        const topPerformers = data.liveData.boxscore.topPerformers.slice(0, 3); // Ensure we only use the first 3
+        const topPerformers = (data.liveData.boxscore.topPerformers || []).slice(0, 3); // Ensure we only use the first 3
 
         // **Get Player Stats and Image based on Type**
         const getPlayerStats = (player) => {
@@ -951,6 +954,7 @@ if (gameState === "Final" || gameState === "Game Over") {
 
         // **Create HTML with Images**
         topPerformersContainer.innerHTML = `
+        <div style="text-align: center; font-weight: bold; margin-bottom: 8px; color: #041e4294; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Top Performers</div>
         <div class="top-performers-row">
             <div class="top-performer">
                 <img src="${performerOne.imageUrl}" alt="${performerOne.name}" class="performer-image" onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">

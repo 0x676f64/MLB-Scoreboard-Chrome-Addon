@@ -7,9 +7,11 @@
     <script src="mlb-video-matcher.js"></script>
     <meta charset="UTF-8">
     <style>
+        
 html {
     scrollbar-width: none;
-    max-height: 500px;
+    height: auto;
+    min-height: fit-content;
 }
 
 body {
@@ -958,6 +960,39 @@ h4 {
     margin: 0 8px;
     width: 80px;
     justify-content: center;
+}
+
+.decision-pitcher {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.decision-pitcher-image {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    border: 2px solid #bf0d3d;
+    background-color: #041e42;
+    object-fit: cover;
+}
+
+.decision-pitcher p {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
  .avg-progress-container {

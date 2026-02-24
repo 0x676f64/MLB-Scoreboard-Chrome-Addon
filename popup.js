@@ -471,12 +471,12 @@ toggleContainers(true);
                 let inningBoxStyle = "";
 
                 // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain"].includes(gameStatusText);
+                const isLiveGame = !["Final", "Game Over", "Final: Tied", "Pre-Game", "Scheduled", "Suspended: Rain"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
 
-                if (gameStatusText === "Final" || gameStatusText === "Game Over") {
+                if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
                 dynamicTab.textContent = "Wrap"; // Or "Final Summary"
                     } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                 dynamicTab.textContent = "Game Info";
@@ -490,7 +490,7 @@ toggleContainers(true);
                 if (gameStatusText === "Suspended: Rain") {
                     inningText = "SUSPENDED";
                     inningBoxStyle = "color: red;";
-                } else if (gameStatusText === "Final" || gameStatusText === "Game Over") {
+                } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
                     inningText = "FINAL";
                     inningBoxStyle = "color: red;";
                 } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
@@ -642,32 +642,72 @@ toggleContainers(true);
         awayPlayerStats.innerHTML = "";
         homePlayerStats.innerHTML = "";
 
-   // ** When the Game is Over **    
+  // ** When the Game is Over **    
    
-if (gameState === "Final" || gameState === "Game Over") {
-    awayPlayerStats.innerHTML = `<p><span class="winning-pitcher">W:</span> ${data.liveData.decisions.winner.fullName}</p>` || "N/A" ;
-    homePlayerStats.innerHTML = `<p><span class="losing-pitcher">L:</span> ${data.liveData.decisions.loser.fullName}</p>` || "N/A" ;
-    document.getElementById("scorebug-wrapper").style.display = "none";
+if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied") {
+    const isTied = gameState === "Final: Tied";
+    
+    // Only show W/L pitchers if the game has a decision (not a tie)
+    if (!isTied && data.liveData.decisions?.winner && data.liveData.decisions?.loser) {
+    const winnerId = data.liveData.decisions.winner.id;
+    const loserId = data.liveData.decisions.loser.id;
+    const winnerName = data.liveData.decisions.winner.fullName;
+    const loserName = data.liveData.decisions.loser.fullName;
+    const winnerImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${winnerId}/headshot/67/current`;
+    const loserImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${loserId}/headshot/67/current`;
 
-    if (data.gameData.status.detailedState === "Final: Tied") {
-        document.getElementById("awayPlayerStats").style.display = "none";
-        document.getElementById("homePlayerStats").style.display = "none";
-    }
+    awayPlayerStats.innerHTML = `
+    <div class="decision-pitcher">
+        <img 
+            src="${winnerImageUrl}" 
+            alt="${winnerName}" 
+            class="decision-pitcher-image"
+            onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';"
+        >
+        <p class="decision-pitcher-label"><span class="winning-pitcher">W</span></p>
+        <p class="decision-pitcher-name">
+            <span>${winnerName.split(" ")[0]}</span><br>
+            <span>${winnerName.split(" ").slice(1).join(" ")}</span>
+        </p>
+    </div>
+`;
+
+homePlayerStats.innerHTML = `
+    <div class="decision-pitcher">
+        <img 
+            src="${loserImageUrl}" 
+            alt="${loserName}" 
+            class="decision-pitcher-image"
+            onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';"
+        >
+        <p class="decision-pitcher-label"><span class="losing-pitcher">L</span></p>
+        <p class="decision-pitcher-name">
+            <span>${loserName.split(" ")[0]}</span><br>
+            <span>${loserName.split(" ").slice(1).join(" ")}</span>
+        </p>
+    </div>
+`;
+} else {
+    awayPlayerStats.innerHTML = "";
+    homePlayerStats.innerHTML = "";
+}
     
     // **Find the gameplay-info-container**
     const gameplayContainer = document.getElementById("gameplay-info-container");
-    if (!gameplayContainer) return; // Prevents errors if it doesn't exist
+    if (!gameplayContainer) return;
 
-    // 🚨 Safeguard: hide/remove video buttons for Spring Training games
-    if (data?.gameData?.game?.type === "S" || data?.gameData?.game?.type === "E") {
+    const isSpringTraining = data?.gameData?.game?.type === "S" || data?.gameData?.game?.type === "E";
+
+    // Safeguard: hide video buttons for Spring Training games
+    if (isSpringTraining) {
         const existingVideoButtons = document.getElementById("video-buttons");
         if (existingVideoButtons) {
             existingVideoButtons.style.display = "none";
         }
-        return; // Do not build video buttons
     }
 
     // **Add Video Buttons Section**
+    if (!isSpringTraining) {
     let videoButtonsContainer = document.getElementById("video-buttons");
     if (!videoButtonsContainer) {
         videoButtonsContainer = document.createElement("div");
@@ -908,6 +948,7 @@ if (gameState === "Final" || gameState === "Game Over") {
             }
         });
     }
+    }
 
     // **Check if Top Performers already exist**
     let topPerformersContainer = document.getElementById("top-performers");
@@ -916,34 +957,54 @@ if (gameState === "Final" || gameState === "Game Over") {
         topPerformersContainer.id = "top-performers";
         topPerformersContainer.classList.add("top-performers-section"); // Add CSS class
 
-        // **Extract top performers dynamically**
-        const topPerformers = data.liveData.boxscore.topPerformers.slice(0, 3); // Ensure we only use the first 3
+        // **Extract top performers dynamically (safe fallback if missing)**
+        const topPerformers = (data.liveData.boxscore.topPerformers || []).slice(0, 3); // Ensure we only use the first 3
 
-        // **Get Player Stats and Image based on Type**
         const getPlayerStats = (player) => {
-            if (!player || !player.player) return { name: "N/A", stats: "No stats available", imageUrl: "" };
+    if (!player || !player.player) return { name: "N/A", stats: "No stats available", imageUrl: "" };
 
-            const name = player.player.person.fullName;
-            const playerId = player.player.person.id;
-            // Try multiple MLB image endpoints
-            const imageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${playerId}/headshot/67/current`;
-            let stats = "No stats available";
+    const name = player.player.person.fullName;
+    const playerId = player.player.person.id;
+    const imageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${playerId}/headshot/67/current`;
+    let stats = "No stats available";
 
-            if (player.type === "pitcher" || "starter" && player.player.stats?.pitching?.summary) {
-                stats = player.player.stats.pitching.summary; // Use summary for pitchers
-            } else if (player.type === "hitter" && player.player.stats?.batting?.summary) {
-                stats = player.player.stats.batting.summary; // Use summary for hitters
-            } else if (player.type === "hitter") {
-                // If summary is missing, construct a fallback from available batting stats
-                const batting = player.player.stats.batting;
-                if (batting) {
-                    stats = `${batting.hits}-${batting.atBats}, ${batting.runs} R, ${batting.rbi} RBI`;
-                }
-            }
-        
-            return { name, stats, imageUrl };
-        };
+    const isPitcher = player.type === "pitcher" || player.type === "starter";
+    const isHitter = player.type === "hitter";
 
+    if (isPitcher) {
+        const pitching = player.player.stats?.pitching;
+        if (pitching?.summary) {
+            stats = pitching.summary;
+        } else if (pitching) {
+            // Fallback: build from individual pitching fields
+            const ip = pitching.inningsPitched || '0';
+            const k = pitching.strikeOuts || '0';
+            const er = pitching.earnedRuns || '0';
+            const h = pitching.hits || '0';
+            const bb = pitching.baseOnBalls || '0';
+            stats = `${ip} IP, ${h} H, ${er} ER, ${bb} BB, ${k} K`;
+        }
+    } else if (isHitter) {
+        const batting = player.player.stats?.batting;
+        if (batting?.summary) {
+            stats = batting.summary;
+        } else if (batting) {
+            // Fallback: build from individual batting fields
+            stats = `${batting.hits || 0}-${batting.atBats || 0}, ${batting.runs || 0} R, ${batting.rbi || 0} RBI`;
+        }
+    } else {
+        // Type is unknown - try pitching first, then batting
+        const pitching = player.player.stats?.pitching;
+        const batting = player.player.stats?.batting;
+        if (pitching?.summary) {
+            stats = pitching.summary;
+        } else if (batting?.summary) {
+            stats = batting.summary;
+        }
+    }
+
+    return { name, stats, imageUrl };
+};
         // **Get Stats for the 3 Performers**
         const performerOne = getPlayerStats(topPerformers[0]);
         const performerTwo = getPlayerStats(topPerformers[1]);
@@ -951,6 +1012,7 @@ if (gameState === "Final" || gameState === "Game Over") {
 
         // **Create HTML with Images**
         topPerformersContainer.innerHTML = `
+        <div style="text-align: center; font-weight: 600; margin-bottom: 2px; color: #041e428a; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Top Performers</div>
         <div class="top-performers-row">
             <div class="top-performer">
                 <img src="${performerOne.imageUrl}" alt="${performerOne.name}" class="performer-image" onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
