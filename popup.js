@@ -656,7 +656,7 @@ if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: 
     const winnerImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${winnerId}/headshot/67/current`;
     const loserImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${loserId}/headshot/67/current`;
 
-    awayPlayerStats.innerHTML = `
+   awayPlayerStats.innerHTML = `
     <div class="decision-pitcher">
         <img 
             src="${winnerImageUrl}" 
@@ -664,11 +664,13 @@ if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: 
             class="decision-pitcher-image"
             onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';"
         >
-        <p class="decision-pitcher-label"><span class="winning-pitcher">W</span></p>
-        <p class="decision-pitcher-name">
-            <span>${winnerName.split(" ")[0]}</span><br>
-            <span>${winnerName.split(" ").slice(1).join(" ")}</span>
-        </p>
+        <div class="decision-pitcher-info">
+            <span class="winning-pitcher">W</span>
+            <span class="decision-pitcher-name">
+                <span>${winnerName.split(" ")[0]}</span>
+                <span>${winnerName.split(" ").slice(1).join(" ")}</span>
+            </span>
+        </div>
     </div>
 `;
 
@@ -680,11 +682,13 @@ homePlayerStats.innerHTML = `
             class="decision-pitcher-image"
             onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';"
         >
-        <p class="decision-pitcher-label"><span class="losing-pitcher">L</span></p>
-        <p class="decision-pitcher-name">
-            <span>${loserName.split(" ")[0]}</span><br>
-            <span>${loserName.split(" ").slice(1).join(" ")}</span>
-        </p>
+        <div class="decision-pitcher-info">
+            <span class="losing-pitcher">L</span>
+            <span class="decision-pitcher-name">
+                <span>${loserName.split(" ")[0]}</span>
+                <span>${loserName.split(" ").slice(1).join(" ")}</span>
+            </span>
+        </div>
     </div>
 `;
 } else {
@@ -875,9 +879,9 @@ homePlayerStats.innerHTML = `
                 <button id="game-recap-btn" class="video-button game-recap-button" style="
                     background: linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95));
                     border: 1px solid rgba(255,255,255,0.3);
-                    padding: 10px 18px;
+                    padding: 5px 8px;
                     border-radius: 12px;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -893,9 +897,9 @@ homePlayerStats.innerHTML = `
                 <button id="condensed-game-btn" class="video-button condensed-game-button" style="
                     background: linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95));
                     border: 1px solid rgba(255,255,255,0.3);
-                    padding: 10px 18px;
+                    padding: 5px 8px;
                     border-radius: 12px;
-                    font-size: 13px;
+                    font-size: 11px;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
