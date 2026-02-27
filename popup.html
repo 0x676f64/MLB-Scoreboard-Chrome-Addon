@@ -471,6 +471,39 @@ body.dark-mode #popup-container {
     width: 120%;
 }
 
+#away-player-stats {
+    text-align: left;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+#home-player-stats {
+    text-align: left;
+    padding-left: 4px;
+}
+
+#away-player-stats .lineup,
+#home-player-stats .lineup {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    direction: ltr;
+    text-align: left;
+}
+
+#away-player-stats .player-name,
+#away-player-stats .player-position,
+#away-player-stats .prob-stats,
+#home-player-stats .player-name,
+#home-player-stats .player-position,
+#home-player-stats .prob-stats {
+    text-align: left;
+    display: block;
+    direction: ltr;
+}
+
 .performer-image {
     width: 60px;
     height: 60px;
@@ -1056,4 +1089,5 @@ h4 {
 </head>
 <button id="backButton">Go Back</button>
 <script src="button.js"></script>
+
 </html>
