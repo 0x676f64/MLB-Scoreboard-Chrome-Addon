@@ -94,10 +94,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     allPlaysTab.classList.add("tab-button");
     allPlaysTab.textContent = "All Plays";
 
+    const winProbTab = document.createElement("button");
+    winProbTab.id = "win-prob-tab";
+    winProbTab.classList.add("tab-button");
+    winProbTab.textContent = "Win Prob";
+
     tabsContainer.appendChild(dynamicTab);
     tabsContainer.appendChild(boxscoreTab);
     tabsContainer.appendChild(scoringPlaysTab);
     tabsContainer.appendChild(allPlaysTab);
+    tabsContainer.appendChild(winProbTab);
     tabSection.appendChild(tabsContainer);
 
     popupContainer.appendChild(tabSection);
@@ -175,7 +181,7 @@ function reapplyTabVisibility() {
 } 
 
 // Visibility management function
-function toggleContainers(showDynamic, isBoxscoreTab = false, isScoringPlaysTab = false, isAllPlaysTab = false) {
+function toggleContainers(showDynamic, isBoxscoreTab = false, isScoringPlaysTab = false, isAllPlaysTab = false, isWinProbTab = false) {
     const gameInfoContainer = document.getElementById('game-info');
     const gameplayInfoContainer = document.getElementById('gameplay-info-container');
     const videoButtonsSection = document.getElementById('video-buttons');
@@ -184,6 +190,8 @@ function toggleContainers(showDynamic, isBoxscoreTab = false, isScoringPlaysTab 
     const boxScoreContainer = document.getElementById('boxscore-content');
     const scoringPlaysContainer = document.getElementById('scoring-plays-container');
     const allPlaysContainer = document.getElementById('all-plays-container');
+    const winProbContainer = document.getElementById('win-prob-container');
+    if (winProbContainer) winProbContainer.style.display = isWinProbTab ? 'block' : 'none';
     
 
     // Store original display values if not already stored
@@ -231,6 +239,7 @@ function openGameDetailsPage(tabType) {
         case 'live':
         case 'wrap':
         case 'pre-game':
+        case 'game-info':
             loadDynamicContent(tabType);
             break;
         case 'boxscore':
@@ -241,6 +250,9 @@ function openGameDetailsPage(tabType) {
             break;
         case 'all-plays':
             loadAllPlays();
+            break;
+        case 'win-prob':
+            loadWinProbability();
             break;
         default:
             console.warn(`Unknown tab type: ${tabType}`);
@@ -258,30 +270,11 @@ function fetchBasicGameInfo(gamePk) {
     // without refreshing the entire content area
 }
 
-// Helper functions that openGameDetailsPage calls
-function loadDynamicContent(tabType) {
-    const boxScoreContainer = document.getElementById("boxscore-content");
-    if (boxScoreContainer) boxScoreContainer.style.display = "none";
-    console.log(`Loading dynamic content for ${tabType}`);
-}
-
-function loadBoxScore() {  
-    console.log(`Loading dynamic content for ${tabType}`); 
-}
-
-function loadScoringPlays() {
-    console.log(`Loading dynamic content for ${tabType}`);
-}
-
-function loadAllPlays() {
-    console.log(`Loading dynamic content for ${tabType}`);
-}
-
 // Event listeners for all tabs
 dynamicTab.addEventListener('click', () => {
     document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
     dynamicTab.classList.add('active');
-    toggleContainers(true); // show dynamic, hide boxscore
+    toggleContainers(true, false, false, false, false);
     const currentDynamicTabType = dynamicTab.textContent.toLowerCase().replace(' ', '-');
     openGameDetailsPage(currentDynamicTabType);
 });
@@ -289,22 +282,29 @@ dynamicTab.addEventListener('click', () => {
 boxscoreTab.addEventListener('click', () => {
     document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
     boxscoreTab.classList.add('active');
-    toggleContainers(false, true); // hide dynamic, show boxscore
+    toggleContainers(false, true, false, false, false);
     openGameDetailsPage('boxscore');
 });
 
 scoringPlaysTab.addEventListener('click', () => {
     document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
     scoringPlaysTab.classList.add('active');
-    toggleContainers(false, false, true, false); // hide dynamic & boxscore
+    toggleContainers(false, false, true, false, false);
     openGameDetailsPage('scoring-plays');
 });
 
 allPlaysTab.addEventListener('click', () => {
     document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
     allPlaysTab.classList.add('active');
-    toggleContainers(false, false, false, true); // hide dynamic, hide boxscore, show all-plays
+    toggleContainers(false, false, false, true, false);
     openGameDetailsPage('all-plays');
+});
+
+winProbTab.addEventListener('click', () => {
+    document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
+    winProbTab.classList.add('active');
+    toggleContainers(false, false, false, false, true);
+    openGameDetailsPage('win-prob');
 });
 
 
@@ -471,12 +471,12 @@ toggleContainers(true);
                 let inningBoxStyle = "";
 
                 // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain"].includes(gameStatusText);
+                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
 
-                if (gameStatusText === "Final" || gameStatusText === "Game Over") {
+                if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Completed Early: Rain") {
                 dynamicTab.textContent = "Wrap"; // Or "Final Summary"
                     } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                 dynamicTab.textContent = "Game Info";
@@ -490,8 +490,9 @@ toggleContainers(true);
                 if (gameStatusText === "Suspended: Rain") {
                     inningText = "SUSPENDED";
                     inningBoxStyle = "color: red;";
-                } else if (gameStatusText === "Final" || gameStatusText === "Game Over") {
-                    inningText = "FINAL";
+               } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
+                    const finalInning = linescore.currentInning || 9;
+                    inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                     inningBoxStyle = "color: red;";
                 } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                     inningText = formatGameTime(game.datetime.dateTime);
@@ -643,15 +644,48 @@ toggleContainers(true);
         homePlayerStats.innerHTML = "";
 
    // ** When the Game is Over **    
-   
-if (gameState === "Final" || gameState === "Game Over") {
-    awayPlayerStats.innerHTML = `<img class="winning-pitcher-image" src=https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${data.liveData.decisions.winner.id}/headshot/67/current><p><span class="winning-pitcher">W:</span> ${data.liveData.decisions.winner.fullName}</p>` || "N/A" ;
-    homePlayerStats.innerHTML = `<img class="losing-pitcher-image" src=https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${data.liveData.decisions.loser.id}/headshot/67/current><p><span class="losing-pitcher">L:</span> ${data.liveData.decisions.loser.fullName}</p>` || "N/A" ;
+   if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain") {
+    const isTied = gameState === "Final: Tied";
     document.getElementById("scorebug-wrapper").style.display = "none";
 
-    if (data.gameData.status.detailedState === "Final: Tied") {
-        document.getElementById("awayPlayerStats").style.display = "none";
-        document.getElementById("homePlayerStats").style.display = "none";
+    if (!isTied && data.liveData.decisions?.winner && data.liveData.decisions?.loser) {
+        const winnerId = data.liveData.decisions.winner.id;
+        const loserId = data.liveData.decisions.loser.id;
+        const winnerName = data.liveData.decisions.winner.fullName;
+        const loserName = data.liveData.decisions.loser.fullName;
+        const winnerImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${winnerId}/headshot/67/current`;
+        const loserImageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${loserId}/headshot/67/current`;
+
+        awayPlayerStats.innerHTML = `
+            <div class="decision-pitcher">
+                <img src="${winnerImageUrl}" alt="${winnerName}" class="decision-pitcher-image"
+                    onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';">
+                <div class="decision-pitcher-info">
+                    <span class="winning-pitcher">W</span>
+                    <span class="decision-pitcher-name">
+                        <span>${winnerName.split(" ")[0]}</span><br>
+                        <span>${winnerName.split(" ").slice(1).join(" ")}</span>
+                    </span>
+                </div>
+            </div>
+        `;
+
+        homePlayerStats.innerHTML = `
+            <div class="decision-pitcher">
+                <img src="${loserImageUrl}" alt="${loserName}" class="decision-pitcher-image"
+                    onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';">
+                <div class="decision-pitcher-info">
+                    <span class="losing-pitcher">L</span>
+                    <span class="decision-pitcher-name">
+                        <span>${loserName.split(" ")[0]}</span><br>
+                        <span>${loserName.split(" ").slice(1).join(" ")}</span>
+                    </span>
+                </div>
+            </div>
+        `;
+    } else {
+        awayPlayerStats.innerHTML = "";
+        homePlayerStats.innerHTML = "";
     }
     
     // **Find the gameplay-info-container**
@@ -928,22 +962,38 @@ if (gameState === "Final" || gameState === "Game Over") {
 
             const name = player.player.person.fullName;
             const playerId = player.player.person.id;
-            // Try multiple MLB image endpoints
             const imageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${playerId}/headshot/67/current`;
             let stats = "No stats available";
 
-            if (player.type === "pitcher" || "starter" && player.player.stats?.pitching?.summary) {
-                stats = player.player.stats.pitching.summary; // Use summary for pitchers
-            } else if (player.type === "hitter" && player.player.stats?.batting?.summary) {
-                stats = player.player.stats.batting.summary; // Use summary for hitters
-            } else if (player.type === "hitter") {
-                // If summary is missing, construct a fallback from available batting stats
-                const batting = player.player.stats.batting;
-                if (batting) {
-                    stats = `${batting.hits}-${batting.atBats}, ${batting.runs} R, ${batting.rbi} RBI`;
+            const isPitcher = player.type === "pitcher" || player.type === "starter";
+            const isHitter = player.type === "hitter";
+
+            if (isPitcher) {
+                const pitching = player.player.stats?.pitching;
+                if (pitching?.summary) {
+                    stats = pitching.summary;
+                } else if (pitching) {
+                    const ip = pitching.inningsPitched || '0';
+                    const k = pitching.strikeOuts || '0';
+                    const er = pitching.earnedRuns || '0';
+                    const h = pitching.hits || '0';
+                    const bb = pitching.baseOnBalls || '0';
+                    stats = `${ip} IP, ${h} H, ${er} ER, ${bb} BB, ${k} K`;
                 }
+            } else if (isHitter) {
+                const batting = player.player.stats?.batting;
+                if (batting?.summary) {
+                    stats = batting.summary;
+                } else if (batting) {
+                    stats = `${batting.hits || 0}-${batting.atBats || 0}, ${batting.runs || 0} R, ${batting.rbi || 0} RBI`;
+                }
+            } else {
+                const pitching = player.player.stats?.pitching;
+                const batting = player.player.stats?.batting;
+                if (pitching?.summary) stats = pitching.summary;
+                else if (batting?.summary) stats = batting.summary;
             }
-        
+
             return { name, stats, imageUrl };
         };
 
@@ -960,7 +1010,7 @@ if (gameState === "Final" || gameState === "Game Over") {
                 <img src="${performerOne.imageUrl}" alt="${performerOne.name}" class="performer-image" onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
                 <p class="performer-name">
                     <span>${performerOne.name.split(" ")[0]}</span> 
-                    <span>${performerOne.name.split(" ")[1]}</span>
+                    <span>${performerOne.name.split(" ").slice(1).join(" ")}</span>
                 </p>
                 <p class="performer-stats">${performerOne.stats}</p>
             </div>
@@ -968,7 +1018,7 @@ if (gameState === "Final" || gameState === "Game Over") {
                 <img src="${performerTwo.imageUrl}" alt="${performerTwo.name}" class="performer-image" onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
                 <p class="performer-name">
                     <span>${performerTwo.name.split(" ")[0]}</span> 
-                    <span>${performerTwo.name.split(" ")[1]}</span>
+                    <span>${performerTwo.name.split(" ").slice(1).join(" ")}</span>
                 </p>
                 <p class="performer-stats">${performerTwo.stats}</p>
             </div>
@@ -976,7 +1026,7 @@ if (gameState === "Final" || gameState === "Game Over") {
                 <img src="${performerThree.imageUrl}" alt="${performerThree.name}" class="performer-image" onerror="this.onerror=null; this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
                 <p class="performer-name">
                     <span>${performerThree.name.split(" ")[0]}</span> 
-                    <span>${performerThree.name.split(" ")[1]}</span>
+                    <span>${performerThree.name.split(" ").slice(1).join(" ")}</span>
                 </p>
                 <p class="performer-stats">${performerThree.stats}</p>
             </div>
@@ -1239,8 +1289,9 @@ if (gameState === "Pre-Game" || gameState === "Scheduled" || gameState === "Warm
             } else if (gameStatusText === "Cancelled") {
                 inningText = "RAIN";
                 inningBoxStyle = "color: #bf0d3e;";
-            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
-                inningText = "FINAL";
+            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
+                const finalInning = linescore.currentInning || 9;
+                inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                 inningBoxStyle = "color: #bf0d3e;";
             } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                 inningText = formatGameTime(game.datetime.dateTime);
@@ -1263,7 +1314,7 @@ if (gameState === "Pre-Game" || gameState === "Scheduled" || gameState === "Warm
 
     function updateScorebug(data) {
         // Check if the game is finished and hide the scorebug if it is
-        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied") {
+        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Completed Early: Rain") {
             scorebugContainer.innerHTML = ""; // Clear the scorebug content
             document.getElementById("scorebug-wrapper").style.display = "none";
             return;
@@ -2676,7 +2727,8 @@ function shouldRefresh(gameStatus) {
         "Completed Early", 
         "Suspended",
         "Cancelled",
-        "Postponed"
+        "Postponed",
+        "Completed Early: Rain"
     ];
     
     const preGameStates = [
@@ -2928,7 +2980,7 @@ async function loadScoringPlays() {
         // Get game state to determine if we should refresh
         const gameDetailedState = gameData.gameData?.status?.detailedState || '';
         const isLiveGame = gameDetailedState === 'Live';
-        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final';
+        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final' || gameDetailedState === 'Completed Early: Rain';
 
         console.log('Game state:', gameDetailedState, 'Is live:', isLiveGame, 'Is over:', isGameOver);
 
@@ -3269,5 +3321,398 @@ if (!document.querySelector('#scoring-plays-styles')) {
         }
     `;
     document.head.appendChild(style);
+}
+
+const MLB_TEAM_COLORS = {
+    108: { primary: '#BA0021', secondary: '#003263' },  // LAA Angels
+    109: { primary: '#A71930', secondary: '#000000' },  // ARI Diamondbacks
+    110: { primary: '#DF4601', secondary: '#000000' },  // BAL Orioles
+    111: { primary: '#BD3039', secondary: '#0C2340' },  // BOS Red Sox
+    112: { primary: '#0E3386', secondary: '#CC3433' },  // CHC Cubs
+    113: { primary: '#C6011F', secondary: '#000000' },  // CIN Reds
+    114: { primary: '#00385D', secondary: '#E50022' },  // CLE Guardians
+    115: { primary: '#333366', secondary: '#C4CED4' },  // COL Rockies
+    116: { primary: '#0C2340', secondary: '#FA4616' },  // DET Tigers
+    117: { primary: '#EB6E1F', secondary: '#002D62' },  // HOU Astros
+    118: { primary: '#004687', secondary: '#C09A5B' },  // KC Royals
+    119: { primary: '#005A9C', secondary: '#EF3E42' },  // LAD Dodgers
+    120: { primary: '#AB0003', secondary: '#14225A' },  // WSH Nationals
+    121: { primary: '#002D72', secondary: '#FF5910' },  // NYM Mets
+    133: { primary: '#003831', secondary: '#EFB21E' },  // OAK Athletics
+    134: { primary: '#FDB827', secondary: '#FDB827' },  // PIT Pirates
+    135: { primary: '#2F241D', secondary: '#FFC425' },  // SD Padres
+    136: { primary: '#005C5C', secondary: '#005C5C' },  // SEA Mariners
+    137: { primary: '#FD5A1E', secondary: '#27251F' },  // SF Giants
+    138: { primary: '#C41E3A', secondary: '#0C2340' },  // STL Cardinals
+    139: { primary: '#092C5C', secondary: '#8FBCE6' },  // TB Rays
+    140: { primary: '#003278', secondary: '#C0111F' },  // TEX Rangers
+    141: { primary: '#134A8E', secondary: '#1D2D5C' },  // TOR Blue Jays
+    142: { primary: '#002B5C', secondary: '#D31145' },  // MIN Twins
+    143: { primary: '#E81828', secondary: '#002D72' },  // PHI Phillies
+    144: { primary: '#CE1141', secondary: '#13274F' },  // ATL Braves
+    145: { primary: '#27251F', secondary: '#C4CED4' },  // CWS White Sox
+    146: { primary: '#00A3E0', secondary: '#FF6600' },  // MIA Marlins
+    147: { primary: '#0C2340', secondary: '#0C2340' },  // NYY Yankees
+    158: { primary: '#12284B', secondary: '#FFC52F' },  // MIL Brewers
+};
+
+function getTeamColor(teamId) {
+    const colors = MLB_TEAM_COLORS[teamId];
+    return colors ? colors.primary : '#041e42';
+}
+
+async function loadWinProbability() {
+    let winProbContainer = document.getElementById('win-prob-container');
+    if (!winProbContainer) {
+        winProbContainer = document.createElement('div');
+        winProbContainer.id = 'win-prob-container';
+        winProbContainer.style.cssText = `
+            width: 100%;
+            padding: 10px;
+            font-family: Rubik, sans-serif;
+            display: none;
+        `;
+        document.getElementById('popup-container').appendChild(winProbContainer);
+    }
+
+    winProbContainer.style.display = 'block';
+    winProbContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading Win Probability...</p>';
+
+    try {
+        // Fetch both win probability AND game data for team colors/info
+        const [wpResponse, gameResponse] = await Promise.all([
+            fetch(`https://statsapi.mlb.com/api/v1/game/${gamePk}/winProbability`),
+            fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`)
+        ]);
+
+        // Guard: user may have switched tabs during fetch
+        const activeTab = document.querySelector('.tab-button.active');
+        if (!activeTab || activeTab.id !== 'win-prob-tab') {
+            winProbContainer.style.display = 'none';
+            return;
+        }
+
+        const wpData = await wpResponse.json();
+        const gameData = await gameResponse.json();
+
+        const awayTeam = gameData.gameData.teams.away;
+        const homeTeam = gameData.gameData.teams.home;
+        const awayId = awayTeam.id;
+        const homeId = homeTeam.id;
+        const awayColor = getTeamColor(awayId);
+        const homeColor = getTeamColor(homeId);
+        const awayName = awayTeam.name;
+        const homeName = homeTeam.name;
+        const awayAbbr = awayTeam.abbreviation || awayTeam.teamName;
+        const homeAbbr = homeTeam.abbreviation || homeTeam.teamName;
+
+        if (!wpData || wpData.length === 0) {
+            winProbContainer.innerHTML = `
+                <p style="text-align:center; color:#041e42; padding:20px; font-size:14px;">
+                    Win probability data is not available for this game.
+                </p>`;
+            return;
+        }
+
+        // Current probability from last entry
+        const latest = wpData[wpData.length - 1];
+        const homeProb = Math.round(latest.homeTeamWinProbability);
+        const awayProb = Math.round(latest.awayTeamWinProbability);
+
+        // SVG dimensions
+        const W = 520;
+        const H = 200;
+        const PL = 36; // padding left
+        const PR = 16; // padding right
+        const PT = 16; // padding top
+        const PB = 28; // padding bottom
+        const CW = W - PL - PR;
+        const CH = H - PT - PB;
+
+        const total = wpData.length;
+        const stepX = CW / (total - 1 || 1);
+
+        // Build coordinate arrays
+        const pts = wpData.map((d, i) => ({
+            x: PL + i * stepX,
+            y: PT + (CH / 2) + ((d.homeTeamWinProbability - 50) / 50) * (CH / 2),
+            homeProb: d.homeTeamWinProbability,
+            awayProb: d.awayTeamWinProbability,
+            added: d.homeTeamWinProbabilityAdded,
+            event: d.result?.event || '',
+            description: d.result?.description || '',
+            inning: d.about?.inning || '',
+            isTop: d.about?.isTopInning,
+            atBat: d.atBatIndex
+        }));
+
+        const linePoints = pts.map(p => `${p.x},${p.y}`).join(' ');
+
+        // Away fill: line points closed back along the 50% midline
+        const midY = PT + CH / 2;
+        const awayPolyPoints = [
+            `${PL},${midY}`,
+            ...pts.map(p => `${p.x},${p.y}`),
+            `${PL + CW},${midY}`
+        ].join(' ');
+
+        // Home fill: same line points, also closed along the 50% midline
+        const homePolyPoints = [
+            `${PL},${midY}`,
+            ...pts.map(p => `${p.x},${p.y}`),
+            `${PL + CW},${midY}`
+        ].join(' ');
+
+        // Inning separator lines
+        let inningLines = '';
+        let lastInning = 0;
+        pts.forEach(p => {
+            if (p.inning && p.inning !== lastInning && p.isTop) {
+                lastInning = p.inning;
+                const x = p.x;
+                inningLines += `
+                    <line x1="${x}" y1="${PT}" x2="${x}" y2="${PT + CH}" stroke="rgba(4,30,66,0.12)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <line x1="${x}" y1="${PT + CH}" x2="${x}" y2="${PT + CH + 5}" stroke="#041e42" stroke-width="1"/>
+                    <text x="${x}" y="${PT + CH + 15}" text-anchor="middle" font-size="8" fill="#041e42" font-family="Rubik">${p.inning}</text>
+                `;
+            }
+        });
+
+        // Unique tooltip ID to avoid conflicts
+        const tooltipId = `wp-tooltip-${gamePk}`;
+
+        winProbContainer.innerHTML = `
+            <style>
+                #${tooltipId} {
+                    position: absolute;
+                    background: #041e42;
+                    color: white;
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    font-family: Rubik, sans-serif;
+                    pointer-events: none;
+                    display: none;
+                    max-width: 200px;
+                    line-height: 1.5;
+                    z-index: 100;
+                    border-left: 3px solid #bf0d3d;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                }
+                #${tooltipId} .tt-event {
+                    font-weight: 700;
+                    font-size: 12px;
+                    color: #bf0d3d;
+                    margin-bottom: 2px;
+                }
+                #${tooltipId} .tt-desc {
+                    color: #ccc;
+                    font-size: 10px;
+                    margin-bottom: 4px;
+                }
+                #${tooltipId} .tt-probs {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                    margin-top: 4px;
+                    border-top: 1px solid rgba(255,255,255,0.15);
+                    padding-top: 4px;
+                }
+                #${tooltipId} .tt-away { color: ${awayColor}; font-weight: 600; filter: brightness(2.0); }
+                #${tooltipId} .tt-home { color: ${homeColor}; font-weight: 600; filter: brightness(2.0); }
+                #${tooltipId} .tt-added-pos { color: #4caf50; font-size: 10px; }
+                #${tooltipId} .tt-added-neg { color: #ff6b6b; font-size: 10px; }
+                .wp-hover-dot {
+                    display: none;
+                    pointer-events: none;
+                }
+            </style>
+
+            <!-- Title -->
+            <div style="text-align:center; font-weight:600; font-size:12px; color:#041e428a; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                Win Probability
+            </div>
+
+            <!-- Current probability bars -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding:0 4px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <img src="https://www.mlbstatic.com/team-logos/${awayId}.svg" style="width:24px; height:24px;">
+                    <span style="font-size:20px; font-weight:700; color:#041e42;">${awayProb}%</span>
+                </div>
+                <div style="font-size:10px; color:#999; font-weight:500; letter-spacing:0.5px;">WIN PROBABILITY</div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:20px; font-weight:700; color:#bf0d3d;">${homeProb}%</span>
+                    <img src="https://www.mlbstatic.com/team-logos/${homeId}.svg" style="width:24px; height:24px;">
+                </div>
+            </div>
+
+            <!-- Split bar -->
+            <div style="display:flex; height:6px; border-radius:3px; overflow:hidden; margin:0 4px 10px 4px;">
+                <div style="width:${awayProb}%; background:${awayColor}; transition:width 0.5s;"></div>
+                <div style="width:${homeProb}%; background:${homeColor}; transition:width 0.5s;"></div>
+            </div>
+
+            <!-- SVG chart wrapper -->
+            <div style="position:relative; width:100%;">
+                <div id="${tooltipId}"></div>
+                <svg id="wp-svg-${gamePk}" width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible; display:block;">
+
+                    <!-- Chart background -->
+                    <rect x="${PL}" y="${PT}" width="${CW}" height="${CH}" fill="#f7fafc" rx="4"/>
+
+                    <!-- Away team fill (top half - #041e42) -->
+                    <polygon points="${awayPolyPoints}" fill="${awayColor}" clip-path="url(#clip-top-${gamePk})"/>
+
+                    <!-- Home team fill (bottom half - #bf0d3d) -->
+                    <polygon points="${homePolyPoints}" fill="${homeColor}" clip-path="url(#clip-bottom-${gamePk})"/>
+
+                    <!-- Clip paths to split at 50% line -->
+                    <defs>
+                        <clipPath id="clip-top-${gamePk}">
+                            <rect x="${PL}" y="${PT}" width="${CW}" height="${CH / 2}"/>
+                        </clipPath>
+                        <clipPath id="clip-bottom-${gamePk}">
+                            <rect x="${PL}" y="${PT + CH / 2}" width="${CW}" height="${CH / 2}"/>
+                        </clipPath>
+                    </defs>
+
+                    <!-- 50% dashed line -->
+                    <line x1="${PL}" y1="${PT + CH / 2}" x2="${PL + CW}" y2="${PT + CH / 2}" stroke="#bbb" stroke-width="1" stroke-dasharray="4,3"/>
+                    <text x="${PL - 4}" y="${PT + CH / 2 + 4}" text-anchor="end" font-size="8" fill="#999" font-family="Rubik">50%</text>
+
+                    <!-- Y axis labels -->
+                    <text x="${PL - 4}" y="${PT + 5}" text-anchor="end" font-size="8" fill="${awayColor}" font-family="Rubik">${awayAbbr}</text>
+                    <text x="${PL - 4}" y="${PT + CH + 4}" text-anchor="end" font-size="8" fill="${homeColor}" font-family="Rubik">${homeAbbr}</text>
+                    <text x="${PL - 4}" y="${PT + 5 + 9}" text-anchor="end" font-size="7" fill="#999" font-family="Rubik">100%</text>
+                    <text x="${PL - 4}" y="${PT + CH - 2}" text-anchor="end" font-size="7" fill="#999" font-family="Rubik">100%</text>
+
+                    <!-- Inning separators and labels -->
+                    ${inningLines}
+
+                    <!-- Win prob line -->
+                    <polyline points="${linePoints}" fill="none" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/>
+
+                    <!-- Invisible hover zones (wide vertical strips) -->
+                    ${pts.map((p, i) => {
+                        const x = i === 0 ? PL : pts[i - 1].x + (p.x - pts[i - 1].x) / 2;
+                        const nextX = i === pts.length - 1 ? PL + CW : p.x + (pts[i + 1].x - p.x) / 2;
+                        const w = nextX - x;
+                        const addedClass = p.added >= 0 ? 'tt-added-pos' : 'tt-added-neg';
+                        const addedSign = p.added >= 0 ? '+' : '';
+                        const inningLabel = p.inning ? `${p.isTop ? 'Top' : 'Bot'} ${p.inning}` : '';
+                        const safeDesc = (p.description || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        const safeEvent = (p.event || '').replace(/'/g, "\\'");
+                        return `<rect 
+                            x="${x}" y="${PT}" width="${w}" height="${CH}"
+                            fill="transparent"
+                            class="wp-hover-zone"
+                            data-index="${i}"
+                            data-x="${p.x}"
+                            data-y="${p.y}"
+                            data-home="${p.homeProb.toFixed(1)}"
+                            data-away="${p.awayProb.toFixed(1)}"
+                            data-added="${p.added !== undefined ? p.added.toFixed(1) : 'N/A'}"
+                            data-added-class="${addedClass}"
+                            data-added-sign="${addedSign}"
+                            data-event="${safeEvent}"
+                            data-desc="${safeDesc}"
+                            data-inning="${inningLabel}"
+                            style="cursor:crosshair;"
+                        />`;
+                    }).join('')}
+
+                    <!-- Hover dot (shown on hover) -->
+                    <circle id="wp-dot-${gamePk}" cx="0" cy="0" r="4" fill="white" stroke="#333" stroke-width="2" class="wp-hover-dot"/>
+
+                    <!-- X axis label -->
+                    <text x="${PL + CW / 2}" y="${H - 2}" text-anchor="middle" font-size="9" fill="#041e42" font-family="Rubik">Inning</text>
+                </svg>
+            </div>
+
+            <!-- Legend -->
+            <div style="display:flex; justify-content:center; gap:20px; margin-top:6px; font-size:11px; font-family:Rubik;">
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <div style="width:14px; height:4px; background:${awayColor}; border-radius:2px;"></div>
+                    <span>${awayName}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <div style="width:14px; height:4px; background:${homeColor}; border-radius:2px;"></div>
+                    <span>${homeName}</span>
+                </div>
+            </div>
+        `;
+
+        // --- Hover interaction ---
+        const svg = document.getElementById(`wp-svg-${gamePk}`);
+        const tooltip = document.getElementById(tooltipId);
+        const dot = document.getElementById(`wp-dot-${gamePk}`);
+        const hoverZones = svg.querySelectorAll('.wp-hover-zone');
+        const svgWrapper = svg.parentElement;
+
+        hoverZones.forEach(zone => {
+            zone.addEventListener('mouseenter', (e) => {
+                const cx = parseFloat(zone.dataset.x);
+                const cy = parseFloat(zone.dataset.y);
+                const homeP = zone.dataset.home;
+                const awayP = zone.dataset.away;
+                const added = zone.dataset.added;
+                const addedClass = zone.dataset.addedClass;
+                const addedSign = zone.dataset.addedSign;
+                const event = zone.dataset.event;
+                const desc = zone.dataset.desc;
+                const inning = zone.dataset.inning;
+
+                // Show and position dot
+                dot.setAttribute('cx', cx);
+                dot.setAttribute('cy', cy);
+                dot.style.display = 'block';
+
+                // Build tooltip
+                const addedLine = added !== 'N/A'
+                    ? `<span class="${addedClass}">${addedSign}${added}% WP shift</span>`
+                    : '';
+
+                tooltip.innerHTML = `
+                    ${inning ? `<div style="font-size:9px; color:#888; margin-bottom:2px;">${inning}</div>` : ''}
+                    ${event ? `<div class="tt-event">${event}</div>` : ''}
+                    ${desc ? `<div class="tt-desc">${desc}</div>` : ''}
+                    ${addedLine}
+                    <div class="tt-probs">
+                        <span class="tt-away">${awayAbbr} ${awayP}%</span>
+                        <span class="tt-home">${homeAbbr} ${homeP}%</span>
+                    </div>
+                `;
+                tooltip.style.display = 'block';
+            });
+
+            zone.addEventListener('mousemove', (e) => {
+                const rect = svgWrapper.getBoundingClientRect();
+                let left = e.clientX - rect.left + 12;
+                let top = e.clientY - rect.top - 10;
+
+                // Keep tooltip inside wrapper
+                const ttW = 200;
+                if (left + ttW > rect.width) left = e.clientX - rect.left - ttW - 12;
+                if (top < 0) top = 0;
+
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+            });
+
+            zone.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+                dot.style.display = 'none';
+            });
+        });
+
+    } catch (error) {
+        console.error('Error loading win probability:', error);
+        const stillActive = document.querySelector('.tab-button.active');
+        if (stillActive && stillActive.id === 'win-prob-tab') {
+            winProbContainer.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Error loading win probability data.</p>';
+        } else {
+            winProbContainer.style.display = 'none';
+        }
+    }
 }
 });

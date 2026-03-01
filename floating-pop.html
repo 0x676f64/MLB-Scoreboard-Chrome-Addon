@@ -210,8 +210,80 @@ body.dark-mode #popup-container {
     margin-left: 30px;
 }
 
+#away-player-stats {
+    text-align: left;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+#home-player-stats {
+    text-align: left;
+    padding-left: 4px;
+}
+
+#away-player-stats .lineup,
+#home-player-stats .lineup {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    direction: ltr;
+    text-align: left;
+}
+
+#away-player-stats .player-name,
+#away-player-stats .player-position,
+#away-player-stats .prob-stats,
+#home-player-stats .player-name,
+#home-player-stats .player-position,
+#home-player-stats .prob-stats {
+    text-align: left;
+    display: block;
+    direction: ltr;
+}
+
 #home-player-info {
     margin-right: 70px;
+}
+
+.decision-pitcher {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    text-align: center;
+}
+
+.decision-pitcher-image {
+    width: 55px;
+    height: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #bf0d3d;
+    background-color: #041e42;
+    object-fit: cover;
+}
+
+.decision-pitcher-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    width: 140px;
+}
+
+.decision-pitcher-name {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.3;
+    max-width: 150px;
 }
 
 .team-logo {

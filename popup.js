@@ -446,7 +446,7 @@ toggleContainers(true);
                 let inningBoxStyle = "";
 
                 // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Final: Tied", "Pre-Game", "Scheduled", "Suspended: Rain"].includes(gameStatusText);
+                const isLiveGame = !["Final", "Game Over", "Final: Tied", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
@@ -462,11 +462,12 @@ toggleContainers(true);
                 dynamicTab.textContent = "Live";
             }
 
-                if (gameStatusText === "Suspended: Rain") {
+                if (gameStatusText === "Suspended: Rain" || gameStatusText === "Completed Early: Rain") {
                     inningText = "SUSPENDED";
                     inningBoxStyle = "color: red;";
-                } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
-                    inningText = "FINAL";
+                } else if (gameStatusText === "Final" || gameStatusText === "Game Over") {
+                    const finalInning = linescore.currentInning || 9;
+                    inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                     inningBoxStyle = "color: red;";
                 } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                     inningText = formatGameTime(game.datetime.dateTime);
@@ -547,7 +548,7 @@ toggleContainers(true);
 
   // ** When the Game is Over **    
    
-if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied") {
+if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain") {
     const isTied = gameState === "Final: Tied";
     
     // Only show W/L pitchers if the game has a decision (not a tie)
@@ -1223,8 +1224,9 @@ homePlayerStats.innerHTML = `
             } else if (gameStatusText === "Cancelled") {
                 inningText = "RAIN";
                 inningBoxStyle = "color: #bf0d3e;";
-            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
-                inningText = "FINAL";
+            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied", gameStatusText === "Completed Early: Rain") {
+                const finalInning = linescore.currentInning || 9;
+                inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                 inningBoxStyle = "color: #bf0d3e;";
             } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                 inningText = formatGameTime(game.datetime.dateTime);
@@ -1247,7 +1249,7 @@ homePlayerStats.innerHTML = `
 
     function updateScorebug(data) {
         // Check if the game is finished and hide the scorebug if it is
-        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied") {
+        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Cancelled" || data.gameData.status.detailedState === "Completed Early: Rain") {
             scorebugContainer.innerHTML = ""; // Clear the scorebug content
             document.getElementById("scorebug-wrapper").style.display = "none";
             return;
@@ -2659,7 +2661,8 @@ function shouldRefresh(gameStatus) {
         "Completed Early", 
         "Suspended",
         "Cancelled",
-        "Postponed"
+        "Postponed",
+        "Completed Early: Rain" 
     ];
     
     const preGameStates = [
@@ -2891,7 +2894,7 @@ async function loadScoringPlays() {
         // Get game state to determine if we should refresh
         const gameDetailedState = gameData.gameData?.status?.detailedState || '';
         const isLiveGame = gameDetailedState === 'Live';
-        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final';
+        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final' || gameDetailedState === 'Completed Early: Rain' || gameDetailedState === 'Suspended' || gameDetailedState === 'Cancelled' || gameDetailedState === 'Postponed';
 
         console.log('Game state:', gameDetailedState, 'Is live:', isLiveGame, 'Is over:', isGameOver);
 
