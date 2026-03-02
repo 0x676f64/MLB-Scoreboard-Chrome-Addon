@@ -1430,24 +1430,21 @@ const resultCategories = {
     strike: {
         results: ['Strike', 'Swinging Strike', 'Called Strike', 'Strikeout', 'Flyout'],
         style: {
-            background: '#dc3545',
-            color: 'white',
+            background: '#041e41',
+            color: '#ffffff',
             padding: '4px 12px',
             borderRadius: '20px',
             fontSize: '14px',
             fontWeight: 'bold',
             display: 'inline-block',
             textTransform: 'uppercase',
-            letterSpacing: '1px',
-            borderLeft: '3px solid #333',
-            borderBottom: '1px solid #333'
         }
     },
     ball: {
         results: ['Ball', 'Ball In Dirt', 'Pitch Out', 'Intentional Ball', 'Walk'],
         style: {
-            background: '#28a745',
-            color: 'white',
+            background: '#041e41',
+            color: '#ffffff',
             padding: '4px 12px',
             borderRadius: '20px',
             fontSize: '14px',
@@ -1455,15 +1452,13 @@ const resultCategories = {
             display: 'inline-block',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            borderLeft: '3px solid #333',
-            borderBottom: '1px solid #333'
         }
     },
     foul: {
         results: ['Foul', 'Foul Tip', 'Foul Bunt', 'Foul Ball'],
         style: {
-            background: '#dc3545',
-            color: 'white',
+            background: '#041e41',
+            color: '#ffffff',
             padding: '4px 12px',
             borderRadius: '20px',
             fontSize: '14px',
@@ -1471,8 +1466,6 @@ const resultCategories = {
             display: 'inline-block',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            borderLeft: '3px solid #333',
-            borderBottom: '1px solid #333'
         }
     }
 };
@@ -1574,6 +1567,11 @@ const styleDescription = (desc) => {
         else if (eventType.includes('Catcher Interference')) return 'E2';
         else if (eventType.includes('Groundout')) return 'OUT';
         else if (eventType.includes('Strikeout')) return 'K';
+        else if (eventType.includes('Called Strike')) return 'K';
+        else if (eventType.includes('Swinging Strike')) return 'K';
+        else if (eventType.includes('Pop Out')) return 'OUT';
+        else if (eventType.includes('Lineout')) return 'OUT';
+        else if (eventType.includes('Flyout')) return 'OUT';
         else return null;
     };
 
@@ -1646,15 +1644,15 @@ const styleDescription = (desc) => {
     pitchResultHTML += `
     <div class="hit-data">
         <div>
-            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">EXIT VELO:</span>
+            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">EV</span>
             <span style="font-size: 14px; font-weight: bold; color: #bf0d3d;">${launchSpeed}</span>
         </div>
         <div>
-            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">LAUNCH ANGLE:</span>
+            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">LA</span>
             <span style="font-size: 14px; font-weight: bold; color: #bf0d3d;">${launchAngle}</span>
         </div>
         <div>
-            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">DISTANCE:</span>
+            <span style="font-size: 11px; color: #041e41; font-weight: 600; text-transform: uppercase;">DISTANCE</span>
             <span style="font-size: 14px; font-weight: bold; color: #bf0d3d;">${totalDistance}</span>
         </div>
     </div>
@@ -2465,7 +2463,7 @@ function createGameStartItem(gameInfo) {
     
     gameStartDiv.innerHTML = `
         <div style="font-weight: 400; margin-bottom: 4px; font-family: 'Rubik';">First Pitch</div>
-        <div style="font-size: 20px; font-weight: 500; font-family: 'Rubik';">${timeString} &#8226; ${venue}</div>
+        <div style="font-size: 12px; font-weight: 500; font-family: 'Rubik';">${timeString} &#8226; ${venue}</div>
         <div style="font-weight: 400; font-family: 'Rubik'; color: #fc2461ff;">${city} &#8226; ${state}</div>
     `;
     
@@ -2531,15 +2529,15 @@ function createPlayItem(play, gameData) {
         border-bottom: 1px solid #bf0d3e;
     ">
         <div class="stat-item" style="text-align: center; flex: 1;">
-            <div class="stat-item-ev" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Exit Velo</div>
+            <div class="stat-item-ev" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">EV</div>
             <div class="stat-item-ev-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${exitVelo}</div>
         </div>
         <div class="stat-item" style="text-align: center; flex: 1;">
-            <div class="stat-item-la" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Launch Angle</div>
+            <div class="stat-item-la" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">LA</div>
             <div class="stat-item-la-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${launchAngle}</div>
         </div>
         <div class="stat-item" style="text-align: center; flex: 1;">
-            <div class="stat-item-dis" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Distance</div>
+            <div class="stat-item-dis" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">Distance</div>
             <div class="stat-item-dis-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${distance}</div>
         </div>
     </div>
@@ -3104,6 +3102,14 @@ function createScoringPlayItem(play, gameInfo, index) {
     else if (eventType.includes('Double Play')) eventIcon = 'OUT';
     else if (eventType.includes('Catcher Interference')) eventIcon = 'E2';
     else if (eventType.includes('Groundout')) eventIcon = 'OUT';
+    else if (eventType.includes('Strikeout')) return 'K';
+    else if (eventType.includes('Called Strike')) return 'K';
+    else if (eventType.includes('Swinging Strike')) return 'K';
+    else if (eventType.includes('Pop Out')) return 'OUT';
+    else if (eventType.includes('Lineout')) return 'OUT';
+    else if (eventType.includes('Flyout')) return 'OUT';
+
+
 
     // Get baserunners (pre-play state for visual context)
     const baserunners = getBaserunners(play);
@@ -3153,15 +3159,15 @@ function createScoringPlayItem(play, gameInfo, index) {
             border-bottom: 1px solid #bf0d3e;
         ">
             <div class="stat-item" style="text-align: center; flex: 1;">
-                <div class="stat-item-ev" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Exit Velo</div>
+                <div class="stat-item-ev" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">EV</div>
                 <div class="stat-item-ev-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${exitVelo}</div>
             </div>
             <div class="stat-item" style="text-align: center; flex: 1;">
-                <div class="stat-item-la" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Launch Angle</div>
+                <div class="stat-item-la" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">LA</div>
                 <div class="stat-item-la-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${launchAngle}</div>
             </div>
             <div class="stat-item" style="text-align: center; flex: 1;">
-                <div class="stat-item-dis" style="font-size: 11px; color: #041e42; font-weight: 600; text-transform: uppercase;">Distance</div>
+                <div class="stat-item-dis" style="font-size: 9px; color: #041e42; font-weight: 600; text-transform: uppercase;">Distance</div>
                 <div class="stat-item-dis-result" style="font-size: 14px; font-weight: bold; color: #bf0d3e;">${distance}</div>
             </div>
         </div>
