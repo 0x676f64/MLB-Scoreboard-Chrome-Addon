@@ -445,32 +445,35 @@ toggleContainers(true);
                 let inningText = "";
                 let inningBoxStyle = "";
 
-                // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Final: Tied", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
+                 // Check if game is live/in-progress
+                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
 
                 if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
-                dynamicTab.textContent = "Wrap"; // Or "Final Summary"
-                    } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
-                dynamicTab.textContent = "Game Info";
-                    } else if (gameStatusText === "Warmup" || gameStatusText === "Delayed" || gameStatusText === "Postponed" || gameStatusText === "Suspended") {
-                dynamicTab.textContent = gameStatusText; // Show the specific status
-                    } else {
-                // For "In Progress", "Manager Challenge", etc.
-                dynamicTab.textContent = "Live";
-            }
+                    dynamicTab.textContent = "Wrap";
+                } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
+                    dynamicTab.textContent = "Game Info";
+                } else if (gameStatusText === "Warmup" || gameStatusText === "Delayed" || gameStatusText === "Postponed" || gameStatusText === "Suspended") {
+                    dynamicTab.textContent = gameStatusText;
+                } else {
+                    dynamicTab.textContent = "Live";
+                }
 
-                if (gameStatusText === "Suspended: Rain" || gameStatusText === "Completed Early: Rain") {
+                if (gameStatusText === "Suspended: Rain") {
                     inningText = "SUSPENDED";
                     inningBoxStyle = "color: red;";
-                } else if (gameStatusText === "Final" || gameStatusText === "Game Over") {
+                } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied") {
                     const finalInning = linescore.currentInning || 9;
                     inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                     inningBoxStyle = "color: red;";
                 } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
                     inningText = formatGameTime(game.datetime.dateTime);
+                    inningBoxStyle = "color: red;";
+                } else if (gameStatusText === "Game Over") {
+                    const finalInning = linescore.currentInning || 9;
+                    inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                     inningBoxStyle = "color: red;";
                 } else {
                     const inningHalf = linescore.inningHalf ? (linescore.inningHalf === "Top" ? "TOP" : "BOT") : "";
@@ -1224,7 +1227,7 @@ homePlayerStats.innerHTML = `
             } else if (gameStatusText === "Cancelled") {
                 inningText = "RAIN";
                 inningBoxStyle = "color: #bf0d3e;";
-            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied", gameStatusText === "Completed Early: Rain") {
+            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
                 const finalInning = linescore.currentInning || 9;
                 inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                 inningBoxStyle = "color: #bf0d3e;";
