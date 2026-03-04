@@ -446,7 +446,7 @@ toggleContainers(true);
                 let inningBoxStyle = "";
 
                  // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
+                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain", "Completed Early: Mercy"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
@@ -551,7 +551,7 @@ toggleContainers(true);
 
   // ** When the Game is Over **    
    
-if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain") {
+if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain" || gameState === "Completed Early: Mercy") {
     const isTied = gameState === "Final: Tied";
     
     // Only show W/L pitchers if the game has a decision (not a tie)
@@ -1227,7 +1227,7 @@ homePlayerStats.innerHTML = `
             } else if (gameStatusText === "Cancelled") {
                 inningText = "RAIN";
                 inningBoxStyle = "color: #bf0d3e;";
-            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
+            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain" || gameStatusText === "Completed Early: Mercy") {
                 const finalInning = linescore.currentInning || 9;
                 inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                 inningBoxStyle = "color: #bf0d3e;";
@@ -1252,7 +1252,7 @@ homePlayerStats.innerHTML = `
 
     function updateScorebug(data) {
         // Check if the game is finished and hide the scorebug if it is
-        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Cancelled" || data.gameData.status.detailedState === "Completed Early: Rain") {
+        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Cancelled" || data.gameData.status.detailedState === "Completed Early: Rain" || data.gameData.status.detailedState === "Completed Early: Mercy") {
             scorebugContainer.innerHTML = ""; // Clear the scorebug content
             document.getElementById("scorebug-wrapper").style.display = "none";
             return;
@@ -2665,7 +2665,8 @@ function shouldRefresh(gameStatus) {
         "Suspended",
         "Cancelled",
         "Postponed",
-        "Completed Early: Rain" 
+        "Completed Early: Rain",
+        "Completed Early: Mercy" 
     ];
     
     const preGameStates = [
@@ -2897,7 +2898,7 @@ async function loadScoringPlays() {
         // Get game state to determine if we should refresh
         const gameDetailedState = gameData.gameData?.status?.detailedState || '';
         const isLiveGame = gameDetailedState === 'Live';
-        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final' || gameDetailedState === 'Completed Early: Rain' || gameDetailedState === 'Suspended' || gameDetailedState === 'Cancelled' || gameDetailedState === 'Postponed';
+        const isGameOver = gameDetailedState === 'Game Over' || gameDetailedState === 'Final' || gameDetailedState === 'Completed Early: Rain' || gameDetailedState === 'Suspended' || gameDetailedState === 'Cancelled' || gameDetailedState === 'Postponed' || gameDetailedState === 'Completed Early: Mercy';
 
         console.log('Game state:', gameDetailedState, 'Is live:', isLiveGame, 'Is over:', isGameOver);
 
@@ -3275,7 +3276,7 @@ const MLB_TEAM_COLORS = {
 
 function getTeamColor(teamId) {
     const colors = MLB_TEAM_COLORS[teamId];
-    return colors ? colors.primary : '#041e42';
+    return colors ? colors.primary : '#535557';
 }
 
 async function loadWinProbability() {
