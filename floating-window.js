@@ -15,11 +15,11 @@ const CONFIG = {
 const GAME_STATUS = {
     LIVE: ['I', 'IP', 'IS', 'IR', 'MC', 'MA'],
     FINAL: ['F', 'FR', 'FT', 'O'],
-    PRE_GAME: ['P', 'S', 'PR', 'PW']
+    PRE_GAME: ['P', 'S', 'PR', 'PW', 'PI']
 };
 
 const API = {
-    schedule: (date) => `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`,
+    schedule: (date) => `https://statsapi.mlb.com/api/v1/schedule?sportId=1,51&date=${date}`,
     gameFeed: (gamePk) => `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`,
     team: (teamId) => `https://statsapi.mlb.com/api/v1/teams/${teamId}`,
     headshot: (playerId) => `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${playerId}/headshot/67/current`,

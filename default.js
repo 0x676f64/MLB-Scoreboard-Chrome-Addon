@@ -60,8 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return dateTime.toLocaleTimeString([], {
             hour: 'numeric',
             minute: '2-digit',
-            hour12: true,
-            timeZoneName: 'short'
+            hour12: true
         });
     }
 
@@ -97,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Main function to fetch and display games for a specific date
     async function fetchGameData(selectedDate) {
-        const apiUrl = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${selectedDate}`;
+        const apiUrl = `https://statsapi.mlb.com/api/v1/schedule?sportId=1,51&date=${selectedDate}`;
         
         try {
             const response = await fetch(apiUrl);

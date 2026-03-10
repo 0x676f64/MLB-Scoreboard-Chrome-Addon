@@ -3274,9 +3274,40 @@ const MLB_TEAM_COLORS = {
     158: { primary: '#12284B', secondary: '#FFC52F' },  // MIL Brewers
 };
 
-function getTeamColor(teamId) {
-    const colors = MLB_TEAM_COLORS[teamId];
-    return colors ? colors.primary : '#535557';
+// WBC teams — keyed by name as returned from the API
+const WBC_TEAM_COLORS = {
+    "Japan":               { primary: '#BC002D', secondary: '#FFFFFF' },
+    "Chinese Taipei":      { primary: '#000095', secondary: '#FE0000' },
+    "USA":                 { primary: '#BF0A30', secondary: '#002868' },
+    "Korea":               { primary: '#CD2E3A', secondary: '#003478' },
+    "Venezuela":           { primary: '#CF0921', secondary: '#002EA0' },
+    "Mexico":              { primary: '#006847', secondary: '#CE1126' },
+    "Puerto Rico":         { primary: '#ED0000', secondary: '#0033A0' },
+    "Panama":              { primary: '#DB1116', secondary: '#001489' },
+    "Netherlands":         { primary: '#AE1C28', secondary: '#21468B' },
+    "Cuba":                { primary: '#002A8F', secondary: '#CF142B' },
+    "Australia":           { primary: '#00008B', secondary: '#FF0000' },
+    "Dominican Republic":  { primary: '#002D62', secondary: '#CF142B' },
+    "Canada":              { primary: '#FF0000', secondary: '#FFFFFF' },
+    "Colombia":            { primary: '#FCD116', secondary: '#003087' },
+    "Brazil":              { primary: '#009C3B', secondary: '#FFDF00' },
+    "Great Britain":       { primary: '#C8102E', secondary: '#012169' },
+    "Italy":               { primary: '#009246', secondary: '#CE2B37' },
+    "Czechia":             { primary: '#D7141A', secondary: '#11457E' },
+    "Israel":              { primary: '#0038B8', secondary: '#FFFFFF' },
+    "Nicaragua":           { primary: '#3A75C4', secondary: '#FFFFFF' },
+};
+
+function getTeamColor(teamId, teamName = '') {
+    // Try MLB lookup by ID first
+    if (MLB_TEAM_COLORS[teamId]) {
+        return MLB_TEAM_COLORS[teamId].primary;
+    }
+    // Fall back to WBC lookup by name
+    if (teamName && WBC_TEAM_COLORS[teamName]) {
+        return WBC_TEAM_COLORS[teamName].primary;
+    }
+    return '#535557'; // default grey
 }
 
 async function loadWinProbability() {
@@ -3317,8 +3348,8 @@ async function loadWinProbability() {
         const homeTeam = gameData.gameData.teams.home;
         const awayId = awayTeam.id;
         const homeId = homeTeam.id;
-        const awayColor = getTeamColor(awayId);
-        const homeColor = getTeamColor(homeId);
+        const awayColor = getTeamColor(awayId, awayTeam.name);
+        const homeColor = getTeamColor(homeId, homeTeam.name);
         const awayName = awayTeam.name;
         const homeName = homeTeam.name;
         const awayAbbr = awayTeam.abbreviation || awayTeam.teamName;
