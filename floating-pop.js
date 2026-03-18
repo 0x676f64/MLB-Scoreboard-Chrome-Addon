@@ -471,26 +471,28 @@ toggleContainers(true);
                 let inningBoxStyle = "";
 
                 // Check if game is live/in-progress
-                const isLiveGame = !["Final", "Game Over", "Pre-Game", "Scheduled", "Suspended: Rain", "Completed Early: Rain"].includes(gameStatusText);
+                const isLiveGame = !["Final", "Game Over", "Final: Tied", "Pre-Game", "Scheduled", "Suspended: Rain", "Suspended", "Completed Early: Rain", "Completed Early: Mercy", "Completed Early", "Cancelled", "Cancelled: Rain", "Postponed"].includes(gameStatusText);
     
                 // --- START OF WHERE TO PUT YOUR TAB LOGIC ---
                 const dynamicTab = document.getElementById("dynamic-tab"); // Ensure dynamicTab is accessible here
 
-                if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Completed Early: Rain") {
-                dynamicTab.textContent = "Wrap"; // Or "Final Summary"
-                    } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
-                dynamicTab.textContent = "Game Info";
-                    } else if (gameStatusText === "Warmup" || gameStatusText === "Delayed" || gameStatusText === "Postponed" || gameStatusText === "Suspended") {
-                dynamicTab.textContent = gameStatusText; // Show the specific status
-                    } else {
-                // For "In Progress", "Manager Challenge", etc.
-                dynamicTab.textContent = "Live";
-            }
+                if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain" || gameStatusText === "Completed Early: Mercy" || gameStatusText === "Completed Early") {
+                    dynamicTab.textContent = "Wrap";
+                } else if (gameStatusText === "Pre-Game" || gameStatusText === "Scheduled") {
+                    dynamicTab.textContent = "Game Info";
+                } else if (gameStatusText === "Warmup" || gameStatusText === "Delayed" || gameStatusText === "Postponed" || gameStatusText === "Suspended" || gameStatusText === "Cancelled" || gameStatusText === "Cancelled: Rain") {
+                    dynamicTab.textContent = gameStatusText;
+                } else {
+                    dynamicTab.textContent = "Live";
+                }
 
-                if (gameStatusText === "Suspended: Rain") {
+                if (gameStatusText === "Suspended: Rain" || gameStatusText === "Suspended") {
                     inningText = "SUSPENDED";
                     inningBoxStyle = "color: red;";
-               } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
+                } else if (gameStatusText === "Cancelled" || gameStatusText === "Cancelled: Rain") {
+                    inningText = "CANCELLED";
+                    inningBoxStyle = "color: red;";
+                } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early" || gameStatusText === "Completed Early: Rain" || gameStatusText === "Completed Early: Mercy") {
                     const finalInning = linescore.currentInning || 9;
                     inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                     inningBoxStyle = "color: red;";
@@ -644,7 +646,7 @@ toggleContainers(true);
         homePlayerStats.innerHTML = "";
 
    // ** When the Game is Over **    
-   if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain") {
+   if (gameState === "Final" || gameState === "Game Over" || gameState === "Final: Tied" || gameState === "Completed Early: Rain" || gameState === "Completed Early: Mercy" || gameState === "Completed Early") {
     const isTied = gameState === "Final: Tied";
     document.getElementById("scorebug-wrapper").style.display = "none";
 
@@ -1289,7 +1291,7 @@ if (gameState === "Pre-Game" || gameState === "Scheduled" || gameState === "Warm
             } else if (gameStatusText === "Cancelled") {
                 inningText = "RAIN";
                 inningBoxStyle = "color: #bf0d3e;";
-            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early: Rain") {
+            } else if (gameStatusText === "Final" || gameStatusText === "Game Over" || gameStatusText === "Final: Tied" || gameStatusText === "Completed Early" || gameStatusText === "Completed Early: Rain" || gameStatusText === "Completed Early: Mercy" || gameStatusText === "Cancelled" || gameStatusText === "Cancelled: Rain") {
                 const finalInning = linescore.currentInning || 9;
                 inningText = finalInning !== 9 ? `FINAL/${finalInning}` : "FINAL";
                 inningBoxStyle = "color: #bf0d3e;";
@@ -1314,7 +1316,7 @@ if (gameState === "Pre-Game" || gameState === "Scheduled" || gameState === "Warm
 
     function updateScorebug(data) {
         // Check if the game is finished and hide the scorebug if it is
-        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Completed Early: Rain") {
+        if (data.gameData.status.detailedState === "Final" || data.gameData.status.detailedState === "Game Over" || data.gameData.status.detailedState === "Final: Tied" || data.gameData.status.detailedState === "Completed Early: Rain" || data.gameData.status.detailedState === "Completed Early: Mercy" || data.gameData.status.detailedState === "Completed Early" || data.gameData.status.detailedState === "Cancelled" || data.gameData.status.detailedState === "Cancelled: Rain") {
             scorebugContainer.innerHTML = ""; // Clear the scorebug content
             document.getElementById("scorebug-wrapper").style.display = "none";
             return;
@@ -2027,7 +2029,7 @@ async function loadBoxScore() {
             }
 
             .boxscore-table thead {
-                background: #041e42;
+                background: #041e41;
                 color: white;
             }
 
@@ -2309,19 +2311,19 @@ async function loadBoxScore() {
                             <td class="team-name">
                                 <img src="https://www.mlbstatic.com/team-logos/${awayTeamId}.svg" alt="${awayAbbr}" class="team-logo-boxscore">
                             </td>
-                            ${innings.map(inn => `<td class="inning-score">${inn.away?.runs ?? '-'}</td>`).join('')}
-                            <td class="total-stats">${linescore.teams.away.runs}</td>
-                            <td class="total-stats">${linescore.teams.away.hits}</td>
-                            <td class="total-stats">${linescore.teams.away.errors}</td>
+                            ${innings.map(inn => `<td class="inning-score">${inn.away?.runs ?? '--'}</td>`).join('')}
+                            <td class="total-stats">${linescore.teams.away.runs ?? '--'}</td>
+                            <td class="total-stats">${linescore.teams.away.hits ?? '--'}</td>
+                            <td class="total-stats">${linescore.teams.away.errors ?? '--'}</td>
                         </tr>
                         <tr>
                             <td class="team-name">
                                 <img src="https://www.mlbstatic.com/team-logos/${homeTeamId}.svg" alt="${homeAbbr}" class="team-logo-boxscore">
                             </td>
-                            ${innings.map(inn => `<td class="inning-score">${inn.home?.runs ?? '-'}</td>`).join('')}
-                            <td class="total-stats">${linescore.teams.home.runs}</td>
-                            <td class="total-stats">${linescore.teams.home.hits}</td>
-                            <td class="total-stats">${linescore.teams.home.errors}</td>
+                            ${innings.map(inn => `<td class="inning-score">${inn.home?.runs ?? '--'}</td>`).join('')}
+                            <td class="total-stats">${linescore.teams.home.runs ?? '--'}</td>
+                            <td class="total-stats">${linescore.teams.home.hits ?? '--'}</td>
+                            <td class="total-stats">${linescore.teams.home.errors ?? '--'}</td>
                         </tr>
                     </tbody>
                 </table>

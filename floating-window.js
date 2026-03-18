@@ -14,7 +14,7 @@ const CONFIG = {
 
 const GAME_STATUS = {
     LIVE: ['I', 'IP', 'IS', 'IR', 'MC', 'MA'],
-    FINAL: ['F', 'FR', 'FT', 'O'],
+    FINAL: ['F', 'FR', 'FT', 'O', 'FO', 'C', 'CR'],
     PRE_GAME: ['P', 'S', 'PR', 'PW', 'PI']
 };
 
@@ -135,6 +135,28 @@ function getCurrentBaseballDate() {
     }
     
     return formatDateForAPI(now);
+}
+
+function getFinalLabel(detailedState, inningCount) {
+    if (!detailedState) return "Final";
+
+    if (detailedState.includes("Suspended")) return "Susp";
+    if (detailedState.includes("Cancelled")) return "Cncld";
+    if (detailedState.includes("Postponed")) return "PPD";
+    if (detailedState.includes("Completed Early")) {
+        const innings = inningCount || 9;
+        return innings !== 9 ? `Final/${innings}` : "Final";
+    }
+    if (detailedState === "Final: Tied") {
+        const innings = inningCount || 9;
+        return innings !== 9 ? `Final/${innings}` : "Final";
+    }
+    if (detailedState === "Final" || detailedState === "Game Over") {
+        const innings = inningCount || 9;
+        return innings !== 9 ? `Final/${innings}` : "Final";
+    }
+
+    return "Final";
 }
 
 function formatDateForAPI(date) {
@@ -556,7 +578,7 @@ async function createFinalGameLayout(game, detailedData, awayTeamAbbr, homeTeamA
                     <span class="team-abbr">${awayTeamAbbr}</span>
                     <span class="team-record">${awayRecord}</span>
                     <span class="score-md">${awayScore}</span>
-                    <span class="final-label">Final</span>
+                    <span class="final-label">${getFinalLabel(detailedData.detailedState, detailedData.innings?.length)}</span>
                 </div>
                 <div class="team-final-row">
                     <span class="score-md">${homeScore}</span>
