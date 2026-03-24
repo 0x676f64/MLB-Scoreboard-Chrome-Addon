@@ -15,11 +15,13 @@ html {
 }
 
 body {
-    width: 600px;
+    width: 667px;
     font-family: "Rubik", sans-serif;
-    height: 600px;
+    min-height: 667px;
     transform: scale(0.9);
     transform-origin: top left;
+    margin: 0;
+    padding: 0;
 }
 
 body.dark-mode #popup-container {
@@ -28,17 +30,14 @@ body.dark-mode #popup-container {
 }
 
 #popup-container {
-    width: 640px;
-    height: auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: flex-start;
-    border: 3px solid #041e41;
-    background-color: #f7fafc;;
-    padding: 10px;
+    background-color: #f7fafc;
+    padding: 0;
     position: relative;
-    border-radius: 10px;
+    margin-left: 40px;
 }
 
 #game-info {
@@ -47,7 +46,7 @@ body.dark-mode #popup-container {
     justify-content: space-between;
     margin-top: 20px;
     width: 80%; /* Keep this to ensure it spans full width */
-    margin-right: 20px;
+    margin-left: 60px;
 }
 
 #scorebug {
