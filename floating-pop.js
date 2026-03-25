@@ -485,8 +485,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         .plc-logo {
-            width: 100px;
-            height: 100px;
+            width: 150px;
+            height: 150px;
             object-fit: contain;
         }
 
@@ -1303,7 +1303,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Survives the 2-second refresh cycle so the selection is never reset.
     let pregameActiveTeam = 'away';
 
-    // ── Init ──────────────────────────────────────────────────────────────────
+    // ── Render-diff caches (prevent unnecessary rebuilds that cause flicker) ──
+    // Each stores a string fingerprint of the last rendered state.
+    // If the fingerprint hasn't changed we skip the rebuild entirely.
+    let _lastPregameKey = '';   // away pitcher id + home pitcher id + batting orders
+    let _lastBatterId   = '';   // live batter id
+    let _lastPitcherId  = '';   // live pitcher id
+    let _lastPitchCount = -1;   // number of pitches in current at-bat
+    let _lastResultEvt  = '';   // result event text of current play
 
     const params=new URLSearchParams(window.location.search);
     const gamePk=params.get("gamePk");
@@ -1458,6 +1465,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             const awayTeam=data.gameData.teams.away;
             const homeTeam=data.gameData.teams.home;
 
+            // ── Fingerprint guard ─────────────────────────────────────────────
+            // Pre-game lineups almost never change between 2-second refreshes.
+            // If the pitcher IDs and all 18 player IDs are identical to last
+            // render, skip the rebuild completely — zero flicker, zero scroll jump.
+            const pregameKey = [
+                awayP?.id||'', homeP?.id||'',
+                ...awayPlayers.map(p=>p.id),
+                ...homePlayers.map(p=>p.id)
+            ].join('|');
+
+            if(pregameKey === _lastPregameKey && document.getElementById('pregame-lineup-card')){
+                return; // nothing changed — leave the DOM entirely untouched
+            }
+            _lastPregameKey = pregameKey;
+
             // Build the inner HTML for one team's panel
             const buildPanelHTML=(pitcher,hand,seasonStats,players)=>{
                 const pid=pitcher?.id||null;
@@ -1492,6 +1514,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return ppHTML+`<div class="plc-rows">${rowsHTML}</div>`;
             };
 
+            // ── Save scroll positions before tearing down ─────────────────────
+            // window.scrollY covers the overall page scroll.
+            // The active panel's scrollTop covers scrolling within the lineup list.
+            const savedWindowScroll = window.scrollY || document.documentElement.scrollTop;
+            const activePanel = document.getElementById(
+                pregameActiveTeam === 'home' ? 'plc-home-panel' : 'plc-away-panel'
+            );
+            const savedPanelScroll = activePanel ? activePanel.scrollTop : 0;
+
             // Remove any stale card
             document.getElementById('pregame-lineup-card')?.remove();
 
@@ -1517,6 +1548,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="plc-panel" id="plc-home-panel" style="display:${activeOnBuild==='home'?'block':'none'};">${buildPanelHTML(homeP,homeHand,homeSS,homePlayers)}</div>`;
 
             if(gameplayEl)gameplayEl.appendChild(card);
+
+            // ── Restore scroll positions after rebuild ─────────────────────────
+            // requestAnimationFrame ensures the DOM has painted before we scroll,
+            // otherwise scrollTop assignments are ignored.
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: savedWindowScroll, behavior: 'instant' });
+                const restoredPanel = document.getElementById(
+                    pregameActiveTeam === 'home' ? 'plc-home-panel' : 'plc-away-panel'
+                );
+                if (restoredPanel) restoredPanel.scrollTop = savedPanelScroll;
+            });
 
             // Team toggle — write selection back to the persistent variable
             card.querySelectorAll('.plc-team-btn').forEach(btn=>{
@@ -1555,61 +1597,72 @@ document.addEventListener("DOMContentLoaded", async () => {
             const fmtAvg=(n)=>{if(!n||n==='---')return'---';const f=parseFloat(n);return f<1?'.'+String(Math.round(f*1000)).padStart(3,'0'):f.toFixed(3);};
 
             if(batter){
-                const batHand=currentPlay.matchup?.batSide?.code||'';
-                const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${batHand}HB</span>`:'';
-                awayPS.innerHTML=`
-                    <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
-                        <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
-                            style="width:30px;height:30px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
-                            onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                        <div style="min-width:0;">
-                            <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}${batBadge}</div>
-                            <div style="font-size:8px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Batter</div>
+                // Only rebuild if the batter changed — skipping prevents image flicker
+                if(String(batterId) !== _lastBatterId){
+                    _lastBatterId = String(batterId);
+                    // New batter = new at-bat: reset at-bat widget caches so it redraws
+                    _lastPitchCount = -1;
+                    _lastResultEvt  = '';
+                    const batHand=currentPlay.matchup?.batSide?.code||'';
+                    const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${batHand}HB</span>`:'';
+                    awayPS.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
+                            <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
+                                style="width:30px;height:30px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
+                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
+                            <div style="min-width:0;">
+                                <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}${batBadge}</div>
+                                <div style="font-size:8px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Batter</div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="display:flex;gap:3px;">
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">AVG</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${fmtAvg(batterSeason.avg)}</div>
-                        </div>
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">OPS</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${batterSeason.ops||'---'}</div>
-                        </div>
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">HR</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${batterSeason.homeRuns||'0'}</div>
-                        </div>
-                    </div>`;
+                        <div style="display:flex;gap:3px;">
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">AVG</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${fmtAvg(batterSeason.avg)}</div>
+                            </div>
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">OPS</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${batterSeason.ops||'---'}</div>
+                            </div>
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">HR</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${batterSeason.homeRuns||'0'}</div>
+                            </div>
+                        </div>`;
+                }
             }
 
             if(pitcher){
-                const pitHand=currentPlay.matchup?.pitchHand?.code||'';
-                const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${pitHand}HP</span>`:'';
-                homePS.innerHTML=`
-                    <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
-                        <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
-                            style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
-                            onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                        <div style="min-width:0;">
-                            <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}${pitBadge}</div>
-                            <div style="font-size:8px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Pitcher</div>
+                // Only rebuild if the pitcher changed — skipping prevents image flicker
+                if(String(pitcherId) !== _lastPitcherId){
+                    _lastPitcherId = String(pitcherId);
+                    const pitHand=currentPlay.matchup?.pitchHand?.code||'';
+                    const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${pitHand}HP</span>`:'';
+                    homePS.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
+                            <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
+                                style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
+                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
+                            <div style="min-width:0;">
+                                <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}${pitBadge}</div>
+                                <div style="font-size:8px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Pitcher</div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="display:flex;gap:3px;">
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">ERA</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.era||'---'}</div>
-                        </div>
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">IP</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.inningsPitched||'0'}</div>
-                        </div>
-                        <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
-                            <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">K</div>
-                            <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.strikeOuts||'0'}</div>
-                        </div>
-                    </div>`;
+                        <div style="display:flex;gap:3px;">
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">ERA</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.era||'---'}</div>
+                            </div>
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">IP</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.inningsPitched||'0'}</div>
+                            </div>
+                            <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
+                                <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">K</div>
+                                <div style="font-size:11px;font-weight:700;color:#041e42;">${pitcherSeason.strikeOuts||'0'}</div>
+                            </div>
+                        </div>`;
+                }
             }
 
             document.getElementById('scorebug-wrapper').style.display='';
@@ -1678,6 +1731,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="lab-pitch-result ${resCls}">${resLbl}</div>
             </div>`;
         }).join('');
+
+        // Skip full rebuild if pitch count and result event are unchanged —
+        // prevents the zone SVG and pitch log from flickering every 2 seconds.
+        if(pitches.length === _lastPitchCount &&
+           resultEvt === _lastResultEvt &&
+           String(batterId) === _lastBatterId &&
+           container.children.length > 0){
+            return;
+        }
+        _lastPitchCount = pitches.length;
+        _lastResultEvt  = resultEvt;
 
         container.innerHTML=`
             <div class="lab-main-row">
