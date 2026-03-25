@@ -9,9 +9,6 @@ class MLBVideoMatcher {
         this.rateLimitDelay = 1000;
         this.lastApiCall = 0;
         this.activeVideoPlayers = new Set();
-        this.contentWrapperState = null;
-        
-
     }
 
     async fetchGameContent(gamePk) {
@@ -52,7 +49,6 @@ class MLBVideoMatcher {
                     playbackCount: highlight?.playbacks?.length || 0
                 });
 
-                // Skip highlights without GUID - we need this for matching
                 if (!highlight.guid) {
                     console.log(`  ❌ Skipping highlight ${index}: No GUID`);
                     return; 
@@ -110,26 +106,13 @@ class MLBVideoMatcher {
             return null;
         }
 
-        console.log(`  Checking ${playbacks.length} playbacks:`, playbacks.map(p => ({
-            name: p.name,
-            url: p.url?.substring(0, 50) + '...',
-            hasMP4: (p.name || '').toLowerCase().includes('mp4avc') || (p.url || '').toLowerCase().includes('.mp4'),
-            hasM3U8: (p.name || '').includes('m3u8') || (p.url || '').includes('.m3u8')
-        })));
-
         const mp4Playbacks = playbacks.filter(p => {
             const name = (p.name || '').toLowerCase();
             const url = (p.url || '').toLowerCase();
-            
             const isMP4 = name.includes('mp4avc') || url.includes('.mp4');
             const isNotM3U8 = !name.includes('m3u8') && !url.includes('.m3u8');
-            
-            console.log(`    Playback "${p.name}": isMP4=${isMP4}, isNotM3U8=${isNotM3U8}`);
-            
             return isMP4 && isNotM3U8;
         });
-
-        console.log(`  Found ${mp4Playbacks.length} MP4 playbacks`);
 
         if (mp4Playbacks.length === 0) {
             console.log('⚠️ No MP4 playbacks found');
@@ -154,18 +137,14 @@ class MLBVideoMatcher {
 
     detectAnimatedVideo(highlight) {
         const duration = highlight.duration || 0;
-        // Only filter by suspicious duration (very short or very long videos)
         return duration > 0 && (duration < 5 || duration > 120);
     }
 
     detectContentType(highlight) {
         const duration = highlight.duration || 0;
-        
-        // Simple duration-based filtering
         if (duration > 0 && (duration < 5 || duration > 120)) {
             return 'animated';
         }
-        
         return 'play';
     }
 
@@ -182,7 +161,6 @@ class MLBVideoMatcher {
             .join(' ');
     }
 
-    // Main video finding method using direct GUID to PlayId matching
     async findVideoForPlay(gamePk, play) {
         const playKey = `${gamePk}_${play.about?.atBatIndex || 'unknown'}_${play.about?.playIndex || 'unknown'}`;
         
@@ -196,7 +174,6 @@ class MLBVideoMatcher {
             console.log(`🔍 Finding video for play: ${playKey}`);
             console.log(`📝 Play Description: "${play.result?.description || 'No description'}"`);
             
-            // Extract playId from the play's playEvents
             let targetPlayId = null;
             if (play.playEvents && play.playEvents.length > 0) {
                 const lastPlayEvent = play.playEvents[play.playEvents.length - 1];
@@ -212,7 +189,6 @@ class MLBVideoMatcher {
             }
             console.log(`🎯 Target playId: ${targetPlayId}`);
 
-            // Fetch game content and extract videos
             const gameContent = await this.fetchGameContent(gamePk);
             if (!gameContent) {
                 console.log('❌ No game content available.');
@@ -227,7 +203,6 @@ class MLBVideoMatcher {
                 return null;
             }
 
-            // Filter to suitable play videos
             const playVideos = allVideos.filter(video => 
                 !video.isAnimated && 
                 video.contentType !== 'animated' &&
@@ -242,20 +217,13 @@ class MLBVideoMatcher {
                 return null;
             }
 
-            // Find exact GUID match
             let bestMatch = null;
 
-            // Prioritize unused videos first
             let availableVideos = playVideos.filter(video => !this.usedVideoIds.has(video.id));
             if (availableVideos.length === 0) {
                 console.log('⚠️ All videos used, allowing reuse.');
                 availableVideos = [...playVideos];
             }
-
-            console.log(`🔍 Looking for GUID "${targetPlayId}" among ${availableVideos.length} available videos:`);
-            availableVideos.forEach((video, index) => {
-                console.log(`  Video ${index}: GUID="${video.guid}", Title="${video.title}", Match=${video.guid === targetPlayId ? '✅' : '❌'}`);
-            });
 
             for (const video of availableVideos) {
                 if (video.guid === targetPlayId) {
@@ -271,7 +239,6 @@ class MLBVideoMatcher {
                 return null;
             }
 
-            // Mark as used
             this.usedVideoIds.add(bestMatch.id);
             
             const result = {
@@ -302,7 +269,8 @@ class MLBVideoMatcher {
         this.lastApiCall = Date.now();
     }
 
-    // UI Methods
+    // ── UI Methods ────────────────────────────────────────────────────────────
+
     addVideoButtonToPlay(playDiv, gamePk, play) {
         if (playDiv.querySelector('.video-button')) {
             return;
@@ -312,90 +280,73 @@ class MLBVideoMatcher {
         videoButton.className = 'video-button';
         videoButton.style.cssText = `
             position: absolute;
-            bottom: 1vh;
-            right: 1vw;
+            bottom: 8px;
+            right: 8px;
             background: linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95));
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-size: 12px;
+            border: 1px solid rgba(4,30,66,0.15);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            transition: all 0.2s ease;
             z-index: 10;
-            opacity: 70%;
+            opacity: 0.8;
             pointer-events: auto;
-            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         `;
         
         videoButton.innerHTML = `
-            <img src="assets/icons/video-camera.png" alt="video" style="width: 16px; height: 16px; filter: contrast(1.2);" />
-            <span style="font-size: 11px;">VIDEO</span>
+            <img src="assets/icons/video-camera.png" alt="video" style="width:14px;height:14px;" onerror="this.style.display='none'" />
+            <span>VIDEO</span>
         `;
 
         videoButton.onmouseover = () => {
-            if (videoButton.style.opacity !== '0') {
-                videoButton.style.transform = 'scale(1.08) translateY(-1px)';
-                videoButton.style.boxShadow = '0 6px 20px rgba(0,0,0,0.25)';
-                videoButton.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(217,230,243,0.98))';
-            }
+            videoButton.style.transform = 'scale(1.06)';
+            videoButton.style.boxShadow = '0 4px 14px rgba(0,0,0,0.2)';
+            videoButton.style.opacity = '1';
         };
         
         videoButton.onmouseleave = () => {
-            if (videoButton.style.opacity !== '0') {
-                videoButton.style.transform = 'scale(1) translateY(0)';
-                videoButton.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                videoButton.style.background = 'linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95))';
-            }
+            videoButton.style.transform = 'scale(1)';
+            videoButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+            videoButton.style.opacity = '0.8';
         };
 
         videoButton.onclick = async (e) => {
             e.stopPropagation();
             
-            if (videoButton.style.opacity === '0' || videoButton.style.pointerEvents === 'none') {
-                return;
-            }
-
             videoButton.disabled = true;
-            const originalContent = videoButton.innerHTML;
+            const originalHTML = videoButton.innerHTML;
+
+            videoButton.innerHTML = `<span style="font-size:11px;color:#555;">Loading…</span>`;
 
             try {
                 const video = await this.findVideoForPlay(gamePk, play);
                 
                 if (video) {
-                    
-                    setTimeout(() => {
-                        this.createVideoPlayer(video, playDiv, videoButton);
-                    }, 300);
+                    videoButton.innerHTML = originalHTML;
+                    videoButton.disabled = false;
+                    this.createVideoPlayer(video, playDiv, videoButton);
                 } else {
-                    videoButton.innerHTML = `
-                        <span style="color: #dc3545;">✕</span>
-                        <span style="font-size: 11px;">NO MATCH</span>
-                    `;
-                    videoButton.style.background = 'linear-gradient(135deg, rgba(254,226,226,0.9), rgba(252,165,165,0.9))';
-                    
+                    videoButton.innerHTML = `<span style="color:#dc3545;">✕</span><span style="font-size:11px;">NO MATCH</span>`;
+                    videoButton.style.background = 'linear-gradient(135deg,rgba(254,226,226,0.9),rgba(252,165,165,0.9))';
                     setTimeout(() => {
-                        videoButton.innerHTML = originalContent;
-                        videoButton.style.background = 'linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95))';
+                        videoButton.innerHTML = originalHTML;
+                        videoButton.style.background = 'linear-gradient(135deg,rgba(248,249,250,0.95),rgba(217,230,243,0.95))';
                         videoButton.disabled = false;
                     }, 2500);
                 }
             } catch (error) {
                 console.error('💥 Error loading video:', error);
-                
-                videoButton.innerHTML = `
-                    <span style="color: #dc3545;">⚠</span>
-                    <span style="font-size: 11px;">ERROR</span>
-                `;
-                videoButton.style.background = 'linear-gradient(135deg, rgba(254,226,226,0.9), rgba(252,165,165,0.9))';
-                
+                videoButton.innerHTML = `<span style="color:#dc3545;">⚠</span><span style="font-size:11px;">ERROR</span>`;
+                videoButton.style.background = 'linear-gradient(135deg,rgba(254,226,226,0.9),rgba(252,165,165,0.9))';
                 setTimeout(() => {
-                    videoButton.innerHTML = originalContent;
-                    videoButton.style.background = 'linear-gradient(135deg, rgba(248,249,250,0.95), rgba(217,230,243,0.95))';
+                    videoButton.innerHTML = originalHTML;
+                    videoButton.style.background = 'linear-gradient(135deg,rgba(248,249,250,0.95),rgba(217,230,243,0.95))';
                     videoButton.disabled = false;
                 }, 2500);
             }
@@ -404,355 +355,205 @@ class MLBVideoMatcher {
         playDiv.appendChild(videoButton);
     }
 
-    // Content wrapper management
-    hideContentWrapper() {
-        const contentWrapper = document.querySelector('.content-wrapper');
-        if (!contentWrapper) return;
+    // ── Video Player ──────────────────────────────────────────────────────────
+    //
+    // Uses a full-viewport flex OVERLAY so the player is always visible
+    // inside the extension popup regardless of scroll position.
+    // position:fixed on the OVERLAY (not the card) guarantees it anchors
+    // to the visible popup window, never to the scrolled document.
 
-        if (this.activeVideoPlayers.size === 0) {
-            this.contentWrapperState = {
-                element: contentWrapper,
-                originalDisplay: contentWrapper.style.display || 'block',
-                originalVisibility: contentWrapper.style.visibility || 'visible',
-                originalOpacity: contentWrapper.style.opacity || '1',
-                originalTransition: contentWrapper.style.transition || ''
-            };
-
-            contentWrapper.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            
-            requestAnimationFrame(() => {
-                contentWrapper.style.opacity = '0';
-                contentWrapper.style.transform = 'translateY(-10px)';
-                
-                setTimeout(() => {
-                    if (contentWrapper.style.opacity === '0') {
-                        contentWrapper.style.display = 'none';
-                    }
-                }, 400);
-            });
-        }
-    }
-
-    showContentWrapper() {
-        if (!this.contentWrapperState) return;
-
-        const { element, originalDisplay, originalVisibility, originalOpacity, originalTransition } = this.contentWrapperState;
-        
-        if (this.activeVideoPlayers.size === 0) {
-            element.style.display = originalDisplay;
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(-10px)';
-            
-            requestAnimationFrame(() => {
-                element.style.opacity = originalOpacity;
-                element.style.transform = 'translateY(0)';
-                
-                setTimeout(() => {
-                    element.style.transition = originalTransition;
-                    element.style.visibility = originalVisibility;
-                }, 400);
-            });
-
-            this.contentWrapperState = null;
-        }
-    }
-
-    // Video player creation
     createVideoPlayer(video, playDiv, videoButton) {
-        const existingPlayer = playDiv.querySelector('.mlb-video-player');
-        if (existingPlayer) {
-            existingPlayer.remove();
-        }
-
-        this.hideContentWrapper();
+        // Clean up any existing player
+        const existingOverlay = document.querySelector('.mlb-video-overlay');
+        if (existingOverlay) existingOverlay.remove();
 
         const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         this.activeVideoPlayers.add(playerId);
 
-        videoButton.style.opacity = '0';
-        videoButton.style.pointerEvents = 'none';
+        const close = () => this.closeVideoPlayer(overlay, videoButton, playerId);
 
-        const playerContainer = document.createElement('div');
-        playerContainer.className = 'mlb-video-player';
-        playerContainer.dataset.playerId = playerId;
-        playerContainer.style.cssText = `
+        // ── Full-screen overlay (flex, centres the card) ──────────────────────
+        // position:fixed + inset:0 always covers the visible popup area,
+        // independent of how far the user has scrolled.
+        const overlay = document.createElement('div');
+        overlay.className = 'mlb-video-overlay';
+        overlay.dataset.playerId = playerId;
+        overlay.style.cssText = `
             position: fixed;
-            top: 55%;
-            left: 55%;
-            transform: translate(-50%, -50%) scale(0.8);
-            width: 90vw;
-            max-width: 900px;
-            height: 0;
-            border-radius: 12px;
-            overflow: visible;
-            background: linear-gradient(152deg,rgba(4, 30, 65, 1) 44%, rgba(255, 255, 255, 1) 50%, rgba(191, 13, 61, 1) 55%);
-            opacity: 50%;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            z-index: 1000;
-        `;
-
-        const backdrop = document.createElement('div');
-        backdrop.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
-            backdrop-filter: blur(3px);
-            z-index: 999;
-            opacity: 0.5 !important;
-            transition: opacity 0.4s ease;
-        `;
-        backdrop.onclick = () => this.closeVideoPlayer(playerContainer, playDiv, videoButton, playerId);
-
-        const videoElement = document.createElement('video');
-        videoElement.style.cssText = `
-            width: 100%;
-            height: 500px;
-            display: block;
-            background: linear-gradient(152deg, rgb(4, 30, 65) 44%, rgb(255, 255, 255) 60%, rgb(191, 13, 61) 55%);
-            border-radius: 12px;
-            position: relative;
-            z-index: 1;
-        `;
-        videoElement.controls = true;
-        videoElement.preload = 'metadata';
-        videoElement.src = video.url;
-        videoElement.crossOrigin = 'anonymous';
-        videoElement.style.pointerEvents = 'auto';
-        videoElement.tabIndex = 0;
-
-        videoElement.onloadedmetadata = () => {
-            console.log('📺 Video metadata loaded successfully');
-            backdrop.style.opacity = '1';
-            
-            setTimeout(() => {
-                playerContainer.style.height = '500px';
-                playerContainer.style.opacity = '1';
-                playerContainer.style.transform = 'translate(-50%, -50%) scale(1)';
-            }, 100);
-        };
-
-        videoElement.onended = () => {
-            setTimeout(() => {
-                this.resetVideoButton(videoButton);
-            }, 1000);
-        };
-
-        videoElement.onerror = (e) => {
-            console.error('❌ Video error:', e);
-            const errorTypes = {
-                1: 'MEDIA_ERR_ABORTED',
-                2: 'MEDIA_ERR_NETWORK', 
-                3: 'MEDIA_ERR_DECODE',
-                4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
-            };
-            
-            const errorType = errorTypes[videoElement.error?.code] || 'UNKNOWN_ERROR';
-            
-            playerContainer.innerHTML = `
-                <div style="padding: 60px 40px; text-align: center; color: #fff; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-                    <p style="margin: 0; font-weight: bold; font-size: 20px; margin-bottom: 10px;">Unable to load video</p>
-                    <p style="margin: 0; opacity: 0.8; font-size: 16px; margin-bottom: 20px;">${video.title}</p>
-                    <small style="opacity: 0.6; font-size: 12px; font-family: monospace;">${errorType}</small>
-                </div>
-            `;
-            playerContainer.style.height = '300px';
-            playerContainer.style.opacity = '1';
-            playerContainer.style.transform = 'translate(-50%, -50%) scale(1)';
-            backdrop.style.opacity = '1';
-            
-            setTimeout(() => {
-                this.closeVideoPlayer(playerContainer, playDiv, videoButton, playerId);
-            }, 4000);
-        };
-
-        const closeButton = document.createElement('button');
-        closeButton.style.cssText = `
-            position: absolute;
-            top: -45px;
-            right: 10px;
-            background: rgba(220, 53, 69, 0.9);
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(220,230,240,0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.25s ease;
         `;
-        closeButton.innerHTML = '✕';
-        closeButton.title = 'Close video (ESC)';
-        closeButton.onclick = (e) => {
-            e.stopPropagation();
-            videoElement.pause();
-            this.closeVideoPlayer(playerContainer, playDiv, videoButton, playerId);
-        };
+        // Click outside the card closes
+        overlay.onclick = (e) => { if (e.target === overlay) close(); };
 
-        const titleHeader = document.createElement('div');
-        titleHeader.style.cssText = `
-            position: absolute;
-            top: -50px;
-            left: 0;
-            right: 0;
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
+        // ── Player card ───────────────────────────────────────────────────────
+        const card = document.createElement('div');
+        card.style.cssText = `
+            width: 100%;
+            max-width: 550px;
             background: #041e41;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
-        `;
-        
-        const duration = video.duration ? ` • ${Math.round(video.duration)}s` : '';
-        
-        titleHeader.innerHTML = `
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${video.title}</div>
-            <div style="font-size: 12px; opacity: 0.8;">Perfect Match${duration}</div>
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 16px 48px rgba(4,30,66,0.35);
+            transform: scale(0.88);
+            transition: transform 0.25s ease;
+            pointer-events: auto;
         `;
 
-        const videoWrapper = document.createElement('div');
-        videoWrapper.style.cssText = 'position: relative; width: 100%; height: 100%;';
-        videoWrapper.appendChild(videoElement);
-        
-        playerContainer.appendChild(titleHeader);
-        playerContainer.appendChild(closeButton);
-        playerContainer.appendChild(videoWrapper);
-        
-        document.body.appendChild(backdrop);
-        document.body.appendChild(playerContainer);
+        // ── Title bar ─────────────────────────────────────────────────────────
+        const duration = video.duration ? ` · ${Math.round(video.duration)}s` : '';
+        const titleBar = document.createElement('div');
+        titleBar.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #041e41;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        `;
+        titleBar.innerHTML = `
+            <div style="min-width:0;flex:1;">
+                <div style="font-size:12px;font-weight:700;color:#fff;font-family:Rubik, sans-serif;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${video.title}</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">
+                    Perfect Match${duration}</div>
+            </div>
+        `;
 
-        const handleKeydown = (e) => {
-            if (e.target.closest('.mlb-video-player')) {
-                switch(e.key) {
-                    case 'Escape':
-                        videoElement.pause();
-                        this.closeVideoPlayer(playerContainer, playDiv, videoButton, playerId);
-                        break;
-                    case ' ':
-                        e.preventDefault();
-                        if (videoElement.paused) {
-                            videoElement.play();
-                        } else {
-                            videoElement.pause();
-                        }
-                        break;
-                }
-            }
+        const closeBtn = document.createElement('button');
+        closeBtn.style.cssText = `
+            flex-shrink: 0;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: rgba(191,13,61,0.85);
+            border: none;
+            color: white;
+            font-size: 13px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        `;
+        closeBtn.textContent = '✕';
+        closeBtn.title = 'Close (ESC)';
+        closeBtn.onmouseover  = () => closeBtn.style.background = 'rgba(191,13,61,1)';
+        closeBtn.onmouseleave = () => closeBtn.style.background = 'rgba(191,13,61,0.85)';
+        closeBtn.onclick = (e) => { e.stopPropagation(); videoElement.pause(); close(); };
+        titleBar.appendChild(closeBtn);
+
+        // ── Video element ─────────────────────────────────────────────────────
+        const videoElement = document.createElement('video');
+        videoElement.style.cssText = `
+            width: 100%;
+            display: block;
+            background: #000;
+            max-height: 55vh;
+        `;
+        videoElement.controls  = true;
+        videoElement.preload   = 'metadata';
+        videoElement.src       = video.url;
+        videoElement.crossOrigin = 'anonymous';
+
+        videoElement.onloadedmetadata = () => {
+            console.log('📺 Video metadata loaded');
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                card.style.transform  = 'scale(1)';
+                videoElement.play().catch(() => {});
+            });
         };
-        document.addEventListener('keydown', handleKeydown);
 
-        playerContainer.cleanup = () => {
-            document.removeEventListener('keydown', handleKeydown);
+        videoElement.onerror = () => {
+            card.innerHTML = `
+                <div style="padding:36px;text-align:center;color:white;">
+                    <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+                    <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Unable to load video</div>
+                    <div style="font-size:11px;opacity:0.6;">${video.title}</div>
+                </div>`;
+            overlay.style.opacity = '1';
+            setTimeout(() => close(), 4000);
         };
 
-        return videoElement;
+        // ── Assemble & mount ──────────────────────────────────────────────────
+        card.appendChild(titleBar);
+        card.appendChild(videoElement);
+        overlay.appendChild(card);
+        // Mount on <html> so it's never clipped by a scrolled body
+        document.documentElement.appendChild(overlay);
+
+        // ESC key
+        const handleKey = (e) => {
+            if (e.key === 'Escape') { videoElement.pause(); close(); }
+        };
+        document.addEventListener('keydown', handleKey);
+        overlay._cleanup = () => document.removeEventListener('keydown', handleKey);
     }
 
-    // Video player close logic
-    closeVideoPlayer(playerContainer, playDiv, videoButton, playerId) {
+    // ── Close player ──────────────────────────────────────────────────────────
+
+    closeVideoPlayer(overlay, videoButton, playerId) {
         this.activeVideoPlayers.delete(playerId);
+        if (overlay?._cleanup) overlay._cleanup();
 
-        const backdrop = document.querySelector('div[style*="backdrop-filter: blur(3px)"]');
-        
-        if (playerContainer.cleanup) {
-            playerContainer.cleanup();
-        }
-        
-        playerContainer.style.height = '0';
-        playerContainer.style.opacity = '0';
-        playerContainer.style.transform = 'translate(-50%, -50%) scale(0.8)';
-        
-        if (backdrop) {
-            backdrop.style.opacity = '0';
-        }
-        
+        overlay.style.opacity = '0';
+        const card = overlay.querySelector('div');
+        if (card) card.style.transform = 'scale(0.88)';
+
         setTimeout(() => {
-            this.showContentWrapper();
-        }, 200); 
-        
-        setTimeout(() => {
-            this.resetVideoButton(videoButton);
-        }, 300); 
-        
-        setTimeout(() => {
-            if (playerContainer?.parentNode) {
-                playerContainer.remove();
-            }
-            if (backdrop?.parentNode) {
-                backdrop.remove();
-            }
-        }, 500);
+            overlay?.parentNode && overlay.remove();
+        }, 280);
+
+        this.resetVideoButton(videoButton);
     }
 
-    // Reset button state
     resetVideoButton(videoButton) {
-    if (!videoButton) return;
+        if (!videoButton) return;
+        videoButton.style.opacity = '0.8';
+        videoButton.style.pointerEvents = 'auto';
+        videoButton.disabled = false;
+    }
 
-    videoButton.style.transition = 'all 0.3s ease';
-    videoButton.style.opacity = '0.7';
-    videoButton.style.pointerEvents = 'auto';
-    videoButton.disabled = false;
+    // ── Cache management ──────────────────────────────────────────────────────
 
-}
-
-    // Cache management
     resetForNewGame(gamePk) {
         this.usedVideoIds.clear();
-        
-        for (const [key, value] of this.videoCache.entries()) {
-            if (key.startsWith(`${gamePk}_`)) {
-                this.videoCache.delete(key);
-            }
+        for (const [key] of this.videoCache.entries()) {
+            if (key.startsWith(`${gamePk}_`)) this.videoCache.delete(key);
         }
-        
         this.gameContentCache.delete(gamePk);
         console.log(`🔄 Reset video matcher for game ${gamePk}`);
     }
 
-    clearCache(maxAge = 3600000) { // 1 hour default
-        const now = Date.now();
-        const cutoff = now - maxAge;
-        
-        // Size-based eviction
+    clearCache(maxAge = 3600000) {
         if (this.videoCache.size > 100) {
             const entries = Array.from(this.videoCache.entries());
-            const toDelete = entries.slice(0, entries.length - 100);
-            toDelete.forEach(([key]) => this.videoCache.delete(key));
+            entries.slice(0, entries.length - 100).forEach(([key]) => this.videoCache.delete(key));
         }
-        
         if (this.gameContentCache.size > 20) {
             const entries = Array.from(this.gameContentCache.entries());
-            const toDelete = entries.slice(0, entries.length - 20);
-            toDelete.forEach(([key]) => this.gameContentCache.delete(key));
+            entries.slice(0, entries.length - 20).forEach(([key]) => this.gameContentCache.delete(key));
         }
-        
-        console.log(`🧹 Cache cleanup: ${this.videoCache.size} video entries, ${this.gameContentCache.size} game entries`);
+        console.log(`🧹 Cache: ${this.videoCache.size} video entries, ${this.gameContentCache.size} game entries`);
     }
 
     cleanup() {
-        const players = document.querySelectorAll('.mlb-video-player');
-        players.forEach(player => {
-            const playerId = player.dataset.playerId;
-            if (playerId) {
-                const videoButton = document.querySelector('.video-button');
-                this.closeVideoPlayer(player, null, videoButton, playerId);
-            }
+        document.querySelectorAll('.mlb-video-overlay').forEach(o => {
+            const id = o.dataset.playerId;
+            if (id) this.closeVideoPlayer(o, null, id);
         });
-        
         this.clearCache();
         this.activeVideoPlayers.clear();
-        this.contentWrapperState = null;
         this.usedVideoIds.clear();
-        
         console.log('🧹 MLBVideoMatcher cleanup completed');
     }
 }
