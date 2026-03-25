@@ -146,13 +146,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         * { box-sizing: border-box; }
 
         body {
-            width: 667px;
-            font-family: "Rubik", sans-serif;
-            min-height: 667px;
-            transform: scale(0.9);
-            transform-origin: top left;
-            margin: 0;
-            padding: 0;
+            font-family: 'Rubik', sans-serif;
+            background: #f0f4f8;
+        }
+
+        #popup-container {
+            width: 100%;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ── Game Info Header ── */
@@ -165,35 +167,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             border-bottom: 1px solid rgba(4,30,66,0.08);
         }
 
-        .team-container {
+       .team-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
             min-width: 80px;
         }
-
+ 
         .team-logo {
             width: 72px;
             height: 72px;
             object-fit: contain;
         }
-
+ 
         .team-record {
             font-size: 11px;
             color: rgba(4,30,66,0.5);
             margin: 0;
             font-weight: 600;
         }
-
+ 
         .game-status {
             display: flex;
             align-items: center;
             justify-content: center;
             flex: 1;
-            gap: 16px;
+            gap: 5rem;
         }
-
+ 
         .team-score {
             font-size: 42px;
             font-weight: 800;
@@ -202,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             line-height: 1;
             letter-spacing: -2px;
         }
-
+ 
         #center-elements {
             text-align: center;
             display: flex;
@@ -210,7 +212,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             align-items: center;
             gap: 3px;
         }
-
+ 
         .inning {
             font-size: 22px;
             font-weight: 800;
@@ -220,13 +222,49 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-transform: uppercase;
             line-height: 1;
         }
-
+ 
         .stadium {
             font-size: 9px;
             color: rgba(4,30,66,0.4);
             margin: 0;
         }
+ 
+        /* Tabs Container (now within its own #tab-section) */
+        #tabs-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            background-color: #041e41;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 2px;
+        }
 
+        .tab-button {
+            flex-grow: 1;
+            padding: 5px 3px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 0.7em;
+            font-weight: bold;
+            color: white;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            border-radius: 10px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .tab-button.active {
+            background-color: #bf0d3d;
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+ 
         /* ── Gameplay / Live Container ── */
         #gameplay-info-container {
             display: flex;
@@ -236,17 +274,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             padding: 5px 10px;
             gap: 6px;
             background: #f7fafc;
-            border-bottom: 1px solid rgba(4, 30, 66, 0.29);
-            margin-left: 30px;
+            border-bottom: 1px solid rgba(4,30,66,0.07);
         }
-
+ 
         #scorebug-wrapper {
             flex: 0 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
+ 
         .player-info {
             flex: 1;
             padding: 4px 6px;
@@ -254,9 +291,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             border-radius: 6px;
             min-width: 0;
         }
-
+ 
         .spacer { display: none; }
-
+ 
         /* ── Scorebug ── */
         .scorebug {
             display: flex;
@@ -266,14 +303,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: transparent;
             padding: 2px 4px;
         }
-
+ 
         .balls-strikes {
             font-size: 13px;
             font-weight: 700;
             color: #041e42;
             letter-spacing: 1px;
         }
-
+ 
         .player-name {
             font-weight: 700;
             margin-bottom: 3px;
@@ -283,20 +320,20 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-overflow: ellipsis;
             color: #041e42;
         }
-
+ 
         .player-position {
             font-style: italic;
             margin-bottom: 3px;
             color: #bf0d3d;
             font-size: 11px;
         }
-
+ 
         .player-stat {
             margin: 1px 0;
             font-size: 11px;
             color: #333;
         }
-
+ 
         /* ── Decision Pitcher (Final) ── */
         .decision-pitcher {
             display: flex;
@@ -305,43 +342,45 @@ document.addEventListener("DOMContentLoaded", async () => {
             justify-content: center;
             gap: 6px;
             width: 100%;
+            margin-top: 2rem;
+            background-color: transparent;
         }
-
+ 
         .decision-pitcher-image {
-            width: 50px;
-            height: 50px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             border: 2px solid #bf0d3d;
             background: #041e42;
             object-fit: cover;
             flex-shrink: 0;
         }
-
+ 
         .decision-pitcher-info {
             display: flex;
             flex-direction: row;
             align-items: center;
             gap: 5px;
         }
-
+ 
         .winning-pitcher {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 800;
-            color: #078359;
+            color: #10b981;
             background: rgba(16,185,129,0.1);
             padding: 2px 6px;
             border-radius: 4px;
         }
-
+ 
         .losing-pitcher {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 800;
             color: #ef4444;
             background: rgba(239,68,68,0.1);
             padding: 2px 6px;
             border-radius: 4px;
         }
-
+ 
         .decision-pitcher-name {
             margin: 0;
             font-size: 11px;
@@ -350,7 +389,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             line-height: 1.3;
             color: #041e42;
         }
-
+ 
         /* ── Pre-game lineup ── */
         .prob-stats {
             font-size: 12px;
@@ -359,7 +398,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             font-weight: 500;
             line-height: 1.5;
         }
-
+ 
         .lineup {
             font-size: 13px;
             color: #222;
@@ -371,21 +410,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             align-items: center;
             gap: 4px;
         }
-
+ 
         .lineup:last-child { border-bottom: none; }
-
+ 
         .hand { color: #bf0d3d; font-weight: 800; font-size: 10px; display: inline-block; width: 12px; flex-shrink: 0; }
         .field { color: #888; font-size: 11px; font-weight: 600; margin-left: auto; }
         .avg { color: #041e42; font-weight: 700; font-size: 11px; margin-left: 4px; }
         .starter-hand { color: #bf0d3d; font-weight: 800; font-size: 12px; }
-
+ 
         /* Pre-game full-width two-column layout */
         #gameplay-info-container.pregame {
             padding: 0;
             gap: 0;
             align-items: stretch;
         }
-
+ 
         #gameplay-info-container.pregame .player-info {
             flex: 1;
             max-width: none;
@@ -395,16 +434,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             overflow-y: auto;
             max-height: 420px;
         }
-
+ 
         #gameplay-info-container.pregame .player-info:last-child {
             border-right: none;
         }
-
+ 
         #gameplay-info-container.pregame #scorebug-wrapper,
         #gameplay-info-container.pregame .spacer {
             display: none;
         }
-
+ 
         .player-position {
             font-size: 10px;
             font-weight: 800;
@@ -413,34 +452,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             letter-spacing: 1px;
             margin: 0 0 4px;
         }
-
+ 
         .player-name {
             font-weight: 700;
             margin: 0 0 3px;
             font-size: 15px;
             color: #041e42;
         }
-
+ 
         .player-stat {
             margin: 2px 0;
             font-size: 12px;
             color: #333;
         }
-
+ 
         /* ── Top Performers ── */
         .top-performers-section {
-            background: white;
+            background: transparent;
             padding: 8px 10px;
             border-top: 1px solid rgba(4,30,66,0.06);
+            margin-top: 2rem;
         }
-
+ 
         .top-performers-row {
             display: flex;
             justify-content: space-around;
             gap: 4px;
             margin-top: 4px;
         }
-
+ 
         .top-performer {
             display: flex;
             flex-direction: column;
@@ -449,37 +489,37 @@ document.addEventListener("DOMContentLoaded", async () => {
             flex: 1;
             min-width: 0;
         }
-
+ 
         .performer-image {
-            width: 42px;
-            height: 42px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             border: 2px solid #bf0d3d;
             background: #041e42;
             object-fit: cover;
         }
-
+ 
         .performer-name {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             color: #041e42;
             margin: 3px 0 1px;
             line-height: 1.2;
         }
-
+ 
         .performer-stats {
-            font-size: 9px;
+            font-size: 11px;
             color: #555;
             margin: 0;
             line-height: 1.3;
         }
-
+ 
         /* ── Video Buttons ── */
         .video-buttons-section {
             background: white;
             border-top: 1px solid rgba(4,30,66,0.06);
         }
-
+ 
         /* ── Live At-Bat Widget ── */
         #live-at-bat {
             width: 100%;
@@ -487,14 +527,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             border-top: 1px solid rgba(4,30,66,0.07);
             padding: 8px 10px 10px;
         }
-
+ 
         /* Top section: zone left, players right */
         .lab-main-row {
             display: flex;
             gap: 10px;
             align-items: flex-start;
         }
-
+ 
         /* Zone column */
         .lab-zone-col {
             flex: 0 0 108px;
@@ -503,7 +543,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             align-items: center;
             gap: 3px;
         }
-
+ 
         .lab-zone-label {
             font-size: 8px;
             font-weight: 700;
@@ -511,44 +551,44 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
+ 
         .lab-count-pills {
             display: flex;
             align-items: center;
             gap: 5px;
             margin-top: 1px;
         }
-
+ 
         .lab-count-group {
             display: flex;
             align-items: center;
             gap: 3px;
         }
-
+ 
         .lab-dot {
-            width: 7px;
-            height: 7px;
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
             border: 1.5px solid #bf0d3d;
             background: transparent;
             transition: background 0.15s;
         }
-
+ 
         .lab-dot.ball.on  { background: #10b981; border-color: #10b981; }
         .lab-dot.strike.on { background: #bf0d3d; }
-
+ 
         .lab-count-lbl {
-            font-size: 8px;
+            font-size: 9px;
             font-weight: 700;
             color: rgba(4,30,66,0.4);
         }
-
+ 
         .lab-pill-divider {
             width: 1px;
-            height: 10px;
+            height: 14px;
             background: rgba(4,30,66,0.12);
         }
-
+ 
         /* Info column */
         .lab-info-col {
             flex: 1;
@@ -557,13 +597,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             flex-direction: column;
             gap: 4px;
         }
-
+ 
         /* Batter + pitcher side by side */
         .lab-players-row {
             display: flex;
             gap: 6px;
         }
-
+ 
         .lab-player-card {
             flex: 1;
             display: flex;
@@ -574,7 +614,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             padding: 4px 5px;
             min-width: 0;
         }
-
+ 
         .lab-headshot {
             width: 28px;
             height: 28px;
@@ -584,7 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: #041e42;
             flex-shrink: 0;
         }
-
+ 
         .lab-pitcher-photo {
             width: 28px;
             height: 28px;
@@ -594,9 +634,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: #041e42;
             flex-shrink: 0;
         }
-
+ 
         .lab-player-info { min-width: 0; flex: 1; }
-
+ 
         .lab-player-role {
             font-size: 8px;
             font-weight: 700;
@@ -604,7 +644,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
+ 
         .lab-player-name {
             font-size: 11px;
             font-weight: 700;
@@ -613,7 +653,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
+ 
         .lab-hand-badge {
             display: inline-block;
             background: #041e42;
@@ -625,19 +665,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             margin-left: 2px;
             vertical-align: middle;
         }
-
+ 
         /* In-game stats row under players */
         .lab-igstats-row {
             display: flex;
             gap: 4px;
         }
-
+ 
         .lab-igstat-group {
             flex: 1;
             display: flex;
             gap: 3px;
         }
-
+ 
         .lab-igstat {
             flex: 1;
             text-align: center;
@@ -645,7 +685,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             border-radius: 4px;
             padding: 2px 2px;
         }
-
+ 
         .lab-igstat-lbl {
             font-size: 7px;
             color: rgba(4,30,66,0.4);
@@ -653,7 +693,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-transform: uppercase;
             display: block;
         }
-
+ 
         .lab-igstat-val {
             font-size: 11px;
             font-weight: 700;
@@ -661,13 +701,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             display: block;
             line-height: 1.2;
         }
-
+ 
         .lab-count-avg {
             font-size: 9px;
             color: #666;
             text-align: center;
         }
-
+ 
         /* Pitch log */
         .lab-log-header {
             display: flex;
@@ -675,7 +715,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             align-items: center;
             margin-top: 6px;
         }
-
+ 
         .lab-log-title {
             font-size: 8px;
             font-weight: 700;
@@ -683,33 +723,33 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
-
+ 
         .lab-pitch-count-badge {
             font-size: 8px;
             color: rgba(4,30,66,0.4);
             font-weight: 600;
         }
-
+ 
         .lab-pitchlog {
             max-height: 90px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(4,30,66,0.15) transparent;
         }
-
+ 
         .lab-pitchlog::-webkit-scrollbar { width: 3px; }
         .lab-pitchlog::-webkit-scrollbar-thumb { background: rgba(4,30,66,0.15); border-radius: 2px; }
-
+ 
         .lab-pitch-row {
             display: flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 0;
+            padding: 1px 0;
             border-bottom: 1px solid rgba(4,30,66,0.04);
         }
-
+ 
         .lab-pitch-row:last-child { border-bottom: none; }
-
+ 
         .lab-pitch-num {
             font-size: 8px;
             color: rgba(4,30,66,0.3);
@@ -717,7 +757,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             text-align: right;
             flex-shrink: 0;
         }
-
+ 
         .lab-pitch-badge {
             font-size: 8px;
             font-weight: 700;
@@ -728,7 +768,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             min-width: 22px;
             text-align: center;
         }
-
+ 
         .lab-pitch-type {
             font-size: 10px;
             color: #041e42;
@@ -737,7 +777,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
+ 
         .lab-pitch-velo {
             font-size: 10px;
             font-weight: 600;
@@ -746,7 +786,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             min-width: 52px;
             text-align: right;
         }
-
+ 
         .lab-pitch-spin {
             font-size: 9px;
             color: rgba(4,30,66,0.5);
@@ -754,7 +794,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             min-width: 48px;
             text-align: right;
         }
-
+ 
         .lab-pitch-result {
             font-size: 8px;
             font-weight: 700;
@@ -762,64 +802,75 @@ document.addEventListener("DOMContentLoaded", async () => {
             border-radius: 3px;
             flex-shrink: 0;
         }
-
+ 
         .pr-strike { background: #ef4444; color: white; }
         .pr-ball   { background: #10b981; color: white; }
         .pr-contact{ background: #f59e0b; color: white; }
         .pr-foul   { background: #8b5cf6; color: white; }
-
-        /* Play result + statcast section */
+ 
+        /* Play result + statcast section — statcast left, description right */
         .lab-result-section {
             margin-top: 6px;
             padding-top: 6px;
             border-top: 1px solid rgba(4,30,66,0.07);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
         }
-
-        .lab-play-event {
-            font-size: 13px;
-            font-weight: 800;
-            color: #041e42;
-            margin-bottom: 3px;
-        }
-
-        .lab-play-desc {
-            font-size: 12px;
-            color: #333;
-            line-height: 1.4;
-            margin-bottom: 6px;
-        }
-
+ 
         .lab-statcast-row {
             display: flex;
-            gap: 6px;
+            flex-direction: row;
+            gap: 3px;
+            flex-shrink: 0;
+            width: 60%;
         }
-
+ 
         .lab-sc-chip {
-            flex: 1;
-            background: linear-gradient(135deg, #f8f9fa, #e8eef8);
-            border-radius: 6px;
-            padding: 5px 6px;
-            text-align: center;
-            border-left: 2px solid #bf0d3d;
+            background: rgba(4,30,66,0.04);
+            border-radius: 5px;
+            padding: 4px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
         }
-
+ 
         .lab-sc-lbl {
             font-size: 8px;
             font-weight: 700;
-            color: rgba(4,30,66,0.45);
+            color: rgba(4, 30, 66, 0.73);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
+            letter-spacing: 0.3px;
         }
-
+ 
         .lab-sc-val {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 800;
             color: #bf0d3d;
-            display: block;
-            line-height: 1.2;
+            line-height: 1;
         }
-
+ 
+        .lab-result-text {
+            flex: 1;
+            min-width: 0;
+        }
+ 
+        .lab-play-event {
+            font-size: 15px;
+            font-weight: 800;
+            color: #041e42;
+            margin-bottom: 4px;
+        }
+ 
+        .lab-play-desc {
+            font-size: 13px;
+            font-weight: 500;
+            color: #444;
+            line-height: 1.5;
+            margin: 0;
+        }
+ 
         /* ── Scoring Plays / All Plays ── */
         #scoring-plays-container,
         #all-plays-container {
@@ -827,7 +878,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             padding: 8px;
             background: #f0f4f8;
         }
-
+ 
         .play-item {
             display: flex;
             align-items: flex-start;
@@ -838,7 +889,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             box-shadow: 0 1px 4px rgba(4,30,66,0.07);
             position: relative;
         }
-
+ 
         .game-start-item {
             text-align: center;
             padding: 12px 8px;
@@ -847,56 +898,59 @@ document.addEventListener("DOMContentLoaded", async () => {
             color: white;
             border-radius: 8px;
         }
-
+ 
         .content-wrapper {
             display: flex;
             flex: 1;
             align-items: stretch;
             gap: 10px;
         }
-
+ 
         .game-situation {
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
             padding: 6px;
+            background: linear-gradient(135deg, #f8f9fa, #e8eef8);
             border-radius: 6px;
             min-width: 80px;
             align-self: stretch;
         }
-
+ 
         .statcast-stats {
             display: flex;
             gap: 10px;
             margin-top: 6px;
+            padding: 6px 8px;
+            background: linear-gradient(135deg, #f8f9fa, #e8eef8);
             border-radius: 6px;
             border-left: 3px solid #bf0d3d;
         }
-
+ 
         .stat-item { text-align: center; flex: 1; }
-
+ 
         /* ── Player stat panels (live batter/pitcher) ── */
     `;
     document.head.appendChild(styleElement);
-
+ 
     // ── Constants ─────────────────────────────────────────────────────────────
-
+ 
     const FINAL_STATES = [
         "Final", "Game Over", "Final: Tied",
         "Completed Early", "Completed Early: Rain", "Completed Early: Mercy",
         "Cancelled", "Cancelled: Rain"
     ];
-
+ 
     const PRE_GAME_STATES = ["Pre-Game", "Scheduled", "Warmup"];
-
+ 
     const isFinalState   = (s) => FINAL_STATES.includes(s);
     const isPreGameState = (s) => PRE_GAME_STATES.includes(s);
     const isLiveState    = (s) => !isFinalState(s) && !isPreGameState(s) &&
                                    !["Postponed","Suspended","Suspended: Rain","Cancelled","Cancelled: Rain","Delayed"].includes(s);
-
+ 
     // ── Live At-Bat: Pitch Map & Zone ─────────────────────────────────────────
-
+ 
     const PITCH_MAP = {
         FF: { label:'4-Seam',    abbr:'FF', color:'#e63946' },
         FA: { label:'4-Seam',    abbr:'FF', color:'#e63946' },
@@ -917,17 +971,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         PO: { label:'Pitchout',  abbr:'PO', color:'#6c757d' },
         IN: { label:'Int. Ball', abbr:'IN', color:'#6c757d' },
     };
-
+ 
     const LEAGUE_AVG_BY_COUNT = {
         '0-0':.248,'0-1':.215,'0-2':.141,
         '1-0':.273,'1-1':.234,'1-2':.158,
         '2-0':.299,'2-1':.262,'2-2':.178,
         '3-0':.330,'3-1':.303,'3-2':.216,
     };
-
+ 
     const pitchInfo = (code) => PITCH_MAP[code] || { label: code||'?', abbr: code||'?', color:'#94a3b8' };
-
-    // Zone geometry
+ 
+    // Zone geometry — mapping constants (drive dot positions, do NOT change)
     const ZONE_W=120, ZONE_H=155;
     const SZ_LEFT=22, SZ_RIGHT=98, SZ_TOP=24, SZ_BOT=108;
     const SZ_CX = (SZ_LEFT + SZ_RIGHT) / 2;
@@ -935,12 +989,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const PZ_TOP_FT=3.5, PZ_BOT_FT=1.5;
     const mapPx = (pX) => SZ_CX + pX * PX_PER_FT;
     const mapPz = (pZ) => SZ_BOT - (pZ - PZ_BOT_FT) / (PZ_TOP_FT - PZ_BOT_FT) * (SZ_BOT - SZ_TOP);
-
+ 
+    // Zone border draw rect — inset from mapping area so dots can land outside the box
+    // Change these to resize the visible border without affecting pitch dot positions
+    const DZ_LEFT  = SZ_LEFT  + 6;   // 4px inset each side  (was SZ_LEFT=22,  now 26)
+    const DZ_RIGHT = SZ_RIGHT - 6;   // 4px inset each side  (was SZ_RIGHT=98, now 94)
+    const DZ_TOP   = SZ_TOP   + 5;   // 2px inset top        (was SZ_TOP=24,   now 26)
+    const DZ_BOT   = SZ_BOT   - 12;   // 2px inset bottom     (was SZ_BOT=108,  now 106)
+ 
     function buildStrikeZoneSVG(pitches = []) {
-        const zW = SZ_RIGHT - SZ_LEFT;
-        const zH = SZ_BOT - SZ_TOP;
-        const z3 = zW / 3, z3h = zH / 3;
-
+        // DZ_* = drawn border rect; SZ_* = dot mapping (kept separate so dots stay accurate)
+        const dW = DZ_RIGHT - DZ_LEFT;
+        const dH = DZ_BOT   - DZ_TOP;
+        const d3 = dW / 3, d3h = dH / 3;
+ 
         const dots = pitches.map((p, i) => {
             const px = p.pitchData?.coordinates?.pX;
             const pz = p.pitchData?.coordinates?.pZ;
@@ -957,20 +1019,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                     font-size="${isLast ? 7 : 6}" font-weight="700" fill="white"
                     font-family="monospace" pointer-events="none">${i+1}</text>`;
         }).join('');
-
+ 
         return `<svg width="100%" viewBox="0 0 ${ZONE_W} ${ZONE_H}" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible;">
-            <rect x="${SZ_LEFT}" y="${SZ_TOP}" width="${zW}" height="${zH}"
+            <rect x="${DZ_LEFT}" y="${DZ_TOP}" width="${dW}" height="${dH}"
                 fill="rgba(191,13,61,0.04)" stroke="#bf0d3d" stroke-width="1.5" rx="1"/>
-            <line x1="${SZ_LEFT+z3}"   y1="${SZ_TOP}" x2="${SZ_LEFT+z3}"   y2="${SZ_BOT}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
-            <line x1="${SZ_LEFT+z3*2}" y1="${SZ_TOP}" x2="${SZ_LEFT+z3*2}" y2="${SZ_BOT}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
-            <line x1="${SZ_LEFT}" y1="${SZ_TOP+z3h}"   x2="${SZ_RIGHT}" y2="${SZ_TOP+z3h}"   stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
-            <line x1="${SZ_LEFT}" y1="${SZ_TOP+z3h*2}" x2="${SZ_RIGHT}" y2="${SZ_TOP+z3h*2}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
-            <polygon points="${SZ_LEFT},${SZ_BOT+5} ${SZ_RIGHT},${SZ_BOT+5} ${SZ_RIGHT},${SZ_BOT+12} ${SZ_CX},${SZ_BOT+20} ${SZ_LEFT},${SZ_BOT+12}"
+            <line x1="${DZ_LEFT+d3}"   y1="${DZ_TOP}" x2="${DZ_LEFT+d3}"   y2="${DZ_BOT}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
+            <line x1="${DZ_LEFT+d3*2}" y1="${DZ_TOP}" x2="${DZ_LEFT+d3*2}" y2="${DZ_BOT}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
+            <line x1="${DZ_LEFT}" y1="${DZ_TOP+d3h}"   x2="${DZ_RIGHT}" y2="${DZ_TOP+d3h}"   stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
+            <line x1="${DZ_LEFT}" y1="${DZ_TOP+d3h*2}" x2="${DZ_RIGHT}" y2="${DZ_TOP+d3h*2}" stroke="rgba(191,13,61,0.2)" stroke-width="0.8" stroke-dasharray="3,2"/>
+            <polygon points="${DZ_LEFT},${DZ_BOT+5} ${DZ_RIGHT},${DZ_BOT+5} ${DZ_RIGHT},${DZ_BOT+12} ${SZ_CX},${DZ_BOT+20} ${DZ_LEFT},${DZ_BOT+12}"
                 fill="white" stroke="rgba(148,163,184,0.45)" stroke-width="1.2"/>
             ${dots}
         </svg>`;
     }
-
+ 
     function buildRunnerSVG(offense = {}) {
         const on1 = !!offense.first, on2 = !!offense.second, on3 = !!offense.third;
         const bs = 7, sw = 1.8;
@@ -984,10 +1046,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${base(32, 8, on2)}${base(10, 30, on3)}${base(54, 30, on1)}
         </svg>`;
     }
-
+ 
     // Count-average cache
     const _batterCountCache = {};
-
+ 
     async function fetchBatterAvgAtCount(batterId, balls, strikes) {
         const key = `${balls}-${strikes}`;
         const cacheKey = `${batterId}-${key}`;
@@ -1009,18 +1071,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         _batterCountCache[cacheKey] = lg;
         return lg;
     }
-
+ 
     // ── Visibility Management ─────────────────────────────────────────────────
-
+ 
     const originalDisplayValues = {};
-
+ 
     function storeOriginalDisplay(elementId) {
         const el = document.getElementById(elementId);
         if (el && !originalDisplayValues[elementId]) {
             originalDisplayValues[elementId] = window.getComputedStyle(el).display || 'block';
         }
     }
-
+ 
     function toggleContainers(showDynamic, isBoxscoreTab=false, isScoringPlaysTab=false, isAllPlaysTab=false, isWinProbTab=false) {
         const gameInfoEl        = document.getElementById('game-info');
         const gameplayEl        = document.getElementById('gameplay-info-container');
@@ -1031,9 +1093,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const scoringPlaysEl    = document.getElementById('scoring-plays-container');
         const allPlaysEl        = document.getElementById('all-plays-container');
         const winProbEl         = document.getElementById('win-prob-container');
-
+ 
         ['game-info','gameplay-info-container'].forEach(storeOriginalDisplay);
-
+ 
         if (showDynamic) {
             if (gameInfoEl)     gameInfoEl.style.display     = originalDisplayValues['game-info'] || 'flex';
             if (gameplayEl)     gameplayEl.style.display     = originalDisplayValues['gameplay-info-container'] || 'flex';
@@ -1047,15 +1109,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (topPerformerEl) topPerformerEl.style.display = 'none';
             if (liveAtBatEl)    liveAtBatEl.style.display    = 'none';
         }
-
+ 
         if (boxScoreEl)      boxScoreEl.style.display      = isBoxscoreTab    ? 'block' : 'none';
         if (scoringPlaysEl)  scoringPlaysEl.style.display  = isScoringPlaysTab? 'block' : 'none';
         if (allPlaysEl)      allPlaysEl.style.display      = isAllPlaysTab    ? 'block' : 'none';
         if (winProbEl)       winProbEl.style.display       = isWinProbTab     ? 'block' : 'none';
     }
-
+ 
     // ── Tab Routing ───────────────────────────────────────────────────────────
-
+ 
     function openGameDetailsPage(tabType) {
         switch(tabType) {
             case 'live': case 'wrap': case 'pre-game': case 'game-info':
@@ -1067,44 +1129,44 @@ document.addEventListener("DOMContentLoaded", async () => {
             default: console.warn(`Unknown tab type: ${tabType}`);
         }
     }
-
+ 
     dynamicTab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         dynamicTab.classList.add('active');
         toggleContainers(true, false, false, false, false);
         openGameDetailsPage(dynamicTab.textContent.toLowerCase().replace(/\s+/g,'-'));
     });
-
+ 
     boxscoreTab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         boxscoreTab.classList.add('active');
         toggleContainers(false, true, false, false, false);
         openGameDetailsPage('boxscore');
     });
-
+ 
     scoringPlaysTab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         scoringPlaysTab.classList.add('active');
         toggleContainers(false, false, true, false, false);
         openGameDetailsPage('scoring-plays');
     });
-
+ 
     allPlaysTab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         allPlaysTab.classList.add('active');
         toggleContainers(false, false, false, true, false);
         openGameDetailsPage('all-plays');
     });
-
+ 
     winProbTab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         winProbTab.classList.add('active');
         toggleContainers(false, false, false, false, true);
         openGameDetailsPage('win-prob');
     });
-
+ 
     // ── Auto-refresh interval (only while on dynamic tab) ────────────────────
-
+ 
     setInterval(() => {
         if (!gamePk) return;
         const activeTab = document.querySelector('.tab-button.active');
@@ -1113,49 +1175,49 @@ document.addEventListener("DOMContentLoaded", async () => {
             fetchGameData(gamePk);
         }
     }, 2000);
-
+ 
     toggleContainers(true);
-
+ 
     // ── Init ──────────────────────────────────────────────────────────────────
-
+ 
     let videoMatcher = null;
     function initializeVideoMatcher() {
         if (!videoMatcher) videoMatcher = new MLBVideoMatcher();
         return videoMatcher;
     }
-
+ 
     const params = new URLSearchParams(window.location.search);
     const gamePk = params.get("gamePk");
-
+ 
     if (gamePk) {
         fetchGameDetails(gamePk);
         fetchGameData(gamePk);
     }
-
+ 
     function formatGameTime(gameDate) {
         const d = new Date(gameDate);
         const h = d.getHours(), m = d.getMinutes();
         const ampm = h >= 12 ? "PM" : "AM";
         return `${(h % 12) || 12}:${String(m).padStart(2,'0')} ${ampm}`;
     }
-
+ 
     function getFinalInningText(linescore) {
         const n = linescore.currentInning || 9;
         return n !== 9 ? `FINAL/${n}` : 'FINAL';
     }
-
+ 
     // ── Auto-refresh for live games ───────────────────────────────────────────
-
+ 
     let gameRefreshInterval = null;
     let currentGamePk = null;
-
+ 
     function startAutoRefresh(pk) {
         if (gameRefreshInterval && currentGamePk === pk) return;
         stopAutoRefresh();
         currentGamePk = pk;
         gameRefreshInterval = setInterval(() => fetchGameDetails(pk), 2000);
     }
-
+ 
     function stopAutoRefresh() {
         if (gameRefreshInterval) {
             clearInterval(gameRefreshInterval);
@@ -1163,9 +1225,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentGamePk = null;
         }
     }
-
+ 
     // ── fetchGameDetails ──────────────────────────────────────────────────────
-
+ 
     async function fetchGameDetails(pk) {
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`);
@@ -1174,13 +1236,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 inningInfo.textContent = "Game data unavailable.";
                 return;
             }
-
+ 
             const game      = data.gameData;
             const linescore = data.liveData.linescore;
             const awayTeam  = game.teams.away;
             const homeTeam  = game.teams.home;
             const statusText = game.status.detailedState;
-
+ 
             // Update dynamic tab label
             const dynTabEl = document.getElementById("dynamic-tab");
             if (dynTabEl) {
@@ -1194,7 +1256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     dynTabEl.textContent = "Live";
                 }
             }
-
+ 
             // Inning text
             let inningText = "", inningStyle = "";
             if (statusText === "Suspended: Rain" || statusText === "Suspended") {
@@ -1217,58 +1279,58 @@ document.addEventListener("DOMContentLoaded", async () => {
                 inningText = `${half} ${linescore.currentInning || ''}`;
                 inningStyle = "color:#bf0d3d;";
             }
-
+ 
             // DOM updates
             awayLogo.src    = `https://www.mlbstatic.com/team-logos/${awayTeam.id}.svg`;
             awayLogo.alt    = awayTeam.name;
             awayScore.textContent = linescore.teams.away.runs ?? 0;
             awayRecord.textContent = `${game.teams.away.record?.wins ?? 0}-${game.teams.away.record?.losses ?? 0}`;
-
+ 
             inningInfo.textContent = inningText;
             inningInfo.style       = inningStyle;
-
+ 
             homeScore.textContent = linescore.teams.home.runs ?? 0;
             homeLogo.src  = `https://www.mlbstatic.com/team-logos/${homeTeam.id}.svg`;
             homeLogo.alt  = homeTeam.name;
             homeRecord.textContent = `${game.teams.home.record?.wins ?? 0}-${game.teams.home.record?.losses ?? 0}`;
-
+ 
             updatePlayerInfo(data);
-
+ 
             if (isLiveState(statusText)) {
                 startAutoRefresh(pk);
             } else {
                 stopAutoRefresh();
             }
-
+ 
         } catch (err) {
             console.error("fetchGameDetails error:", err);
             inningInfo.textContent = "Error loading game.";
         }
     }
-
+ 
     // ── updatePlayerInfo ──────────────────────────────────────────────────────
-
+ 
     function updatePlayerInfo(data) {
         const gameState   = data.gameData.status.detailedState;
         const currentPlay = data.liveData.plays.currentPlay;
         const inningState = data.liveData.linescore.inningHalf;
         const awayBattingOrder = data.liveData.boxscore.teams.away.battingOrder;
         const homeBattingOrder = data.liveData.boxscore.teams.home.battingOrder;
-
+ 
         const awayPS = document.getElementById("away-player-stats");
         const homePS = document.getElementById("home-player-stats");
         awayPS.innerHTML = "";
         homePS.innerHTML = "";
-
+ 
         // ── FINAL ─────────────────────────────────────────────────────────────
         if (isFinalState(gameState)) {
             const isTied = gameState === "Final: Tied";
-
+ 
             if (!isTied && data.liveData.decisions?.winner && data.liveData.decisions?.loser) {
                 const { winner, loser } = data.liveData.decisions;
                 const winnerImg = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${winner.id}/headshot/67/current`;
                 const loserImg  = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${loser.id}/headshot/67/current`;
-
+ 
                 const decisionHTML = (imgSrc, name, cls, label) => `
                     <div class="decision-pitcher">
                         <img src="${imgSrc}" alt="${name}" class="decision-pitcher-image"
@@ -1281,42 +1343,42 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </span>
                         </div>
                     </div>`;
-
+ 
                 awayPS.innerHTML = decisionHTML(winnerImg, winner.fullName, 'winning-pitcher', 'W');
                 homePS.innerHTML = decisionHTML(loserImg,  loser.fullName,  'losing-pitcher',  'L');
             }
-
+ 
             // Hide live-at-bat widget
             const lab = document.getElementById('live-at-bat');
             if (lab) lab.style.display = 'none';
-
+ 
             const gameplayEl = document.getElementById("gameplay-info-container");
             if (!gameplayEl) return;
-
+ 
             const isSpringTraining = ["S","E"].includes(data?.gameData?.game?.type);
-
+ 
             if (isSpringTraining) {
                 const existing = document.getElementById("video-buttons");
                 if (existing) existing.style.display = "none";
             } else {
                 _createVideoButtons(data, gameplayEl);
             }
-
+ 
             _createTopPerformers(data, gameplayEl);
             return;
         }
-
+ 
         // ── PRE-GAME ──────────────────────────────────────────────────────────
         if (isPreGameState(gameState)) {
             document.getElementById("scorebug-wrapper").style.display = "none";
             document.getElementById("tabs-container").style.display = "none";
             const lab = document.getElementById('live-at-bat');
             if (lab) lab.style.display = 'none';
-
+ 
             // Apply pregame class for full-width layout
             const gameplayEl = document.getElementById('gameplay-info-container');
             if (gameplayEl) gameplayEl.classList.add('pregame');
-
+ 
             const buildPlayerRow = (battingOrder, teamKey) =>
                 Array.from({length:9}, (_, i) => {
                     const pid = battingOrder[i];
@@ -1330,11 +1392,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                         avg:   stats?.seasonStats?.batting?.avg || '---'
                     };
                 });
-
+ 
             const awayPlayers = buildPlayerRow(awayBattingOrder, 'away');
             const homePlayers = buildPlayerRow(homeBattingOrder, 'home');
             const pitchers = data.gameData.probablePitchers || {};
-
+ 
             const pitcherBlock = (pitcher, hand, seasonStats, players) => {
                 const hasP = pitcher?.id;
                 const lineupHtml = players.map((p, i) =>
@@ -1346,25 +1408,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <p class="prob-stats">${hasP ? `${seasonStats?.era||'---'} ERA · ${seasonStats?.inningsPitched||'0'} IP · ${seasonStats?.strikeOuts||'0'} K` : '--- · --- IP · --- K'}</p>
                     ${lineupHtml}`;
             };
-
+ 
             const awayPitcher = pitchers.away;
             const homePitcher = pitchers.home;
             const awayHand    = awayPitcher?.id ? data.gameData.players[`ID${awayPitcher.id}`]?.pitchHand?.code||'' : '';
             const homeHand    = homePitcher?.id ? data.gameData.players[`ID${homePitcher.id}`]?.pitchHand?.code||'' : '';
             const awaySS      = awayPitcher?.id ? data.liveData.boxscore.teams.away.players[`ID${awayPitcher.id}`]?.seasonStats?.pitching : null;
             const homeSS      = homePitcher?.id ? data.liveData.boxscore.teams.home.players[`ID${homePitcher.id}`]?.seasonStats?.pitching : null;
-
+ 
             awayPS.innerHTML = pitcherBlock(awayPitcher, awayHand, awaySS, awayPlayers);
             homePS.innerHTML = pitcherBlock(homePitcher, homeHand, homeSS, homePlayers);
             return;
         }
-
+ 
         // ── LIVE ──────────────────────────────────────────────────────────────
         if (currentPlay) {
             // Remove pregame class if switching from pre-game
             const gameplayEl = document.getElementById('gameplay-info-container');
             if (gameplayEl) gameplayEl.classList.remove('pregame');
-
+ 
             const matchup  = currentPlay.matchup;
             const batter   = matchup?.batter;
             const pitcher  = matchup?.pitcher;
@@ -1372,31 +1434,33 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ...data.liveData?.boxscore?.teams?.away?.players,
                 ...data.liveData?.boxscore?.teams?.home?.players
             };
-
+ 
             // Batter stats
             const batterId   = batter?.id;
             const batterData = batterId ? allPlayers[`ID${batterId}`] : null;
             const batterSeason = batterData?.seasonStats?.batting || {};
-
+ 
             // Pitcher stats
             const pitcherId   = pitcher?.id;
             const pitcherData = pitcherId ? allPlayers[`ID${pitcherId}`] : null;
             const pitcherSeason = pitcherData?.seasonStats?.pitching || {};
-
+ 
             const fmtAvg = (n) => {
                 if (!n || n === '---') return '---';
                 const f = parseFloat(n);
                 return f < 1 ? '.' + String(Math.round(f*1000)).padStart(3,'0') : f.toFixed(3);
             };
-
+ 
             if (batter) {
+                const batHand = currentPlay.matchup?.batSide?.code || '';
+                const batBadge = batHand ? `<span style="display:inline-block;background:#bf0d3d;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;">${batHand}HB</span>` : '';
                 awayPS.innerHTML = `
                     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
                         <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
                             style="width:36px;height:36px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
                             onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
                         <div style="min-width:0;">
-                            <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}</div>
+                            <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}${batBadge}</div>
                             <div style="font-size:9px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Batter</div>
                         </div>
                     </div>
@@ -1415,15 +1479,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>
                     </div>`;
             }
-
+ 
             if (pitcher) {
+                const pitHand = currentPlay.matchup?.pitchHand?.code || '';
+                const pitBadge = pitHand ? `<span style="display:inline-block;background:#041e42;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;">${pitHand}HP</span>` : '';
                 homePS.innerHTML = `
                     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
                         <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
                             style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
                             onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
                         <div style="min-width:0;">
-                            <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}</div>
+                            <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}${pitBadge}</div>
                             <div style="font-size:9px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Pitcher</div>
                         </div>
                     </div>
@@ -1442,19 +1508,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>
                     </div>`;
             }
-
+ 
             document.getElementById('scorebug-wrapper').style.display = '';
             renderLiveAtBat(data);
         }
     }
-
+ 
     // ── renderLiveAtBat ───────────────────────────────────────────────────────
-
+ 
     async function renderLiveAtBat(data) {
         // Only show live at-bat widget when the dynamic (Live) tab is active
         const activeTab = document.querySelector('.tab-button.active');
         if (!activeTab || activeTab.id !== 'dynamic-tab') return;
-
+ 
         let container = document.getElementById('live-at-bat');
         if (!container) {
             container = document.createElement('div');
@@ -1466,19 +1532,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.getElementById('popup-container').appendChild(container);
             }
         }
-
+ 
         const status = data.gameData?.status?.detailedState;
         if (isFinalState(status) || isPreGameState(status)) {
             container.style.display = 'none';
             return;
         }
         container.style.display = '';
-
+ 
         const cp      = data.liveData?.plays?.currentPlay;
         const ls      = data.liveData?.linescore;
         const offense = ls?.offense || {};
         if (!cp) { container.style.display = 'none'; return; }
-
+ 
         const batter    = cp.matchup?.batter;
         const pitcher   = cp.matchup?.pitcher;
         const batSide   = cp.matchup?.batSide?.code;
@@ -1490,7 +1556,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const outs      = count.outs ?? 0;
         const half      = ls?.inningHalf === 'Top' ? '▲' : '▼';
         const inningOrd = ls?.currentInningOrdinal || '';
-
+ 
         // Pitcher game stats
         const allPlayers = {
             ...data.liveData?.boxscore?.teams?.away?.players,
@@ -1501,21 +1567,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         const batterData = batterId ? allPlayers[`ID${batterId}`] : null;
         const batterSeason = batterData?.seasonStats?.batting || {};
         const pitcherSeason = pd?.seasonStats?.pitching || {};
-
+ 
         const fmtAvg = (n) => {
             if (!n || n === '---') return '.---';
             const f = parseFloat(n);
             return f < 1 ? '.' + String(Math.round(f*1000)).padStart(3,'0') : f.toFixed(3);
         };
         const lastName = (name) => name ? name.split(' ').pop() : '';
-
+ 
         const hitData = cp.playEvents?.find(e => e?.hitData)?.hitData || null;
-        const exitVelo    = hitData?.launchSpeed   ? `${hitData.launchSpeed.toFixed(1)} mph`    : '--';
-        const launchAngle = hitData?.launchAngle   ? `${Math.round(hitData.launchAngle)}°`      : '--';
-        const distance    = hitData?.totalDistance ? `${Math.round(hitData.totalDistance)} ft`  : '--';
+        const exitVelo    = hitData?.launchSpeed   ? `${hitData.launchSpeed.toFixed(1)} mph`   : '--';
+        const launchAngle = hitData?.launchAngle   ? `${Math.round(hitData.launchAngle)}\xb0`  : '--';
+        const distance    = hitData?.totalDistance ? `${Math.round(hitData.totalDistance)} ft` : '--';
         const resultEvt   = cp.result?.event || '';
         const lastDesc    = pitches[pitches.length-1]?.details?.description || cp.result?.description || '';
-
+ 
         const pitchRows = [...pitches].reverse().map((p, i) => {
             const info     = pitchInfo(p.details?.type?.code);
             const velo     = p.pitchData?.startSpeed?.toFixed(1) ?? '--';
@@ -1534,7 +1600,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="lab-pitch-result ${resCls}">${resLbl}</div>
             </div>`;
         }).join('');
-
+ 
         container.innerHTML = `
             <div class="lab-main-row">
                 <div class="lab-zone-col">
@@ -1553,60 +1619,26 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
                 </div>
                 <div class="lab-info-col">
-                    <div class="lab-players-row">
-                        <div class="lab-player-card">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60" class="lab-headshot" alt=""
-                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                            <div class="lab-player-info">
-                                <div class="lab-player-role">Batter</div>
-                                <div class="lab-player-name">${lastName(batter?.fullName)}<span class="lab-hand-badge">${batSide==='L'?'L':'R'}</span></div>
-                                <div class="lab-count-avg">&nbsp;</div>
-                            </div>
-                        </div>
-                        ${pitcherId && pd ? `<div class="lab-player-card">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60" class="lab-pitcher-photo" alt=""
-                                onerror="this.style.display='none'">
-                            <div class="lab-player-info">
-                                <div class="lab-player-role">Pitcher${pitSide ? ` · <span style="color:#bf0d3d">${pitSide}HP</span>` : ''}</div>
-                                <div class="lab-player-name">${lastName(pitcher?.fullName)}</div>
-                                <div style="font-size:9px;color:rgba(4,30,66,0.4);">${ps.numberOfPitches ?? pitches.length} PC</div>
-                            </div>
-                        </div>` : ''}
-                    </div>
-                    <div class="lab-igstats-row">
-                        <div class="lab-igstat-group">
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">AVG</span><span class="lab-igstat-val">${fmtAvg(batterSeason.avg)}</span></div>
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">OPS</span><span class="lab-igstat-val">${batterSeason.ops||'---'}</span></div>
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">HR</span><span class="lab-igstat-val">${batterSeason.homeRuns||'0'}</span></div>
-                        </div>
-                        ${pd ? `<div style="width:1px;background:rgba(4,30,66,0.08);margin:0 2px;"></div>
-                        <div class="lab-igstat-group">
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">ERA</span><span class="lab-igstat-val">${pitcherSeason.era||'---'}</span></div>
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">IP</span><span class="lab-igstat-val">${ps.inningsPitched||'0.0'}</span></div>
-                            <div class="lab-igstat"><span class="lab-igstat-lbl">K</span><span class="lab-igstat-val">${ps.strikeOuts||'0'}</span></div>
-                        </div>` : ''}
-                    </div>
-                    <div class="lab-log-header">
-                        <span class="lab-log-title">This At-Bat</span>
-                        <span class="lab-pitch-count-badge">${pitches.length} pitch${pitches.length!==1?'es':''}</span>
-                    </div>
                     <div class="lab-pitchlog">
-                        ${pitchRows || '<div style="font-size:10px;color:#999;padding:3px 0;">Waiting for first pitch…</div>'}
+                        ${pitchRows || '<div style="font-size:10px;color:#999;padding:3px 0;">Waiting for first pitch\u2026</div>'}
                     </div>
                 </div>
             </div>
             ${(resultEvt || lastDesc || exitVelo !== '--') ? `
             <div class="lab-result-section">
-                ${resultEvt ? `<div class="lab-play-event">${resultEvt}</div>` : ''}
-                ${lastDesc  ? `<div class="lab-play-desc">${lastDesc}</div>`   : ''}
                 <div class="lab-statcast-row">
                     <div class="lab-sc-chip"><span class="lab-sc-lbl">Exit Velo</span><span class="lab-sc-val">${exitVelo}</span></div>
-                    <div class="lab-sc-chip"><span class="lab-sc-lbl">Launch Angle</span><span class="lab-sc-val">${launchAngle}</span></div>
+                    <div class="lab-sc-chip"><span class="lab-sc-lbl">Angle</span><span class="lab-sc-val">${launchAngle}</span></div>
                     <div class="lab-sc-chip"><span class="lab-sc-lbl">Distance</span><span class="lab-sc-val">${distance}</span></div>
+                </div>
+                <div class="lab-result-text">
+                    ${resultEvt ? `<div class="lab-play-event">${resultEvt}</div>` : ''}
+                    ${lastDesc  ? `<div class="lab-play-desc">${lastDesc}</div>`   : ''}
                 </div>
             </div>` : ''}
         `;
-
+ 
+        // Async count avg — update after render
         if (batterId) {
             fetchBatterAvgAtCount(batterId, count.balls, count.strikes).then(avg => {
                 const el = container.querySelector('.lab-count-avg');
@@ -1617,22 +1649,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
     }
-
+ 
     // ── fetchGameData (inning text refresh + scorebug + pitch data) ───────────
-
+ 
     async function fetchGameData(pk) {
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`);
             const data = await response.json();
-
+ 
             updateScorebug(data);
             updatePlayerInfo(data);
-
+ 
             const game       = data.gameData;
             const linescore  = data.liveData.linescore;
             const statusText = game.status.detailedState;
             let inningText = "", inningStyle = "";
-
+ 
             if (statusText === "Suspended: Rain" || statusText === "Suspended") {
                 inningText = "SUSP"; inningStyle = "color:#bf0d3d;";
             } else if (statusText === "Cancelled" || statusText === "Cancelled: Rain") {
@@ -1650,43 +1682,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 inningText = `${half} ${linescore.currentInning||''}`;
                 inningStyle = "color:#bf0d3d;";
             }
-
+ 
             inningInfo.textContent = inningText;
             inningInfo.style       = inningStyle;
-
+ 
             // Hide live-at-bat for non-live states
             if (isFinalState(statusText) || isPreGameState(statusText)) {
                 const lab = document.getElementById('live-at-bat');
                 if (lab) lab.style.display = 'none';
             }
-
+ 
         } catch (err) {
             console.error("fetchGameData error:", err);
         }
     }
-
+ 
     // ── updateScorebug ────────────────────────────────────────────────────────
-
+ 
     function updateScorebug(data) {
         const statusText = data.gameData.status.detailedState;
-
+ 
         if (isFinalState(statusText) || statusText === "Cancelled" || statusText === "Cancelled: Rain") {
             scorebugContainer.innerHTML = "";
             document.getElementById("scorebug-wrapper").style.display = "none";
             return;
         }
-
+ 
         if (!data.liveData?.plays?.currentPlay) return;
-
+ 
         document.getElementById("scorebug-wrapper").style.display = "";
-
+ 
         const cp = data.liveData.plays.currentPlay;
         let count = cp.count || { balls:0, strikes:0, outs:0 };
         const endEvents = ["strikeout","walk","hit","field_out"];
         if (isFinalState(statusText) || isPreGameState(statusText) || endEvents.includes(cp.result?.eventType)) {
             count = { balls:0, strikes:0, outs: count.outs };
         }
-
+ 
         const onBase = data.liveData?.linescore?.offense || {};
         scorebugContainer.innerHTML = `
             <div class="scorebug">
@@ -1694,14 +1726,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="balls-strikes">${count.balls}–${count.strikes}</div>
             </div>`;
     }
-
+ 
     // ── generatedSVGField (scorebug) ──────────────────────────────────────────
-
+ 
     function generatedSVGField(count, onBase) {
         const outFill  = (n) => count.outs >= n ? '#bf0d3d' : '#f0f4f8';
         const baseFill = (b) => b ? '#bf0d3d' : '#f0f4f8';
         return `
-            <svg width="110" height="110" viewBox="0 0 58 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="72" height="72" viewBox="0 0 58 79" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="13" cy="61" r="6" fill="${outFill(1)}" stroke="#bf0d3d" stroke-width="1.5" opacity="0.85"/>
                 <circle cx="30" cy="61" r="6" fill="${outFill(2)}" stroke="#bf0d3d" stroke-width="1.5" opacity="0.85"/>
                 <circle cx="47" cy="61" r="6" fill="${outFill(3)}" stroke="#bf0d3d" stroke-width="1.5" opacity="0.85"/>
@@ -1710,18 +1742,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <rect x="41.6" y="29.7" width="14" height="14" transform="rotate(45 41.6 29.7)" fill="${baseFill(onBase.first)}"  stroke="#bf0d3d" stroke-width="1.5" opacity="0.85"/>
             </svg>`;
     }
-
+ 
     function renderLivePitchData() { /* removed — handled by #live-at-bat widget */ }
-
+ 
     // ── Private helpers: video buttons + top performers ───────────────────────
-
+ 
     function _createVideoButtons(data, gameplayEl) {
         if (document.getElementById("video-buttons")) return;
-
+ 
         const container = document.createElement("div");
         container.id = "video-buttons";
         container.classList.add("video-buttons-section");
-
+ 
         container.innerHTML = `
             <div style="display:flex;justify-content:center;gap:12px;padding:12px 0;">
                 <button id="game-recap-btn" style="
@@ -1743,9 +1775,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     Condensed Game
                 </button>
             </div>`;
-
+ 
         gameplayEl.parentNode.insertBefore(container, gameplayEl.nextSibling);
-
+ 
         // Fetch and wire video
         (async () => {
             try {
@@ -1754,7 +1786,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const items = contentData?.highlights?.highlights?.items || [];
                 const recap     = items[0];
                 const condensed = items[1];
-
+ 
                 const extractMp4 = (h) => {
                     if (!h?.playbacks) return null;
                     const mp4s = h.playbacks.filter(p => p.url?.toLowerCase().endsWith('.mp4'));
@@ -1765,7 +1797,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                     return mp4s[0].url;
                 };
-
+ 
                 const openVideo = (highlight, url) => (e) => {
                     e.stopPropagation();
                     if (!url) { alert('Video not available'); return; }
@@ -1780,12 +1812,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                         window.open(url, '_blank');
                     }
                 };
-
+ 
                 const recapBtn     = document.getElementById("game-recap-btn");
                 const condensedBtn = document.getElementById("condensed-game-btn");
                 if (recapBtn)     recapBtn.addEventListener('click',     openVideo(recap||{},     extractMp4(recap)));
                 if (condensedBtn) condensedBtn.addEventListener('click', openVideo(condensed||{}, extractMp4(condensed)));
-
+ 
                 const hover = (btn) => {
                     btn.addEventListener('mouseover', () => { btn.style.transform='scale(1.05)'; btn.style.boxShadow='0 4px 14px rgba(0,0,0,0.15)'; });
                     btn.addEventListener('mouseleave', () => { btn.style.transform=''; btn.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; });
@@ -1795,26 +1827,26 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch(e) { console.warn('Video fetch failed:', e); }
         })();
     }
-
+ 
     function _createTopPerformers(data, gameplayEl) {
         if (document.getElementById("top-performers")) return;
-
+ 
         const container = document.createElement("div");
         container.id = "top-performers";
         container.classList.add("top-performers-section");
-
+ 
         const performers = (data.liveData.boxscore.topPerformers || []).slice(0, 3);
-
+ 
         const getStats = (player) => {
             if (!player?.player) return { name:"N/A", stats:"No stats", imageUrl:"" };
             const name     = player.player.person.fullName;
             const pid      = player.player.person.id;
             const imageUrl = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${pid}/headshot/67/current`;
             let stats = "No stats";
-
+ 
             const isPitcher = player.type === "pitcher" || player.type === "starter";
             const isHitter  = player.type === "hitter";
-
+ 
             if (isPitcher) {
                 const p = player.player.stats?.pitching;
                 if (p?.summary) { stats = p.summary; }
@@ -1828,7 +1860,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             return { name, stats, imageUrl };
         };
-
+ 
         const rows = performers.map(p => {
             const { name, stats, imageUrl } = getStats(p);
             const parts = name.split(" ");
@@ -1842,24 +1874,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <p class="performer-stats">${stats}</p>
                 </div>`;
         }).join('');
-
+ 
         container.innerHTML = `
             <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Top Performers</div>
             <div class="top-performers-row">${rows}</div>`;
-
+ 
         const videoButtonsEl = document.getElementById("video-buttons");
         const insertAfter = videoButtonsEl || gameplayEl;
         insertAfter.parentNode.insertBefore(container, insertAfter.nextSibling);
     }
-
+ 
     // ── Box Score ─────────────────────────────────────────────────────────────
-
+ 
     async function loadBoxScore() {
         boxScoreContainer.style.display = "block";
         boxScoreContainer.innerHTML = `<p style="text-align:center;padding:20px;color:#555;font-family:'Rubik',sans-serif;">Loading Box Score…</p>`;
-
+ 
         if (!gamePk) { boxScoreContainer.innerHTML = "<p>No gamePk found.</p>"; return; }
-
+ 
         async function fetchAbbr(teamId) {
             try {
                 const r = await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}`);
@@ -1867,7 +1899,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return d.teams[0].abbreviation || "??";
             } catch { return "??"; }
         }
-
+ 
         try {
             const [gameRes, lineupRes] = await Promise.all([
                 fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`),
@@ -1875,28 +1907,28 @@ document.addEventListener("DOMContentLoaded", async () => {
             ]);
             const gameData   = await gameRes.json();
             const lineupData = await lineupRes.json();
-
+ 
             const linescore = gameData?.liveData?.linescore;
             const boxscore  = gameData?.liveData?.boxscore;
             if (!linescore || !boxscore) {
                 boxScoreContainer.innerHTML = "<p>Box score data not available.</p>";
                 return;
             }
-
+ 
             const awayTeamId = gameData.gameData.teams.away.id;
             const homeTeamId = gameData.gameData.teams.home.id;
             const [awayAbbr, homeAbbr] = await Promise.all([fetchAbbr(awayTeamId), fetchAbbr(homeTeamId)]);
-
+ 
             const awayTeam  = gameData.gameData.teams.away;
             const homeTeam  = gameData.gameData.teams.home;
             const awayStats = boxscore.teams.away;
             const homeStats = boxscore.teams.home;
             const innings   = linescore.innings;
-
+ 
             const gameInfo    = lineupData.dates?.[0]?.games?.[0];
             const awayLineup  = gameInfo?.teams?.away?.lineup || [];
             const homeLineup  = gameInfo?.teams?.home?.lineup || [];
-
+ 
             const getPlayerStats = (playerId, teamStats, isHitter=true) => {
                 const player = teamStats.players[`ID${playerId}`];
                 if (!player) return null;
@@ -1914,7 +1946,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                              bb:g.baseOnBalls||0, so:g.strikeOuts||0, seasonEra:s.era||'0.00' };
                 }
             };
-
+ 
             const getAllBatters = (teamStats) =>
                 (teamStats.batters||[]).reduce((acc, id) => {
                     const player = teamStats.players[`ID${id}`];
@@ -1926,7 +1958,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                rbi:g.rbi||0, bb:g.baseOnBalls||0, so:g.strikeOuts||0, seasonAvg:s.avg||'.000' });
                     return acc;
                 }, []).sort((a,b) => a.battingOrder - b.battingOrder);
-
+ 
             const shortName = (name) => {
                 const parts   = name.split(' ');
                 const SUFFIX  = ['Jr.','Jr','Sr.','Sr','II','III','IV','V'];
@@ -1934,7 +1966,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const last    = SUFFIX.includes(lastPart) && parts.length>2 ? parts[parts.length-2] : lastPart;
                 return name.length > 15 && parts.length >= 2 ? `${parts[0][0]}. ${last}` : name;
             };
-
+ 
             const battingRow = (player, order, teamStats) => {
                 const id    = player.person?.id || player.id;
                 let stats   = id ? getPlayerStats(id, teamStats, true) : null;
@@ -1946,7 +1978,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (!stats) return `<tr><td class="batting-order">${order}</td><td class="player-name-boxscore" title="${name}">${name}</td><td class="position">${pos}</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>.000</td></tr>`;
                 return `<tr><td class="batting-order">${order}</td><td class="player-name-boxscore" title="${stats.name}">${shortName(stats.name)}</td><td class="position">${stats.position}</td><td>${stats.ab}</td><td>${stats.r}</td><td>${stats.h}</td><td>${stats.rbi}</td><td>${stats.bb}</td><td>${stats.so}</td><td>${stats.seasonAvg}</td></tr>`;
             };
-
+ 
             const pitchingRow = (pitcher, teamStats) => {
                 const id    = pitcher.person?.id;
                 const stats = getPlayerStats(id, teamStats, false);
@@ -1955,7 +1987,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (!stats) return `<tr class="pitcher-row"><td class="batting-order">P</td><td class="player-name-boxscore">${name}</td><td class="position">${pos}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
                 return `<tr class="pitcher-row"><td class="batting-order">P</td><td class="player-name-boxscore" title="${stats.name}">${shortName(stats.name)}</td><td class="position">${stats.position}</td><td>${stats.ip}</td><td>${stats.h}</td><td>${stats.r}</td><td>${stats.er}</td><td>${stats.bb}</td><td>${stats.so}</td><td>${stats.seasonEra}</td></tr>`;
             };
-
+ 
             const teamContent = (lineup, teamStats) => {
                 let batters = [];
                 if (lineup?.length) {
@@ -1969,7 +2001,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const p = teamStats.players[`ID${id}`];
                     return p ? { person:p.person, position:p.position } : null;
                 }).filter(Boolean);
-
+ 
                 return `
                     <div class="stats-table-wrapper">
                         <div class="section-subtitle">Batting</div>
@@ -1984,7 +2016,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </table>
                     </div>`;
             };
-
+ 
             boxScoreContainer.innerHTML = `
             <style>
                 .boxscore-container { width:100%; max-width:100%; font-family:'Rubik',sans-serif; background:#f0f4f8; }
@@ -2060,7 +2092,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="tab-content active" id="away-content">${teamContent(awayLineup, awayStats)}</div>
                 <div class="tab-content" id="home-content">${teamContent(homeLineup, homeStats)}</div>
             </div>`;
-
+ 
             // Tab handlers
             boxScoreContainer.querySelectorAll('.tab-button-boxscore').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -2070,19 +2102,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                     boxScoreContainer.querySelector(`#${this.dataset.tab}-content`)?.classList.add('active');
                 });
             });
-
+ 
         } catch (err) {
             console.error("loadBoxScore error:", err);
             boxScoreContainer.innerHTML = "<p>Error loading box score.</p>";
         }
     }
-
+ 
     // ── All Plays ─────────────────────────────────────────────────────────────
-
+ 
     let allPlaysRefreshInterval = null;
     let lastPlayCount = 0;
     let allPlaysRefreshActive = false;
-
+ 
     async function loadAllPlays() {
         let container = document.getElementById('all-plays-container');
         if (!container) {
@@ -2090,24 +2122,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             container.id = 'all-plays-container';
             document.getElementById('popup-container').appendChild(container);
         }
-
+ 
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
             const gameData = await response.json();
             window.cachedGameData = gameData;
-
+ 
             const allPlays   = gameData.liveData?.plays?.allPlays || [];
             const gameInfo   = gameData.gameData;
             const gameStatus = gameData.gameData?.status?.detailedState;
             const isLive     = isLiveState(gameStatus);
-
+ 
             const currentCount = allPlays.length;
             const hasNew = currentCount > lastPlayCount;
             lastPlayCount = currentCount;
-
+ 
             if (hasNew || container.children.length === 0) {
                 container.innerHTML = '';
-
+ 
                 // Header
                 if (gameInfo?.venue?.name) {
                     const header = document.createElement('div');
@@ -2121,7 +2153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <div style="font-size:11px;opacity:0.6;font-family:'Rubik';">${city}${state ? ', '+state : ''}</div>`;
                     container.appendChild(header);
                 }
-
+ 
                 [...allPlays].reverse().forEach((play, i) => {
                     setTimeout(() => {
                         const item = createPlayItem(play, gameData);
@@ -2129,7 +2161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }, i * 30);
                 });
             }
-
+ 
             // Auto-refresh
             if (isLive && !allPlaysRefreshActive) {
                 allPlaysRefreshActive = true;
@@ -2143,17 +2175,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 allPlaysRefreshInterval = null;
                 allPlaysRefreshActive = false;
             }
-
+ 
         } catch (err) {
             console.error("loadAllPlays error:", err);
             container.innerHTML = '<div style="text-align:center;padding:20px;color:#666;">Error loading plays.</div>';
         }
     }
-
+ 
     function createPlayItem(play, gameData) {
         const div = document.createElement('div');
         div.className = 'play-item';
-
+ 
         const inning    = play.about?.inning || 1;
         const isTop     = play.about?.isTopInning;
         const inningTxt = `${isTop?'Top':'Bot'} ${inning}`;
@@ -2163,7 +2195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const p = gameData.gameData.players[`ID${playerId}`];
             return p ? `${p.firstName} ${p.lastName}` : 'Unknown';
         })();
-
+ 
         const eventIcon = getEventIcon(play.result?.event);
         const baserunners = {
             first:  !!play.matchup?.postOnFirst,
@@ -2175,13 +2207,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             strikes: play.count?.strikes || 0,
             outs:    play.count?.outs    || 0
         };
-
+ 
         const statcastEvent = play.playEvents?.find(e => e?.hitData) || {};
         const sd = statcastEvent.hitData || {};
         const exitVelo    = sd.launchSpeed    ? `${Math.round(sd.launchSpeed)} mph` : '--';
         const launchAngle = sd.launchAngle    ? `${Math.round(sd.launchAngle)}°`  : '--';
         const distance    = sd.totalDistance  ? `${Math.round(sd.totalDistance)} ft` : '--';
-
+ 
         div.innerHTML = `
             <div class="inning-indicator" style="position:absolute;top:7px;left:7px;background:#bf0d3d;color:white;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;">${inningTxt}</div>
             <div style="flex-shrink:0;margin-right:10px;margin-left:50px;position:relative;">
@@ -2206,11 +2238,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>`;
         return div;
     }
-
+ 
     // ── Scoring Plays ─────────────────────────────────────────────────────────
-
+ 
     let scoringPlaysRefreshInterval = null;
-
+ 
     async function loadScoringPlays() {
         let container = document.getElementById('scoring-plays-container');
         if (!container) {
@@ -2219,38 +2251,38 @@ document.addEventListener("DOMContentLoaded", async () => {
             container.style.cssText = 'width:100%;padding:8px;background:#f0f4f8;font-family:Rubik,sans-serif;';
             document.getElementById('popup-container').appendChild(container);
         }
-
+ 
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
             const gameData = await response.json();
             window.cachedGameData = gameData;
-
+ 
             const statusText  = gameData.gameData?.status?.detailedState || '';
             const isLive      = isLiveState(statusText);
             const scoringPlays = gameData.liveData?.plays?.scoringPlays || [];
             const allPlays     = gameData.liveData?.plays?.allPlays || [];
             const gameInfo     = gameData.gameData;
-
+ 
             if (scoringPlaysRefreshInterval) {
                 clearInterval(scoringPlaysRefreshInterval);
                 scoringPlaysRefreshInterval = null;
             }
-
+ 
             if (isLive) {
                 scoringPlaysRefreshInterval = setInterval(async () => {
                     delete window.cachedGameData;
                     await loadScoringPlays();
                 }, 30000);
             }
-
+ 
             container.innerHTML = '';
-
+ 
             // Status bar
             const statusBar = document.createElement('div');
             statusBar.style.cssText = `text-align:center;padding:6px;margin-bottom:8px;border-radius:6px;font-weight:700;font-size:12px;font-family:'Rubik',sans-serif;${isLive?'background:#041e42;color:white;':'background:#041e42;color:white;'}`;
             statusBar.textContent = isLive ? '🔴 LIVE — auto-refreshing' : `Status: ${statusText}`;
             container.appendChild(statusBar);
-
+ 
             if (!scoringPlays.length) {
                 const msg = document.createElement('p');
                 msg.style.cssText = 'text-align:center;color:#555;margin-top:16px;font-family:Rubik,sans-serif;';
@@ -2258,23 +2290,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 container.appendChild(msg);
                 return;
             }
-
+ 
             scoringPlays.forEach((idx, i) => {
                 const play = allPlays[idx];
                 if (play) container.appendChild(createScoringPlayItem(play, gameInfo, i));
             });
-
+ 
         } catch (err) {
             console.error("loadScoringPlays error:", err);
             container.innerHTML = '<p style="text-align:center;color:#666;padding:16px;">Error loading scoring plays.</p>';
         }
     }
-
+ 
     function createScoringPlayItem(play, gameInfo, index) {
         const div = document.createElement('div');
         div.className = 'play-item';
         div.style.cssText = `opacity:0;transform:translateY(-8px);animation:slideIn 0.25s ease-out ${index*0.08}s forwards;`;
-
+ 
         const batter     = play.matchup?.batter;
         const playerId   = batter?.id || '';
         const playerName = batter?.fullName || 'Unknown';
@@ -2288,7 +2320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             third:  !!play.matchup?.postOnThird
         };
         const count = { balls:play.count?.balls||0, strikes:play.count?.strikes||0, outs:play.count?.outs||0 };
-
+ 
         let scoreRbiHtml = '';
         if (play.result?.homeScore !== undefined) {
             const away = gameInfo.teams?.away?.abbreviation || 'Away';
@@ -2298,12 +2330,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (play.result?.rbi > 0) {
             scoreRbiHtml += `<div style="color:#10b981;font-weight:700;font-size:12px;">RBI: ${play.result.rbi}</div>`;
         }
-
+ 
         const sd = play.playEvents?.find(e => e?.hitData)?.hitData || {};
         const exitVelo    = sd.launchSpeed   ? `${Math.round(sd.launchSpeed)} mph` : '--';
         const launchAngle = sd.launchAngle   ? `${Math.round(sd.launchAngle)}°`  : '--';
         const distance    = sd.totalDistance ? `${Math.round(sd.totalDistance)} ft` : '--';
-
+ 
         div.innerHTML = `
             <div class="inning-indicator" style="position:absolute;top:7px;left:7px;background:#bf0d3d;color:white;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;">${inningTxt}</div>
             <div style="flex-shrink:0;margin-right:10px;margin-left:50px;position:relative;">
@@ -2327,13 +2359,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ${generateSVGField(count, baserunners)}
                 </div>
             </div>`;
-
+ 
         try { initializeVideoMatcher().addVideoButtonToPlay(div, gamePk, play); } catch(e) { /* no video */ }
         return div;
     }
-
+ 
     // ── Shared SVG field (all plays / scoring plays) ──────────────────────────
-
+ 
     function generateSVGField(count, onBase) {
         const outFill  = (n) => count.outs >= n ? '#bf0d3d' : '#e2e8f0';
         const baseFill = (b) => b ? '#bf0d3d' : '#e2e8f0';
@@ -2346,9 +2378,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             <rect x="41.6" y="29.7" width="14" height="14" transform="rotate(45 41.6 29.7)" fill="${baseFill(onBase.first)}"  stroke="#bf0d3d" stroke-width="1" opacity="0.85"/>
         </svg>`;
     }
-
+ 
     // ── Shared event icon helper ──────────────────────────────────────────────
-
+ 
     function getEventIcon(eventType) {
         if (!eventType) return '?';
         const exact = {
@@ -2366,18 +2398,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (eventType.includes('Error')) return 'E';
         return '?';
     }
-
+ 
     // ── slideIn animation ─────────────────────────────────────────────────────
-
+ 
     if (!document.querySelector('#popup-slide-in-style')) {
         const s = document.createElement('style');
         s.id = 'popup-slide-in-style';
         s.textContent = `@keyframes slideIn { to { opacity:1; transform:translateY(0); } }`;
         document.head.appendChild(s);
     }
-
+ 
     // ── Win Probability ───────────────────────────────────────────────────────
-
+ 
     const MLB_TEAM_COLORS = {
         108:'#BA0021',109:'#A71930',110:'#DF4601',111:'#BD3039',112:'#0E3386',
         113:'#C6011F',114:'#00385D',115:'#333366',116:'#0C2340',117:'#EB6E1F',
@@ -2386,16 +2418,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         139:'#8FBCE6',140:'#003278',141:'#134A8E',142:'#002B5C',143:'#E81828',
         144:'#CE1141',145:'#27251F',146:'#00A3E0',147:'#0C2340',158:'#12284B',
     };
-
+ 
     const WBC_COLORS = {
         "Japan":'#BC002D',"USA":'#BF0A30',"Korea":'#CD2E3A',"Venezuela":'#CF0921',
         "Mexico":'#006847',"Puerto Rico":'#ED0000',"Dominican Republic":'#002D62',
         "Canada":'#FF0000',"Cuba":'#002A8F',"Italy":'#009246',
     };
-
+ 
     const getTeamColor = (id, name='') =>
         MLB_TEAM_COLORS[id] || (name && WBC_COLORS[name]) || '#535557';
-
+ 
     async function loadWinProbability() {
         let container = document.getElementById('win-prob-container');
         if (!container) {
@@ -2404,46 +2436,46 @@ document.addEventListener("DOMContentLoaded", async () => {
             container.style.cssText = 'width:100%;padding:10px;font-family:Rubik,sans-serif;display:none;';
             document.getElementById('popup-container').appendChild(container);
         }
-
+ 
         container.style.display = 'block';
         container.innerHTML = '<p style="text-align:center;padding:20px;color:#555;">Loading Win Probability…</p>';
-
+ 
         try {
             const [wpRes, gameRes] = await Promise.all([
                 fetch(`https://statsapi.mlb.com/api/v1/game/${gamePk}/winProbability`),
                 fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`)
             ]);
-
+ 
             const activeTab = document.querySelector('.tab-button.active');
             if (!activeTab || activeTab.id !== 'win-prob-tab') {
                 container.style.display = 'none';
                 return;
             }
-
+ 
             const wpData   = await wpRes.json();
             const gameData = await gameRes.json();
-
+ 
             const away = gameData.gameData.teams.away;
             const home = gameData.gameData.teams.home;
             const awayColor = getTeamColor(away.id, away.name);
             const homeColor = getTeamColor(home.id, home.name);
             const awayAbbr  = away.abbreviation || away.teamName;
             const homeAbbr  = home.abbreviation || home.teamName;
-
+ 
             if (!wpData?.length) {
                 container.innerHTML = `<p style="text-align:center;color:#555;padding:20px;">Win probability data not available.</p>`;
                 return;
             }
-
+ 
             const latest   = wpData[wpData.length - 1];
             const homeProb = Math.round(latest.homeTeamWinProbability);
             const awayProb = Math.round(latest.awayTeamWinProbability);
-
+ 
             const W=520, H=200, PL=36, PR=16, PT=16, PB=28;
             const CW = W-PL-PR, CH = H-PT-PB;
             const stepX = CW / (wpData.length - 1 || 1);
             const midY  = PT + CH/2;
-
+ 
             const pts = wpData.map((d,i) => ({
                 x: PL + i*stepX,
                 y: PT + CH/2 + ((d.homeTeamWinProbability - 50)/50) * (CH/2),
@@ -2455,10 +2487,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 inning:   d.about?.inning        || '',
                 isTop:    d.about?.isTopInning,
             }));
-
+ 
             const linePoints = pts.map(p=>`${p.x},${p.y}`).join(' ');
             const polyPts    = [`${PL},${midY}`, ...pts.map(p=>`${p.x},${p.y}`), `${PL+CW},${midY}`].join(' ');
-
+ 
             let inningLines = '', lastInn = 0;
             pts.forEach(p => {
                 if (p.inning && p.inning !== lastInn && p.isTop) {
@@ -2469,9 +2501,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <text x="${p.x}" y="${PT+CH+15}" text-anchor="middle" font-size="8" fill="#041e42" font-family="Rubik">${p.inning}</text>`;
                 }
             });
-
+ 
             const tooltipId = `wp-tip-${gamePk}`;
-
+ 
             container.innerHTML = `
                 <style>
                     #${tooltipId} {
@@ -2490,9 +2522,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     .tt-neg  { color:#ef4444;font-size:10px; }
                     .wp-dot  { display:none;pointer-events:none; }
                 </style>
-
+ 
                 <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Win Probability</div>
-
+ 
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <img src="https://www.mlbstatic.com/team-logos/${away.id}.svg" style="width:22px;height:22px;">
@@ -2504,12 +2536,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <img src="https://www.mlbstatic.com/team-logos/${home.id}.svg" style="width:22px;height:22px;">
                     </div>
                 </div>
-
+ 
                 <div style="display:flex;height:5px;border-radius:3px;overflow:hidden;margin:0 4px 10px;">
                     <div style="width:${awayProb}%;background:${awayColor};transition:width 0.5s;"></div>
                     <div style="width:${homeProb}%;background:${homeColor};transition:width 0.5s;"></div>
                 </div>
-
+ 
                 <div style="position:relative;width:100%;">
                     <div id="${tooltipId}"></div>
                     <svg id="wp-svg-${gamePk}" width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;display:block;">
@@ -2546,18 +2578,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <text x="${PL+CW/2}" y="${H-2}" text-anchor="middle" font-size="9" fill="#041e42" font-family="Rubik">Inning</text>
                     </svg>
                 </div>
-
+ 
                 <div style="display:flex;justify-content:center;gap:16px;margin-top:6px;font-size:11px;">
                     <div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:4px;background:${awayColor};border-radius:2px;"></div>${away.name}</div>
                     <div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:4px;background:${homeColor};border-radius:2px;"></div>${home.name}</div>
                 </div>`;
-
+ 
             // Hover
             const svg     = document.getElementById(`wp-svg-${gamePk}`);
             const tooltip = document.getElementById(tooltipId);
             const dot     = document.getElementById(`wp-dot-${gamePk}`);
             const wrapper = svg.parentElement;
-
+ 
             svg.querySelectorAll('.wp-zone').forEach(zone => {
                 zone.addEventListener('mouseenter', () => {
                     dot.setAttribute('cx', zone.dataset.x);
@@ -2576,7 +2608,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>`;
                     tooltip.style.display = 'block';
                 });
-
+ 
                 zone.addEventListener('mousemove', (e) => {
                     const rect = wrapper.getBoundingClientRect();
                     let left = e.clientX - rect.left + 12;
@@ -2586,13 +2618,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     tooltip.style.left = `${left}px`;
                     tooltip.style.top  = `${top}px`;
                 });
-
+ 
                 zone.addEventListener('mouseleave', () => {
                     tooltip.style.display = 'none';
                     dot.style.display = 'none';
                 });
             });
-
+ 
         } catch (err) {
             console.error("loadWinProbability error:", err);
             const active = document.querySelector('.tab-button.active');
@@ -2603,9 +2635,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
     }
-
+ 
     // ── Visibility change — pause refresh when hidden ─────────────────────────
-
+ 
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             if (allPlaysRefreshInterval) { clearInterval(allPlaysRefreshInterval); allPlaysRefreshActive = false; }
@@ -2614,5 +2646,5 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (active?.id === 'all-plays-tab') loadAllPlays();
         }
     });
-
+ 
 });
