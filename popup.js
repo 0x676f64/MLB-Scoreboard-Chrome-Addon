@@ -453,20 +453,59 @@ document.addEventListener("DOMContentLoaded", async () => {
             border: 2px solid transparent;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.18s ease;
             opacity: 0.35;
+            transform: scale(0.95);
+            transition: opacity 0.2s ease, border-color 0.2s ease,
+                        background 0.2s ease, transform 0.2s ease;
         }
 
         .plc-team-btn.active {
             opacity: 1;
             border-color: #bf0d3d;
             background: rgba(191,13,61,0.04);
+            transform: scale(1);
         }
+
+        /* Logo bounce — springy pop when a button activates */
+        @keyframes plcLogoBounce {
+            0%   { transform: scale(1) rotate(0deg); }
+            20%  { transform: scale(1.22) rotate(-5deg); }
+            45%  { transform: scale(0.9)  rotate(3deg); }
+            65%  { transform: scale(1.1)  rotate(-2deg); }
+            82%  { transform: scale(0.97) rotate(1deg); }
+            100% { transform: scale(1)    rotate(0deg); }
+        }
+        .plc-logo-bounce {
+            animation: plcLogoBounce 0.55s cubic-bezier(0.36,0.07,0.19,0.97) both;
+        }
+
+        /* "@" flips when teams switch */
+        @keyframes plcAtFlip {
+            0%   { transform: rotateY(0deg)   scale(1); }
+            40%  { transform: rotateY(180deg) scale(1.5); color: #bf0d3d; }
+            100% { transform: rotateY(360deg) scale(1); }
+        }
+        .plc-at-flip {
+            animation: plcAtFlip 0.42s ease-in-out;
+        }
+
+        /* Panel slide: away slides in from left, home from right */
+        @keyframes plcSlideFromLeft {
+            from { opacity: 0; transform: translateX(-22px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes plcSlideFromRight {
+            from { opacity: 0; transform: translateX(22px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .plc-slide-left  { animation: plcSlideFromLeft  0.26s ease-out; }
+        .plc-slide-right { animation: plcSlideFromRight 0.26s ease-out; }
 
         .plc-logo {
             width: 150px;
             height: 150px;
             object-fit: contain;
+            will-change: transform;
         }
 
         .plc-team-abbr {
@@ -483,11 +522,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             color: rgba(4,30,66,0.2);
             flex-shrink: 0;
             align-self: center;
+            will-change: transform;
         }
 
         .plc-panel {
-            padding: 12px;
-            max-height: 480px;
+            padding: 8px;
+            max-height: 440px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: rgba(4,30,66,0.15) transparent;
@@ -496,20 +536,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         .plc-panel::-webkit-scrollbar { width: 3px; }
         .plc-panel::-webkit-scrollbar-thumb { background: rgba(4,30,66,0.15); border-radius: 2px; }
 
-        /* Probable pitcher card */
         .plc-pp {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
+            gap: 10px;
+            padding: 9px 12px;
             background: linear-gradient(135deg, #041e42, #0a2d5e);
-            border-radius: 12px;
-            margin-bottom: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
         }
 
         .plc-pp-img {
-            width: 64px;
-            height: 64px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             border: 2px solid #bf0d3d;
             object-fit: cover;
@@ -520,19 +559,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         .plc-pp-info { min-width: 0; flex: 1; }
 
         .plc-pp-label {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 700;
             color: rgba(255,255,255,0.4);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .plc-pp-name {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 800;
             color: white;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -542,48 +581,48 @@ document.addEventListener("DOMContentLoaded", async () => {
             display: inline-block;
             background: #bf0d3d;
             color: white;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 800;
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 3px;
             vertical-align: middle;
-            margin-left: 5px;
+            margin-left: 4px;
         }
 
         .plc-pp-stats {
-            font-size: 12px;
+            font-size: 11px;
             color: rgba(255,255,255,0.55);
             font-weight: 500;
         }
 
-        /* Lineup rows */
-        .plc-rows { display: flex; flex-direction: column; gap: 2px; }
+        /* Lineup rows — two-line card layout */
+        .plc-rows { display: flex; flex-direction: column; gap: 1px; }
 
         .plc-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
+            gap: 7px;
+            padding: 5px 6px;
             border-radius: 7px;
             border-bottom: 1px solid rgba(4,30,66,0.05);
             transition: background 0.12s;
         }
 
         .plc-row:last-child { border-bottom: none; }
-        .plc-row:hover { background: rgba(191,13,61,0.04); }
+        .plc-row:hover { background: rgba(191,13,61,0.03); }
 
         .plc-num {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            color: rgba(4,30,66,0.3);
-            width: 16px;
+            color: rgba(4,30,66,0.28);
+            width: 14px;
             text-align: center;
             flex-shrink: 0;
         }
 
         .plc-headshot {
-            width: 38px;
-            height: 38px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: 1.5px solid rgba(4,30,66,0.12);
             object-fit: cover;
@@ -591,41 +630,94 @@ document.addEventListener("DOMContentLoaded", async () => {
             flex-shrink: 0;
         }
 
-        .plc-bathand {
-            font-size: 10px;
-            font-weight: 800;
-            color: #bf0d3d;
-            width: 12px;
-            flex-shrink: 0;
-            text-align: center;
-        }
-
-        .plc-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #041e42;
+        /* Main info block — name + stats stacked */
+        .plc-info {
             flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
         }
 
-        .plc-pos {
-            font-size: 10px;
-            font-weight: 700;
-            color: rgba(4,30,66,0.4);
-            width: 28px;
-            text-align: right;
+        .plc-name-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+        }
+
+        .plc-pos-badge {
             flex-shrink: 0;
+            font-size: 8px;
+            font-weight: 800;
+            color: white;
+            background: #041e42;
+            padding: 1px 4px;
+            border-radius: 3px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
-        .plc-avg {
+        .plc-fullname {
             font-size: 12px;
             font-weight: 700;
             color: #041e42;
-            width: 38px;
-            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .plc-fullname span.plc-firstname {
+            color: rgba(4,30,66,0.55);
+            font-weight: 500;
+        }
+
+        .plc-bathand-badge {
             flex-shrink: 0;
+            font-size: 8px;
+            font-weight: 800;
+            color: #bf0d3d;
+            background: rgba(191,13,61,0.08);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* Stat chips row */
+        .plc-stat-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .plc-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(4,30,66,0.04);
+            border-radius: 4px;
+            padding: 2px 5px;
+            min-width: 36px;
+        }
+
+        .plc-stat-lbl {
+            font-size: 7px;
+            font-weight: 700;
+            color: rgba(4,30,66,0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            line-height: 1;
+        }
+
+        .plc-stat-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #041e42;
+            line-height: 1.2;
+        }
+
+        .plc-stat.plc-stat-hr .plc-stat-val {
+            color: #bf0d3d;
         }
 
         .player-position {
@@ -1428,8 +1520,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const pid=battingOrder[i];if(!pid)return null;
                 const player=data.gameData.players[`ID${pid}`];
                 const stats=data.liveData.boxscore.teams[teamKey].players[`ID${pid}`];
-                return{id:pid,name:player?.boxscoreName||'',hand:player?.batSide?.code||'',
-                    field:player?.primaryPosition?.abbreviation||'',avg:stats?.seasonStats?.batting?.avg||'---'};
+                const bat=stats?.seasonStats?.batting||{};
+                const fmtStat=(v)=>{if(!v||v==='---')return'---';const f=parseFloat(v);return f<1?'.'+String(Math.round(f*1000)).padStart(3,'0'):String(Math.round(f));};
+                return{
+                    id:pid,
+                    firstName:player?.firstName||'',
+                    lastName:player?.lastName||player?.boxscoreName||'',
+                    hand:player?.batSide?.code||'',
+                    field:player?.primaryPosition?.abbreviation||'',
+                    avg:fmtStat(bat.avg),
+                    slg:fmtStat(bat.sluggingPercentage||bat.slg),
+                    obp:fmtStat(bat.obp||bat.onBasePercentage),
+                    hr:bat.homeRuns!=null?String(bat.homeRuns):'0',
+                };
             }).filter(Boolean);
 
             const awayPlayers=buildPlayers(awayBattingOrder,'away');
@@ -1482,10 +1585,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <img src="https://midfield.mlbstatic.com/v1/people/${p.id}/spots/60"
                             class="plc-headshot"
                             onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                        <span class="plc-bathand">${p.hand}</span>
-                        <span class="plc-name">${p.name}</span>
-                        <span class="plc-pos">${p.field}</span>
-                        <span class="plc-avg">${p.avg}</span>
+                        <div class="plc-info">
+                            <div class="plc-name-row">
+                                <span class="plc-pos-badge">${p.field}</span>
+                                <span class="plc-fullname"><span class="plc-firstname">${p.firstName} </span>${p.lastName}</span>
+                                ${p.hand?`<span class="plc-bathand-badge">${p.hand}</span>`:''}
+                            </div>
+                            <div class="plc-stat-row">
+                                <div class="plc-stat"><span class="plc-stat-lbl">AVG</span><span class="plc-stat-val">${p.avg}</span></div>
+                                <div class="plc-stat"><span class="plc-stat-lbl">OBP</span><span class="plc-stat-val">${p.obp}</span></div>
+                                <div class="plc-stat"><span class="plc-stat-lbl">SLG</span><span class="plc-stat-val">${p.slg}</span></div>
+                                <div class="plc-stat plc-stat-hr"><span class="plc-stat-lbl">HR</span><span class="plc-stat-val">${p.hr}</span></div>
+                            </div>
+                        </div>
                     </div>`).join('');
                 return ppHTML+`<div class="plc-rows">${rowsHTML}</div>`;
             };
@@ -1525,15 +1637,50 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if(panel)panel.scrollTop=savedPanelScroll;
             });
 
-            // Team toggle
+            // Team toggle — animated
             card.querySelectorAll('.plc-team-btn').forEach(btn=>{
                 btn.addEventListener('click',()=>{
+                    const t=btn.dataset.team;
+                    if(t===_pregameActiveTeam)return; // already active, skip
+
+                    const wasAway = _pregameActiveTeam==='away';
+                    _pregameActiveTeam=t;
+
+                    // Swap active class
                     card.querySelectorAll('.plc-team-btn').forEach(b=>b.classList.remove('active'));
                     btn.classList.add('active');
-                    const t=btn.dataset.team;
-                    _pregameActiveTeam=t;
-                    document.getElementById('plc-away-panel').style.display=t==='away'?'block':'none';
-                    document.getElementById('plc-home-panel').style.display=t==='home'?'block':'none';
+
+                    // Logo bounce on the newly-active button
+                    const logo=btn.querySelector('.plc-logo');
+                    if(logo){
+                        logo.classList.remove('plc-logo-bounce');
+                        void logo.offsetWidth; // force reflow to restart animation
+                        logo.classList.add('plc-logo-bounce');
+                        logo.addEventListener('animationend',()=>logo.classList.remove('plc-logo-bounce'),{once:true});
+                    }
+
+                    // "@" sign flips
+                    const atEl=card.querySelector('.plc-at');
+                    if(atEl){
+                        atEl.classList.remove('plc-at-flip');
+                        void atEl.offsetWidth;
+                        atEl.classList.add('plc-at-flip');
+                        atEl.addEventListener('animationend',()=>atEl.classList.remove('plc-at-flip'),{once:true});
+                    }
+
+                    // Show incoming panel with directional slide
+                    const awayPanel=document.getElementById('plc-away-panel');
+                    const homePanel=document.getElementById('plc-home-panel');
+                    const incoming = t==='away' ? awayPanel : homePanel;
+                    const slideClass = t==='away' ? 'plc-slide-left' : 'plc-slide-right';
+
+                    // Hide outgoing, show + animate incoming
+                    (t==='away' ? homePanel : awayPanel).style.display='none';
+                    incoming.style.display='block';
+                    incoming.classList.remove('plc-slide-left','plc-slide-right');
+                    void incoming.offsetWidth;
+                    incoming.classList.add(slideClass);
+                    incoming.addEventListener('animationend',()=>incoming.classList.remove(slideClass),{once:true});
                 });
             });
 
@@ -1900,8 +2047,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadBoxScore(){
         boxScoreContainer.style.display="block";
-        boxScoreContainer.innerHTML=`<p style="text-align:center;padding:20px;color:#555;font-family:'Rubik',sans-serif;">Loading Box Score…</p>`;
-        if(!gamePk){boxScoreContainer.innerHTML="<p>No gamePk found.</p>";return;}
+        boxScoreContainer.innerHTML=`
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:28px 16px;color:rgba(4,30,66,0.4);font-family:'Rubik',sans-serif;font-size:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:bsSpin 1s linear infinite;">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                Loading Box Score…
+            </div>
+            <style>@keyframes bsSpin{to{transform:rotate(360deg)}}</style>`;
+        if(!gamePk){boxScoreContainer.innerHTML="<p style='padding:16px;color:#555;font-family:Rubik,sans-serif;'>No gamePk found.</p>";return;}
 
         async function fetchAbbr(teamId){
             try{const r=await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}`);const d=await r.json();return d.teams[0].abbreviation||"??";}catch{return"??";}
@@ -1914,7 +2068,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             ]);
             const gameData=await gameRes.json(),lineupData=await lineupRes.json();
             const linescore=gameData?.liveData?.linescore,boxscore=gameData?.liveData?.boxscore;
-            if(!linescore||!boxscore){boxScoreContainer.innerHTML="<p>Box score data not available.</p>";return;}
+            if(!linescore||!boxscore){boxScoreContainer.innerHTML="<p style='padding:16px;color:#555;font-family:Rubik,sans-serif;'>Box score data not available.</p>";return;}
 
             const awayTeamId=gameData.gameData.teams.away.id,homeTeamId=gameData.gameData.teams.home.id;
             const[awayAbbr,homeAbbr]=await Promise.all([fetchAbbr(awayTeamId),fetchAbbr(homeTeamId)]);
@@ -1925,114 +2079,252 @@ document.addEventListener("DOMContentLoaded", async () => {
             const awayLineup=gameInfo?.teams?.away?.lineup||[];
             const homeLineup=gameInfo?.teams?.home?.lineup||[];
 
+            const fmtAvg=(v)=>{if(!v||v==='.000'||v==='0.000')return'.000';const f=parseFloat(v);return f<1?'.'+String(Math.round(f*1000)).padStart(3,'0'):v;};
+
+            const shortName=(name)=>{
+                const parts=name.split(' ');
+                const SUFFIX=['Jr.','Jr','Sr.','Sr','II','III','IV','V'];
+                const lastPart=parts[parts.length-1];
+                const last=SUFFIX.includes(lastPart)&&parts.length>2?parts[parts.length-2]:lastPart;
+                return parts.length>=2?`${parts[0][0]}. ${last}`:name;
+            };
+
+            const playerImg=(id)=>`https://midfield.mlbstatic.com/v1/people/${id}/spots/60`;
+            const fallbackImg=`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png`;
+
             const getPlayerStats=(playerId,teamStats,isHitter=true)=>{
                 const player=teamStats.players[`ID${playerId}`];if(!player)return null;
-                if(isHitter){const g=player.stats?.batting||{},s=player.seasonStats?.batting||{};
-                    return{name:player.person?.fullName||'Unknown',position:player.position?.abbreviation||'',
-                        ab:g.atBats||0,r:g.runs||0,h:g.hits||0,rbi:g.rbi||0,bb:g.baseOnBalls||0,so:g.strikeOuts||0,seasonAvg:s.avg||'.000'};}
-                else{const g=player.stats?.pitching||{},s=player.seasonStats?.pitching||{};
-                    return{name:player.person?.fullName||'Unknown',position:player.position?.abbreviation||'P',
-                        ip:g.inningsPitched||'0.0',h:g.hits||0,r:g.runs||0,er:g.earnedRuns||0,bb:g.baseOnBalls||0,so:g.strikeOuts||0,seasonEra:s.era||'0.00'};}
+                if(isHitter){
+                    const g=player.stats?.batting||{},s=player.seasonStats?.batting||{};
+                    return{id:playerId,name:player.person?.fullName||'Unknown',pos:player.position?.abbreviation||'',
+                        ab:g.atBats||0,r:g.runs||0,h:g.hits||0,rbi:g.rbi||0,bb:g.baseOnBalls||0,so:g.strikeOuts||0,
+                        hr:g.homeRuns||0,avg:s.avg||'.000',battingOrder:player.battingOrder||0};
+                }else{
+                    const g=player.stats?.pitching||{},s=player.seasonStats?.pitching||{};
+                    return{id:playerId,name:player.person?.fullName||'Unknown',pos:player.position?.abbreviation||'P',
+                        ip:g.inningsPitched||'0.0',h:g.hits||0,r:g.runs||0,er:g.earnedRuns||0,
+                        bb:g.baseOnBalls||0,so:g.strikeOuts||0,era:s.era||'-.--'};
+                }
             };
 
             const getAllBatters=(teamStats)=>(teamStats.batters||[]).reduce((acc,id)=>{
-                const player=teamStats.players[`ID${id}`];if(!player?.stats?.batting)return acc;
-                const g=player.stats.batting,s=player.seasonStats?.batting||{};
-                acc.push({id,name:player.person?.fullName||'Unknown',position:player.position?.abbreviation||'',
-                    battingOrder:player.battingOrder||99,ab:g.atBats||0,r:g.runs||0,h:g.hits||0,
-                    rbi:g.rbi||0,bb:g.baseOnBalls||0,so:g.strikeOuts||0,seasonAvg:s.avg||'.000'});
-                return acc;
+                const s=getPlayerStats(id,teamStats,true);if(s)acc.push(s);return acc;
             },[]).sort((a,b)=>a.battingOrder-b.battingOrder);
 
-            const shortName=(name)=>{
-                const parts=name.split(' ');const SUFFIX=['Jr.','Jr','Sr.','Sr','II','III','IV','V'];
-                const lastPart=parts[parts.length-1];
-                const last=SUFFIX.includes(lastPart)&&parts.length>2?parts[parts.length-2]:lastPart;
-                return name.length>15&&parts.length>=2?`${parts[0][0]}. ${last}`:name;
-            };
-
-            const battingRow=(player,order,teamStats)=>{
+            const battingRow=(player,order,teamStats,delay)=>{
                 const id=player.person?.id||player.id;
-                let stats=id?getPlayerStats(id,teamStats,true):null;
-                if(!stats&&player.person?.fullName){stats=getAllBatters(teamStats).find(b=>b.name===player.person.fullName)||null;}
-                const name=player.person?.fullName||player.name||'Unknown';
-                const pos=player.position?.abbreviation||'';
-                if(!stats)return`<tr><td class="batting-order">${order}</td><td class="player-name-boxscore" title="${name}">${name}</td><td class="position">${pos}</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>.000</td></tr>`;
-                return`<tr><td class="batting-order">${order}</td><td class="player-name-boxscore" title="${stats.name}">${shortName(stats.name)}</td><td class="position">${stats.position}</td><td>${stats.ab}</td><td>${stats.r}</td><td>${stats.h}</td><td>${stats.rbi}</td><td>${stats.bb}</td><td>${stats.so}</td><td>${stats.seasonAvg}</td></tr>`;
+                let s=id?getPlayerStats(id,teamStats,true):null;
+                if(!s&&player.person?.fullName)s=getAllBatters(teamStats).find(b=>b.name===player.person.fullName)||null;
+                const pid=s?.id||id;
+                const name=s?.name||player.person?.fullName||'Unknown';
+                const pos=s?.pos||player.position?.abbreviation||'';
+                const hasHit=(s?.h||0)>0,hasHR=(s?.hr||0)>0;
+                return`<tr class="bs-brow" style="animation:bsRowIn 0.3s ease-out ${delay}ms both;">
+                    <td class="bs-num">${order}</td>
+                    <td class="bs-player">
+                        <img src="${playerImg(pid)}" class="bs-shot" onerror="this.src='${fallbackImg}'">
+                        <div class="bs-pinfo">
+                            <div class="bs-pname">${shortName(name)}</div>
+                            <span class="bs-pos">${pos}</span>
+                        </div>
+                    </td>
+                    <td>${s?.ab??0}</td>
+                    <td class="${hasHit?'bs-hit':''}">${s?.h??0}</td>
+                    <td>${s?.r??0}</td>
+                    <td>${s?.rbi??0}</td>
+                    <td class="${hasHR?'bs-hr':''}">${s?.hr??0}</td>
+                    <td>${s?.bb??0}</td>
+                    <td>${s?.so??0}</td>
+                    <td class="bs-avg">${fmtAvg(s?.avg)}</td>
+                </tr>`;
             };
 
-            const pitchingRow=(pitcher,teamStats)=>{
-                const id=pitcher.person?.id,stats=getPlayerStats(id,teamStats,false);
-                const name=pitcher.person?.fullName||'Unknown';const pos=pitcher.position?.abbreviation||'P';
-                if(!stats)return`<tr class="pitcher-row"><td class="batting-order">P</td><td class="player-name-boxscore">${name}</td><td class="position">${pos}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
-                return`<tr class="pitcher-row"><td class="batting-order">P</td><td class="player-name-boxscore" title="${stats.name}">${shortName(stats.name)}</td><td class="position">${stats.position}</td><td>${stats.ip}</td><td>${stats.h}</td><td>${stats.r}</td><td>${stats.er}</td><td>${stats.bb}</td><td>${stats.so}</td><td>${stats.seasonEra}</td></tr>`;
+            const pitchingRow=(pitcher,teamStats,delay)=>{
+                const id=pitcher.person?.id;
+                const s=getPlayerStats(id,teamStats,false);
+                const name=s?.name||pitcher.person?.fullName||'Unknown';
+                const earned=(s?.er||0)>0;
+                return`<tr class="bs-prow" style="animation:bsRowIn 0.3s ease-out ${delay}ms both;">
+                    <td class="bs-num" style="color:rgba(191,13,61,0.4);">P</td>
+                    <td class="bs-player">
+                        <img src="${playerImg(id)}" class="bs-shot bs-shot-p" onerror="this.src='${fallbackImg}'">
+                        <div class="bs-pinfo">
+                            <div class="bs-pname">${shortName(name)}</div>
+                            <span class="bs-pos bs-pos-p">P</span>
+                        </div>
+                    </td>
+                    <td class="bs-ip">${s?.ip??'-'}</td>
+                    <td>${s?.h??'-'}</td>
+                    <td class="${earned?'bs-er':''}">${s?.r??'-'}</td>
+                    <td class="${earned?'bs-er':''}">${s?.er??'-'}</td>
+                    <td>${s?.bb??'-'}</td>
+                    <td>${s?.so??'-'}</td>
+                    <td colspan="2" class="bs-avg">${s?.era??'-.-−'}</td>
+                </tr>`;
             };
 
             const teamContent=(lineup,teamStats)=>{
                 let batters=[];
                 if(lineup?.length)batters=lineup.filter(p=>!['P','Pitcher'].includes(p.position?.abbreviation));
-                else batters=getAllBatters(teamStats).filter(b=>!['P','Pitcher'].includes(b.position)).map(b=>({person:{id:b.id,fullName:b.name},position:{abbreviation:b.position}}));
+                else batters=getAllBatters(teamStats).filter(b=>!['P','Pitcher'].includes(b.pos)).map(b=>({person:{id:b.id,fullName:b.name},position:{abbreviation:b.pos}}));
                 const pitchers=(teamStats.pitchers||[]).map(id=>{const p=teamStats.players[`ID${id}`];return p?{person:p.person,position:p.position}:null;}).filter(Boolean);
-                return`<div class="stats-table-wrapper">
-                    <div class="section-subtitle">Batting</div>
-                    <table class="stats-table"><thead><tr><th>#</th><th>Player</th><th>Pos</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>BB</th><th>K</th><th>AVG</th></tr></thead>
-                    <tbody>${batters.map((p,i)=>battingRow(p,i+1,teamStats)).join('')}</tbody></table>
-                    <div class="section-subtitle">Pitching</div>
-                    <table class="stats-table"><thead><tr><th></th><th>Pitcher</th><th>Pos</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>ERA</th></tr></thead>
-                    <tbody>${pitchers.map(p=>pitchingRow(p,teamStats)).join('')}</tbody></table>
-                </div>`;
+                const batRows=batters.map((p,i)=>battingRow(p,i+1,teamStats,i*25)).join('');
+                const pitRows=pitchers.map((p,i)=>pitchingRow(p,teamStats,batters.length*25+i*25)).join('');
+                return`
+                <div class="bs-section-hdr"><span class="bs-dot"></span>Batting</div>
+                <table class="bs-table">
+                    <thead><tr>
+                        <th class="bs-th-num">#</th>
+                        <th class="bs-th-player">Player</th>
+                        <th>AB</th><th>H</th><th>R</th><th>RBI</th><th>HR</th><th>BB</th><th>K</th><th>AVG</th>
+                    </tr></thead>
+                    <tbody>${batRows}</tbody>
+                </table>
+                <div class="bs-section-hdr" style="margin-top:10px;"><span class="bs-dot" style="background:#bf0d3d;"></span>Pitching</div>
+                <table class="bs-table">
+                    <thead><tr>
+                        <th class="bs-th-num"></th>
+                        <th class="bs-th-player">Pitcher</th>
+                        <th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th colspan="2">ERA</th>
+                    </tr></thead>
+                    <tbody>${pitRows}</tbody>
+                </table>`;
             };
+
+            const awayR=linescore.teams.away.runs??'–',homeR=linescore.teams.home.runs??'–';
+            const awayWin=Number(awayR)>Number(homeR),homeWin=Number(homeR)>Number(awayR);
+
+            // Single unified linescore table — header + two team rows share the same columns
+            const innNums = innings.map((_,i)=>`<th class="ls-inn-hdr">${i+1}</th>`).join('');
+
+            const teamCells=(teamKey)=>innings.map(inn=>{
+                const v=inn[teamKey]?.runs;
+                return`<td class="ls-inn${v>0?' ls-scored':''}">${v??'·'}</td>`;
+            }).join('');
 
             boxScoreContainer.innerHTML=`
             <style>
-                .boxscore-container{width:100%;max-width:100%;font-family:'Rubik',sans-serif;background:#f0f4f8;}
-                .linescore-wrapper{padding:8px;background:white;border-bottom:2px solid rgba(4,30,66,0.08);}
-                .boxscore-table{width:100%;border-collapse:collapse;background:white;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(4,30,66,0.1);table-layout:fixed;}
-                .boxscore-table thead{background:#041e42;}.boxscore-table th{padding:6px 2px;text-align:center;font-weight:700;font-size:8px;color:white;border-right:1px solid rgba(255,255,255,0.15);}
-                .boxscore-table th:last-child{border-right:none;}.boxscore-table td{padding:6px 2px;text-align:center;border-right:1px solid rgba(4,30,66,0.06);font-weight:600;color:#041e42;font-size:9px;}
-                .boxscore-table tbody tr:hover{background:rgba(191,13,61,0.05);}.team-name{display:flex;align-items:center;justify-content:center;gap:3px;}.team-logo-boxscore{width:16px;height:16px;}.total-stats{background:rgba(191,13,61,0.1)!important;font-weight:800;}
-                .tab-navigation{display:flex;background:white;border-bottom:2px solid #041e42;}
-                .tab-button-boxscore{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 6px;background:rgba(4,30,66,0.03);border:none;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;font-size:10px;color:rgba(4,30,66,0.5);transition:all 0.2s;border-bottom:2px solid transparent;}
-                .tab-button-boxscore:hover{background:rgba(4,30,66,0.07);color:#041e42;}.tab-button-boxscore.active{background:white;border-bottom-color:#bf0d3d;color:#bf0d3d;}.tab-button-boxscore img{width:18px;height:18px;}
-                .tab-content{display:none;}.tab-content.active{display:block;}
-                .stats-table-wrapper{padding:10px;}.section-subtitle{background:rgba(4,30,66,0.06);padding:6px 10px;font-weight:700;font-size:10px;color:#041e42;border-left:3px solid #bf0d3d;margin-bottom:6px;margin-top:12px;}.section-subtitle:first-child{margin-top:0;}
-                .stats-table{width:100%;border-collapse:collapse;font-size:10px;background:white;border-radius:6px;overflow:hidden;box-shadow:0 1px 4px rgba(4,30,66,0.08);}
-                .stats-table thead{background:rgba(4,30,66,0.05);}.stats-table th{padding:6px 3px;text-align:center;font-weight:700;font-size:8px;color:#041e42;border-bottom:1px solid rgba(4,30,66,0.1);}
-                .stats-table td{padding:5px 3px;text-align:center;border-bottom:1px solid rgba(4,30,66,0.05);font-weight:500;}
-                .stats-table tbody tr:hover{background:rgba(191,13,61,0.04);}.stats-table tbody tr:last-child td{border-bottom:none;}
-                .player-name-boxscore{text-align:left!important;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
-                .batting-order{font-weight:800;color:#041e42;background:rgba(4,30,66,0.08);}.position{font-weight:700;font-size:8px;color:rgba(4,30,66,0.6);}
-                .pitcher-row{background:rgba(191,13,61,0.03);}.pitcher-row .batting-order{background:rgba(191,13,61,0.12);}
-                .stats-table th:nth-child(2),.stats-table td:nth-child(2){width:28%;text-align:left;}
+                @keyframes bsTabIn{from{opacity:0;transform:translateX(var(--bs-dir,10px))}to{opacity:1;transform:translateX(0)}}
+                @keyframes bsRowIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+                @keyframes bsUnderline{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+                .bs-wrap{font-family:'Rubik',sans-serif;background:#f0f4f8;}
+
+                /* Linescore */
+                .ls-wrap{background:linear-gradient(135deg,#041e42,#0a2d5e);padding:8px 10px 6px;overflow-x:auto;scrollbar-width:none;}
+                .ls-wrap::-webkit-scrollbar{display:none;}
+                .ls-tbl{border-collapse:collapse;width:100%;min-width:max-content;}
+                .ls-team{display:flex;align-items:center;gap:5px;width:52px;padding:2px 0;}
+                .ls-logo{width:20px;height:20px;object-fit:contain;flex-shrink:0;}
+                .ls-abbr{font-size:11px;font-weight:800;color:white;letter-spacing:0.2px;}
+                .ls-tbl th{padding:0 4px 4px;text-align:center;font-size:8px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.3px;min-width:20px;}
+                .ls-tbl th.ls-team-hdr{width:52px;padding-bottom:4px;}
+                .ls-tbl th.ls-rhe-hdr{font-size:7px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;min-width:22px;}
+                .ls-tbl th.ls-rhe-hdr.ls-e-hdr{color:rgba(191,13,61,0.45);}
+                .ls-tbl td{padding:3px 4px;text-align:center;min-width:20px;}
+                .ls-inn{font-size:11px;font-weight:500;color:rgba(255,255,255,0.4);}
+                .ls-inn.ls-scored{color:white;font-weight:800;}
+                .ls-divider{border-left:1px solid rgba(255,255,255,0.12)!important;}
+                .ls-r{font-size:16px;font-weight:800;color:rgba(255,255,255,0.4);min-width:22px;}
+                .ls-r.ls-w{color:white;}
+                .ls-h{font-size:12px;font-weight:500;color:rgba(255,255,255,0.35);min-width:18px;}
+                .ls-e{font-size:12px;font-weight:500;color:rgba(191,13,61,0.55);min-width:18px;}
+                .ls-tbl tbody tr+tr td{border-top:1px solid rgba(255,255,255,0.07);}
+
+                /* Tabs */
+                .bs-tabs{display:flex;background:white;border-bottom:1px solid rgba(4,30,66,0.07);position:sticky;top:0;z-index:10;}
+                .bs-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px 6px;border:none;background:transparent;cursor:pointer;font-family:'Rubik',sans-serif;font-size:11px;font-weight:600;color:rgba(4,30,66,0.38);transition:color 0.2s;position:relative;}
+                .bs-tab img{width:16px;height:16px;opacity:0.4;transition:opacity 0.2s;}
+                .bs-tab::after{content:'';position:absolute;bottom:0;left:10%;width:80%;height:2px;background:#bf0d3d;transform:scaleX(0);transform-origin:center;transition:transform 0.25s ease;}
+                .bs-tab.active{color:#041e42;}.bs-tab.active img{opacity:1;}
+                .bs-tab.active::after{transform:scaleX(1);}
+
+                /* Panel */
+                .bs-panel{display:none;padding:8px;}
+                .bs-panel.active{display:block;animation:bsTabIn 0.2s ease-out both;}
+
+                /* Section headers */
+                .bs-section-hdr{display:flex;align-items:center;gap:5px;font-size:8px;font-weight:800;color:rgba(4,30,66,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+                .bs-dot{width:5px;height:5px;border-radius:50%;background:#041e42;flex-shrink:0;}
+
+                /* Table */
+                .bs-table{width:100%;border-collapse:collapse;font-size:10px;background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 5px rgba(4,30,66,0.06);table-layout:fixed;}
+                .bs-table thead{background:#f7fafc;border-bottom:1px solid rgba(4,30,66,0.06);}
+                .bs-table th{padding:5px 2px;text-align:center;font-size:7px;font-weight:800;color:rgba(4,30,66,0.38);text-transform:uppercase;letter-spacing:0.4px;}
+                .bs-th-num{width:16px;}
+                .bs-th-player{text-align:left!important;padding-left:4px!important;width:34%;}
+                .bs-brow,.bs-prow{border-bottom:1px solid rgba(4,30,66,0.04);transition:background 0.1s;}
+                .bs-brow:last-child,.bs-prow:last-child{border-bottom:none;}
+                .bs-brow:hover,.bs-prow:hover{background:rgba(191,13,61,0.025);}
+                .bs-prow{background:rgba(4,30,66,0.012);}
+                .bs-table td{padding:5px 2px;text-align:center;font-weight:600;color:#041e42;vertical-align:middle;}
+                .bs-num{font-size:9px;font-weight:800;color:rgba(4,30,66,0.22);text-align:center;vertical-align:middle;}
+                .bs-player{display:flex;align-items:center;gap:4px;padding-left:4px!important;text-align:left!important;}
+                .bs-shot{width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.1);object-fit:cover;background:#e8eef8;flex-shrink:0;}
+                .bs-shot-p{border-color:rgba(191,13,61,0.18);}
+                .bs-pinfo{min-width:0;}
+                .bs-pname{font-size:10px;font-weight:700;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px;line-height:1.2;}
+                .bs-pos{font-size:7px;font-weight:800;color:white;background:rgba(4, 30, 66, 0.68);padding:1px 3px;border-radius:2px;letter-spacing:0.2px;}
+                .bs-pos-p{background:rgba(191, 13, 60, 0.62);}
+                .bs-hit{font-weight:800;color:#041e42;}
+                .bs-hr{font-weight:800;color:#bf0d3d;}
+                .bs-er{color:rgba(191,13,61,0.65);}
+                .bs-ip{font-weight:700;}
+                .bs-avg{font-size:9px;color:rgba(4,30,66,0.5);font-weight:600;}
             </style>
-            <div class="boxscore-container">
-                <div class="linescore-wrapper">
-                    <table class="boxscore-table">
-                        <thead><tr><th>Team</th>${innings.map((_,i)=>`<th>${i+1}</th>`).join('')}<th>R</th><th>H</th><th>E</th></tr></thead>
+            <div class="bs-wrap">
+                <div class="ls-wrap">
+                    <table class="ls-tbl">
+                        <thead><tr>
+                            <th class="ls-team-hdr"></th>
+                            ${innNums}
+                            <th class="ls-rhe-hdr ls-divider">R</th>
+                            <th class="ls-rhe-hdr">H</th>
+                            <th class="ls-rhe-hdr ls-e-hdr">E</th>
+                        </tr></thead>
                         <tbody>
-                            <tr><td class="team-name"><img src="https://www.mlbstatic.com/team-logos/${awayTeamId}.svg" alt="${awayAbbr}" class="team-logo-boxscore"></td>${innings.map(inn=>`<td>${inn.away?.runs??'--'}</td>`).join('')}<td class="total-stats">${linescore.teams.away.runs??'--'}</td><td class="total-stats">${linescore.teams.away.hits??'--'}</td><td class="total-stats">${linescore.teams.away.errors??'--'}</td></tr>
-                            <tr><td class="team-name"><img src="https://www.mlbstatic.com/team-logos/${homeTeamId}.svg" alt="${homeAbbr}" class="team-logo-boxscore"></td>${innings.map(inn=>`<td>${inn.home?.runs??'--'}</td>`).join('')}<td class="total-stats">${linescore.teams.home.runs??'--'}</td><td class="total-stats">${linescore.teams.home.hits??'--'}</td><td class="total-stats">${linescore.teams.home.errors??'--'}</td></tr>
+                            <tr>
+                                <td><div class="ls-team"><img src="https://www.mlbstatic.com/team-logos/${awayTeamId}.svg" class="ls-logo"><span class="ls-abbr">${awayAbbr}</span></div></td>
+                                ${teamCells('away')}
+                                <td class="ls-r${awayWin?' ls-w':''} ls-divider">${awayR}</td>
+                                <td class="ls-h">${linescore.teams.away.hits??'–'}</td>
+                                <td class="ls-e">${linescore.teams.away.errors??'–'}</td>
+                            </tr>
+                            <tr>
+                                <td><div class="ls-team"><img src="https://www.mlbstatic.com/team-logos/${homeTeamId}.svg" class="ls-logo"><span class="ls-abbr">${homeAbbr}</span></div></td>
+                                ${teamCells('home')}
+                                <td class="ls-r${homeWin?' ls-w':''} ls-divider">${homeR}</td>
+                                <td class="ls-h">${linescore.teams.home.hits??'–'}</td>
+                                <td class="ls-e">${linescore.teams.home.errors??'–'}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="tab-navigation">
-                    <button class="tab-button-boxscore active" data-tab="away"><img src="https://www.mlbstatic.com/team-logos/${awayTeamId}.svg" alt="${awayTeam.name}"><span>${awayTeam.name}</span></button>
-                    <button class="tab-button-boxscore" data-tab="home"><img src="https://www.mlbstatic.com/team-logos/${homeTeamId}.svg" alt="${homeTeam.name}"><span>${homeTeam.name}</span></button>
+                <div class="bs-tabs">
+                    <button class="bs-tab active" data-tab="bs-away"><img src="https://www.mlbstatic.com/team-logos/${awayTeamId}.svg"><span>${awayAbbr}</span></button>
+                    <button class="bs-tab" data-tab="bs-home"><img src="https://www.mlbstatic.com/team-logos/${homeTeamId}.svg"><span>${homeAbbr}</span></button>
                 </div>
-                <div class="tab-content active" id="away-content">${teamContent(awayLineup,awayStats)}</div>
-                <div class="tab-content" id="home-content">${teamContent(homeLineup,homeStats)}</div>
+                <div class="bs-panel active" id="bs-away">${teamContent(awayLineup,awayStats)}</div>
+                <div class="bs-panel" id="bs-home">${teamContent(homeLineup,homeStats)}</div>
             </div>`;
 
-            boxScoreContainer.querySelectorAll('.tab-button-boxscore').forEach(btn=>{
-                btn.addEventListener('click',function(){
-                    boxScoreContainer.querySelectorAll('.tab-button-boxscore').forEach(b=>b.classList.remove('active'));
-                    boxScoreContainer.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-                    this.classList.add('active');
-                    boxScoreContainer.querySelector(`#${this.dataset.tab}-content`)?.classList.add('active');
+            let activeTab='bs-away';
+            boxScoreContainer.querySelectorAll('.bs-tab').forEach(btn=>{
+                btn.addEventListener('click',()=>{
+                    const target=btn.dataset.tab;
+                    if(target===activeTab)return;
+                    const dir=target==='bs-home'?'10px':'-10px';
+                    boxScoreContainer.querySelectorAll('.bs-tab').forEach(b=>b.classList.remove('active'));
+                    boxScoreContainer.querySelectorAll('.bs-panel').forEach(p=>p.classList.remove('active'));
+                    btn.classList.add('active');
+                    const panel=boxScoreContainer.querySelector(`#${target}`);
+                    panel.style.setProperty('--bs-dir',dir);
+                    panel.classList.add('active');
+                    activeTab=target;
                 });
             });
 
-        }catch(err){console.error("loadBoxScore error:",err);boxScoreContainer.innerHTML="<p>Error loading box score.</p>";}
+        }catch(err){console.error("loadBoxScore error:",err);boxScoreContainer.innerHTML="<p style='padding:16px;color:#555;font-family:Rubik,sans-serif;'>Error loading box score.</p>";}
     }
 
     // ── All Plays ─────────────────────────────────────────────────────────────
@@ -2267,7 +2559,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     .tt-pos{color:#10b981;font-size:10px;}.tt-neg{color:#ef4444;font-size:10px;}
                     .wp-dot{display:none;pointer-events:none;}
                 </style>
-                <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;"></div>
+                <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Win Probability</div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
                     <div style="display:flex;align-items:center;gap:6px;"><img src="https://www.mlbstatic.com/team-logos/${away.id}.svg" style="width:22px;height:22px;"><span style="font-size:22px;font-weight:800;color:#041e42;">${awayProb}%</span></div>
                     <div style="font-size:9px;color:#999;font-weight:600;letter-spacing:0.5px;">WIN PROBABILITY</div>
@@ -2278,8 +2570,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div id="${tooltipId}"></div>
                     <svg id="wp-svg-${gamePk}" width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;display:block;">
                         <rect x="${PL}" y="${PT}" width="${CW}" height="${CH}" fill="#f7fafc" rx="3"/>
-                        <polygon points="${polyPts}" fill="${awayColor}" opacity="0.85" clip-path="url(#ct-${gamePk})"/>
-                        <polygon points="${polyPts}" fill="${homeColor}" opacity="0.85" clip-path="url(#cb-${gamePk})"/>
+                        <polygon points="${polyPts}" fill="${awayColor}" clip-path="url(#ct-${gamePk})"/>
+                        <polygon points="${polyPts}" fill="${homeColor}" clip-path="url(#cb-${gamePk})"/>
                         <defs><clipPath id="ct-${gamePk}"><rect x="${PL}" y="${PT}" width="${CW}" height="${CH/2}"/></clipPath><clipPath id="cb-${gamePk}"><rect x="${PL}" y="${PT+CH/2}" width="${CW}" height="${CH/2}"/></clipPath></defs>
                         <line x1="${PL}" y1="${PT+CH/2}" x2="${PL+CW}" y2="${PT+CH/2}" stroke="#bbb" stroke-width="1" stroke-dasharray="4,3"/>
                         <text x="${PL-4}" y="${PT+CH/2+4}" text-anchor="end" font-size="8" fill="#999" font-family="Rubik">50%</text>
