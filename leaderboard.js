@@ -1,7 +1,7 @@
 class MLBLeaderboard {
     constructor() {
         this.currentCategory = 'hitting';
-        this.currentYear = '2025';
+        this.currentYear = '2026';
         this.currentTeam = '';
         this.currentLeague = ''; // New league filter
         this.allData = [];

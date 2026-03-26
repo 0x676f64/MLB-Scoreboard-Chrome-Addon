@@ -285,7 +285,7 @@ statsContainer.style.marginLeft = '7px'; // Add some space from the header
 async function fetchTeamStats() {
     try {
         // Fetch hitting stats for all teams
-        const hittingResponse = await fetch('https://statsapi.mlb.com/api/v1/teams/stats?season=2025&group=hitting&stats=season&sportId=1');
+        const hittingResponse = await fetch('https://statsapi.mlb.com/api/v1/teams/stats?season=2026&group=hitting&stats=season&sportId=1');
         const hittingData = await hittingResponse.json();
 
         // Calculate XBH for each team
@@ -297,7 +297,7 @@ async function fetchTeamStats() {
         });
 
         // Fetch pitching stats for all teams
-        const pitchingResponse = await fetch('https://statsapi.mlb.com/api/v1/teams/stats?season=2025&group=pitching&stats=season&sportId=1');
+        const pitchingResponse = await fetch('https://statsapi.mlb.com/api/v1/teams/stats?season=2026&group=pitching&stats=season&sportId=1');
         const pitchingData = await pitchingResponse.json();
 
         return { hitting: hittingData, pitching: pitchingData };

@@ -2267,7 +2267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     .tt-pos{color:#10b981;font-size:10px;}.tt-neg{color:#ef4444;font-size:10px;}
                     .wp-dot{display:none;pointer-events:none;}
                 </style>
-                <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Win Probability</div>
+                <div style="text-align:center;font-weight:700;font-size:10px;color:rgba(4,30,66,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;"></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
                     <div style="display:flex;align-items:center;gap:6px;"><img src="https://www.mlbstatic.com/team-logos/${away.id}.svg" style="width:22px;height:22px;"><span style="font-size:22px;font-weight:800;color:#041e42;">${awayProb}%</span></div>
                     <div style="font-size:9px;color:#999;font-weight:600;letter-spacing:0.5px;">WIN PROBABILITY</div>

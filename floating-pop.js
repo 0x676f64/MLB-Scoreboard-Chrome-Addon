@@ -480,7 +480,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         .plc-team-btn.active {
             opacity: 1;
-            border-bottom-color: #bf0d3d;
+            border-color: #bf0d3d;
             background: rgba(191,13,61,0.04);
         }
 
@@ -987,7 +987,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             flex-direction: column;
             gap: 3px;
             flex-shrink: 0;
-            width: 55%;
+            width: 40%;
         }
 
         .lab-sc-chip {
@@ -1181,10 +1181,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(_batterCountCache[cacheKey]!==undefined)return _batterCountCache[cacheKey];
         try{
             const res=await fetch(`https://statsapi.mlb.com/api/v1/people/${batterId}/stats?stats=byCount&group=hitting&season=2025&gameType=R`);
-            const d=await res.json();
-            for(const s of(d.stats?.[0]?.splits||[])){
-                const k=s.split?.description?.replace(/ count/i,'').trim();
-                if(k===key&&s.stat?.avg){const v=parseFloat(s.stat.avg);_batterCountCache[cacheKey]=v;return v;}
+            if(res.ok){
+                const d=await res.json();
+                for(const s of(d.stats?.[0]?.splits||[])){
+                    const k=s.split?.description?.replace(/ count/i,'').trim();
+                    if(k===key&&s.stat?.avg){const v=parseFloat(s.stat.avg);_batterCountCache[cacheKey]=v;return v;}
+                }
             }
         }catch(e){}
         const lg=LEAGUE_AVG_BY_COUNT[key]||null;
@@ -1392,13 +1394,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         const homeBattingOrder=data.liveData.boxscore.teams.home.battingOrder;
         const awayPS=document.getElementById("away-player-stats");
         const homePS=document.getElementById("home-player-stats");
-        awayPS.innerHTML="";homePS.innerHTML="";
+        // NOTE: do NOT clear innerHTML here — the diff-guards below decide
+        // whether to rebuild each panel.  Clearing unconditionally wipes the
+        // DOM on every 2-second poll, then the guard skips the repaint and
+        // leaves both panels permanently blank.
 
         // ── FINAL ──────────────────────────────────────────────────────────────
         if(isFinalState(gameState)){
             const isTied=gameState==="Final: Tied";
             if(!isTied&&data.liveData.decisions?.winner&&data.liveData.decisions?.loser){
                 const{winner,loser}=data.liveData.decisions;
+                // Only write once — decisions never change after final
+                if(awayPS.dataset.rendered==='final')return;
+                awayPS.dataset.rendered='final';
                 const wImg=`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${winner.id}/headshot/67/current`;
                 const lImg=`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${loser.id}/headshot/67/current`;
                 const decHTML=(img,name,cls,label)=>`

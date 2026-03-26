@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const player = players[0];
             const playerDetails = await getPlayerDetails(player.id);
-            const playerHittingStats = await getPlayerStats(player.id, 'hitting', 2025);
-            const playerPitchingStats = await getPlayerStats(player.id, 'pitching', 2025);
+            const playerHittingStats = await getPlayerStats(player.id, 'hitting', 2026);
+            const playerPitchingStats = await getPlayerStats(player.id, 'pitching', 2026);
 
             // Get recent stats for hot/cold indicators
             const recentHittingStats = await getPlayerRecentStats(player.id, 'hitting', 7);
@@ -72,11 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const playerTeamInfo = await getPlayerTeam(player.id);
 
             // Fetch all players' stats
-            const allHittingPlayersData = await fetchAllPlayerStats('hitting', 2025);
-            const allPitchingPlayersData = await fetchAllPlayerStats('pitching', 2025);
+            const allHittingPlayersData = await fetchAllPlayerStats('hitting', 2026);
+            const allPitchingPlayersData = await fetchAllPlayerStats('pitching', 2026);
 
             // Fetch team standings to get games played for each team
-            const teamStandings = await fetchTeamStandings(2025);
+            const teamStandings = await fetchTeamStandings(2026);
 
             // Filter qualified players and display player info
             displayPlayerInfo(
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return data.people[0];
     }
 
-    async function getPlayerStats(playerId, group = 'hitting', year = 2025) {
+    async function getPlayerStats(playerId, group = 'hitting', year = 2026) {
         const response = await fetch(`https://statsapi.mlb.com/api/v1/people/${playerId}/stats?stats=statsSingleSeason&season=${year}&group=${group}&sportId=1`);
         if (!response.ok) throw new Error(`Failed to get player ${group} stats for ${year}`);
         const data = await response.json();
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // For hitting: last 7 games; For pitching: last 3 games
             const gamesToFetch = group === 'hitting' ? 7 : 3;
 
-            const response = await fetch(`https://statsapi.mlb.com/api/v1/people/${playerId}/stats?stats=gameLog&group=${group}&season=2025&gameType=R&limit=${gamesToFetch}`);
+            const response = await fetch(`https://statsapi.mlb.com/api/v1/people/${playerId}/stats?stats=gameLog&group=${group}&season=2026&gameType=R&limit=${gamesToFetch}`);
             if (!response.ok) throw new Error(`Failed to get player recent ${group} stats`);
             const data = await response.json();
 
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function fetchTeamStandings(year = 2025) {
+    async function fetchTeamStandings(year = 2026) {
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=${year}`);
             if (!response.ok) throw new Error(`Failed to fetch team standings for ${year}`);
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function fetchAllPlayerStats(group, year = 2025) {
+    async function fetchAllPlayerStats(group, year = 2026) {
         try {
             const response = await fetch(`https://statsapi.mlb.com/api/v1/stats?stats=season&group=${group}&sportId=1&season=${year}&limit=200`);
             if (!response.ok) throw new Error(`Failed to fetch all ${group} stats for ${year}`);
@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Final check for empty stats
     if (statsGridWrapper.children.length === 0) {
-        statsContainer.textContent = `No ${isPitcher ? 'pitching' : 'hitting'} stats available for 2025.`;
+        statsContainer.textContent = `No ${isPitcher ? 'pitching' : 'hitting'} stats available for 2026.`;
         // Clear summary row if no stats are shown
         playerStatsSummaryRow.remove();
     }
