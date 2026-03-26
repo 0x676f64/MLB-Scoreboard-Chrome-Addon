@@ -23,7 +23,7 @@ The MLB Scoreboard Add-on delivers live MLB game updates, stats, and results dir
 
 <img width="1280" height="800" alt="Image-1" src="https://github.com/user-attachments/assets/1b065018-bfcf-4f22-9444-9a85cc60f8f8" />
 
-<img width="1280" height="800" alt="Image-6" src="https://github.com/user-attachments/assets/877317b3-d20c-44b1-bcbb-798c40fdee74" />
+<img width="1280" height="800" alt="Image-6" src="https://github.com/user-attachments/assets/ba42d6bb-1b3f-4a07-8ead-10568c44f87d" />
 
 <img width="1280" height="800" alt="Image-2" src="https://github.com/user-attachments/assets/f68416f2-1402-49b1-9a65-e379ee274806" />
 
@@ -33,6 +33,7 @@ The MLB Scoreboard Add-on delivers live MLB game updates, stats, and results dir
 
 <img width="1280" height="800" alt="Image-5" src="https://github.com/user-attachments/assets/9778f9de-958f-4ef7-ae4e-e5f627856fa5" />
 
+<img width="1280" height="800" alt="Image-7" src="https://github.com/user-attachments/assets/4d787bcd-7247-45a4-aab6-51fee01bd8aa" />
 
 🚀 Installation
 
