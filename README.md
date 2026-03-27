@@ -35,6 +35,10 @@ The MLB Scoreboard Add-on delivers live MLB game updates, stats, and results dir
 
 <img width="1280" height="800" alt="Image-7" src="https://github.com/user-attachments/assets/4d787bcd-7247-45a4-aab6-51fee01bd8aa" />
 
+<img width="1280" height="800" alt="Image-8" src="https://github.com/user-attachments/assets/95cb4d96-bfdd-4dbe-8c61-368e331202b0" />
+
+
+
 🚀 Installation
 
 [**Get it on the Chrome Web Store**](https://chromewebstore.google.com/detail/mlb-scoreboard/agpdhoieggfkoamgpgnldkgdcgdbdkpi)  
