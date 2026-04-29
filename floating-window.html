@@ -1,1161 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Scores - Games List</title>
-    <link rel="stylesheet" href="style.css">
+    <title>MLB Floating Scoreboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="floating-window.js" defer></script>
-    <script src="navigation.js" defer></script>
-    <script src="darkMode.js" defer></script>
-<head>
-<style>
-         html {
-            scrollbar-width: thin;
-            height: auto;
-        }
-        
-        body {
-            min-width: 280px; /* Reduced minimum width for better mobile support */
-            width: 100%;
-            height: 100vh;
-            margin: 0;
-            padding: 20px 0;
-            font-family: "Rubik", sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            color: #4a5568;
-            background-color: #f7fafc;
-            display: flex;
-            flex-direction: column;
-            overflow-x: auto;
-        }
-
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px 10px;
-            position: relative;
-            flex-shrink: 0;
-            margin-left: 10rem;
-        }
-
-        .header-container img {
-            width: min(250px, 80vw); /* Responsive header image */
-            height: auto;
-            max-height: 90px;
-        }
-
-        .dark-mode-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            position: absolute;
-            right: 20px;
-        }
-
-        .toggle-switch {
-            width: 50px;
-            height: 24px;
-            background-color: #a9bcd6;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .toggle-switch.active {
-            background-color: #bf0d3d;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s ease;
-        }
-
-        .toggle-switch.active .toggle-slider {
-            transform: translateX(26px);
-        }
-
-        .toggle-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #a0aec0;
-        }
-
-        /* Main content container - takes remaining space and centers content */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 20px;
-            overflow-y: auto;
-            min-height: 0;
-        }
-
-        .date-picker-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            margin-left: 10rem;
-        }
-
-        .datepicker {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 10px;
-            padding: 10px;
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            justify-content: center;
-            min-width: 200px;
-        }
-
-        .datepicker:hover {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: #dc2626;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
-        }
-
-        .date-input {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #2b6cb0;
-            border-radius: 5px;
-            padding: 5px 10px;
-            color: #1e40af;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #dc2626;
-            background: rgba(255, 255, 255, 1);
-            box-shadow: 0 0 8px rgba(220, 38, 38, 0.25);
-        }
-
-        .date-input::-webkit-calendar-picker-indicator {
-            filter: invert(0.2) sepia(1) saturate(3) hue-rotate(200deg);
-            cursor: pointer;
-        }
-
-        .apply {
-            background: linear-gradient(135deg, #dc2626 0%, #1e40af 100%);
-            border: none;
-            border-radius: 5px;
-            padding: 8px 16px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .apply:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
-        }
-
-        .apply:active {
-            transform: scale(0.95);
-        }
-
-       .floating-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 6px;
-            color: linear-gradient(135deg, #dc2626 0%, #1e40af 100%);
-            transition: all 0.2s ease;
-            display: flex;
-            flex-shrink: 0;
-        }
-
-        .floating-btn svg {
-            fill: currentColor;
-        }
-
-        .floating-btn:hover {
-            transform: scale(1.1);
-            color: #1e40af;
-        }
-
-        .floating-btn:active {
-            transform: scale(0.95);
-            color: #dc2626;
-        }
-
-        /* Games container with highly responsive grid */
-        #scorebug {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        #games-container {
-            display: grid;
-            gap: clamp(8px, 2vw, 15px);
-            padding: 5px;
-            width: 100%;
-            
-            /* Ultra-responsive grid that adapts to container width */
-            grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
-        }
-
-        /* Responsive breakpoints for different layouts */
-        @media (max-width: 400px) {
-            #games-container {
-                /* Single column on very narrow screens */
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            
-            .game-box {
-                height: auto !important; /* Taller boxes for single column */
-                width: 32rem !important;
-            }
-
-            .team-logo {
-                height: 60px !important;
-                width: 60px !important;
-            }
-
-            .team-abbr {
-                font-size: 1.5rem !important;
-            }
-
-            .game-status {
-                font-size: 1rem !important;
-            }
-
-            .team-score {
-                font-size: 1.5rem !important;
-                align-items: center !important;
-            }
-
-            .nav-container {
-                width: 140% !important;
-                height: 100px !important;
-            }
-
-            .nav-container svg {
-                height: 2rem !important;
-                width: 2rem !important;
-            }
-        }
-
-        @media (min-width: 401px) and (max-width: 600px) {
-            #games-container {
-                /* Two columns on narrow screens */
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            
-            .game-box {
-                height: 130px !important;
-            }
-        }
-
-        @media (min-width: 601px) and (max-width: 800px) {
-            #games-container {
-                /* Three columns on medium screens */
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-            }
-            
-            .game-box {
-                height: 125px !important;
-            }
-        }
-
-        @media (min-width: 801px) and (max-width: 1000px) {
-            #games-container {
-                /* Four columns on larger screens */
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-            
-            .game-box {
-                height: 140px !important;
-            }
-        }
-
-        @media (min-width: 1001px) and (max-width: 1200px) {
-            #games-container {
-                /* Five columns on wide screens */
-                grid-template-columns: repeat(5, 1fr);
-                gap: 15px;
-            }
-            
-            .game-box {
-                height: 140px !important;
-            }
-        }
-
-        @media (min-width: 1201px) {
-            #games-container {
-                /* Six or more columns on very wide screens */
-                grid-template-columns: repeat(6, 1fr);
-                gap: 15px;
-            }
-            
-            .game-box {
-                height: 140px !important;
-            }
-        }
-
-        @media (min-width: 1401px) {
-            #games-container {
-                /* Seven columns on ultra-wide screens */
-                grid-template-columns: repeat(7, 1fr);
-                gap: 15px
-            }
-
-            .game-box {
-                height: 140px !important;
-            }
-        }
-
-        @media (min-width: 1681px) {
-            #games-container {
-                /* Eight columns on extremely wide screens */
-                grid-template-columns: repeat(8, 1fr);
-                gap: 15px;
-            }
-
-            .game-box {
-                height: 140px !important;
-            }
-        }
-
-        .game-box {
-            border: 1px solid rgba(59, 131, 246, 0.39);
-            padding: 8px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
-            font-size: 10px;
-            width: 100%;
-            height: 120px; /* Default height, overridden by media queries */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-box:active, .game-box:hover, .game-box:focus,
-        .game-box:focus-within {
-            transform: scale(1.03);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.2);
-            border-color: rgba(220, 38, 38, 0.4);
-            background: rgba(255, 255, 255, 0.8);
-            transition: all 0.2s ease;
-        }
-
-        .team-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            flex: 1;
-        }
-
-        .team-logo {
-            width: clamp(25px, 8vw, 40px);
-            height: clamp(25px, 8vw, 40px);
-            flex-shrink: 0;
-        }
-
-        .team-abbr, .team-score {
-            font-size: clamp(12px, 3vw, 18px);
-            margin: 0 clamp(3px, 1vw, 8px);
-            font-weight: 600;
-            color: #0252bb;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .game-status {
-            font-size: clamp(11px, 2.5vw, 16px);
-            font-weight: 700;
-            align-self: center;
-            color: #ef4444;
-            text-align: center;
-            margin: 5px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Navigation bar - always at bottom */
-        .nav-container {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid #ef4444;
-            align-items: center;
-            padding: 8px;
-            height: 50px;
-            width: 100%;
-            margin-top: auto;
-            flex-shrink: 0;
-            transition: background-color 0.3s ease;
-            box-sizing: border-box;
-        }
-
-        .nav-container button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px;
-        }
-        
-        .nav-container svg {
-            height: clamp(20px, 5vw, 28px);
-            width: clamp(20px, 5vw, 28px);
-            fill: #6b7280;
-            transition: fill 0.2s; 
-        }
-
-        body.dark-mode .nav-container svg {
-            fill: #b0b0b0;
-        }
-
-        .nav-container svg:hover {
-            fill: #3b82f6;
-            background-color: transparent;
-        }
-
-        .material-symbols-outlined {
-            font-variation-settings:
-            'FILL' 0,
-            'wght' 400,
-            'GRAD' 0,
-            'opsz' 48
-        }
-
-        /* Container query support for modern browsers */
-        @container (max-width: 300px) {
-            .game-box {
-                height: 150px;
-            }
-            
-            .team-logo {
-                width: 30px;
-                height: 30px;
-            }
-        }
-
-        /* Add smooth transitions for layout changes */
-        * {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Improve touch targets for mobile */
-        @media (hover: none) and (pointer: coarse) {
-            .game-box {
-                min-height: 44px; /* Minimum touch target size */
-                padding: 12px 8px;
-            }
-            
-            .nav-container button {
-                min-width: 44px;
-                min-height: 44px;
-            }
-            
-            .floating-btn {
-                padding: 12px;
-            }
-        }
-
-       /* Additional CSS for the scorebug - add this to your existing style.css */
-
-        .score-bug-container {
-            text-align: center;
-            padding: 5px;
-            margin-top: 5px;
-            border-top: 1px solid rgba(185, 162, 162, 0.3);
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0 0 8px 8px;
-        }
-
-        .bases-outs-svg {
-            transition: all 0.3s ease;
-            max-width: 90px;
-            height: auto;
-            margin: 0 auto;
-            display: block;
-        }
-
-        @media (min-width: 401px) and (max-width: 600px) {
-            .bases-outs-svg {
-                display: block !important;
-                max-width: 70px;
-            }
-        }
-
-        @media (min-width: 601px) {
-            .bases-outs-svg {
-                display: block !important;
-                max-width: 85px;
-            }
-        }
-
-        /* Wrapper for game content with side-by-side layout */
-        .game-content-wrapper {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            align-items: stretch;
-        }
-
-        .game-content-wrapper.with-scorebug {
-            gap: 8px;
-        }
-
-        .game-main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .score-bug-container {
-            flex-shrink: 0;
-            display: flex;
-            position: absolute;
-            align-items: center;
-            justify-content: center;
-            padding: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            border: 1px solid rgba(185, 162, 162, 0.2);
-        }
-
-        .bases-outs-svg {
-            transition: all 0.3s ease;
-            width: 80px;
-            height: 60px;
-            margin: 0 auto;
-            display: block;
-        }
-
-        /* Compact Layout Styles for max-width: 400px */
-        @media (max-width: 400px) {
-            /* Hide standard game boxes */
-            .game-box.standard {
-                display: none;
-            }
-            
-            /* Compact Game Box Base Styles */
-            .compact-game-box {
-                height: auto;
-                width: 30rem;
-                background: #1a1a1a;
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 16px;
-                cursor: pointer;
-                transition: transform 0.2s, box-shadow 0.2s;
-                border: 1px solid #333;
-            }
-            
-            .compact-game-box:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            }
-            
-            /* PRE-GAME LAYOUT */
-            .compact-game-box.pre-game .compact-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 12px;
-            }
-            
-            .compact-game-box.pre-game .team-info {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex: 1;
-            }
-            
-            .compact-game-box.pre-game .team-info.away {
-                justify-content: flex-start;
-            }
-            
-            .compact-game-box.pre-game .team-info.home {
-                justify-content: flex-end;
-            }
-            
-            .compact-game-box.pre-game .team-logo-sm {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .compact-game-box.pre-game .team-abbr {
-                font-weight: 600;
-                font-size: 16px;
-                color: #0252bb;
-            }
-            
-            .compact-game-box.pre-game .team-record {
-                font-size: 13px;
-                color: #888;
-            }
-            
-            .compact-game-box.pre-game .game-time {
-                font-size: 14px;
-                color: #bf0d3d;
-                font-weight: 500;
-                padding: 0 12px;
-                white-space: nowrap;
-                opacity: 0.7;
-            }
-            
-            .compact-game-box.pre-game .pitchers-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px 0;
-                border-top: 1px solid #333;
-                border-bottom: 1px solid #333;
-            }
-            
-            .compact-game-box.pre-game .pitcher {
-                flex: 1;
-                text-align: center;
-            }
-            
-            .compact-game-box.pre-game .pitcher-label {
-                font-size: 12px;
-                color: #666;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 4px;
-            }
-            
-            .compact-game-box.pre-game .pitcher-name {
-                font-size: 15px;
-                font-weight: 600;
-                color: #1e40af;
-            }
-            
-            .compact-game-box.pre-game .vs-divider {
-                font-size: 12px;
-                color: #666;
-                font-weight: 600;
-                padding: 0 12px;
-            }
-            
-            .compact-game-box.pre-game .venue-info {
-                margin-top: 12px;
-                text-align: right;
-                font-size: 12px;
-                color: #666;
-            }
-
-           .venue-info .team-logo-venue {
-                width: 20px;
-                height: 20px;
-                margin-right: 6px;
-                position: relative;
-                top: 2px;   /* nudges it down */
-                left: -1px; /* nudges it left */
-            }
-
-            .pitcher-headshot {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-            }
-            
-            /* LIVE GAME LAYOUT */
-            .compact-game-box.live-game {
-                background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
-                border: 1px solid #444;
-            }
-            
-            .compact-game-box.live-game .live-header {
-                display: flex;
-                flex-direction: row;
-                gap: 2px;
-                margin-bottom: 6px;
-            }
-            
-            .compact-game-box.live-game .team-score-row {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            
-            .compact-game-box.live-game .team-score-row.away {
-                justify-content: flex-start;
-                width: 50%;
-            }
-            
-            .compact-game-box.live-game .team-score-row.home {
-                justify-content: flex-end;
-                width: 50%;
-            }
-            
-            .compact-game-box.live-game .team-logo-md {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .compact-game-box.live-game .team-abbr-large {
-                font-size: 20px;
-                font-weight: 700;
-                color: #0252bb;
-                flex: 1;
-            }
-            
-            .compact-game-box.live-game .team-score-row.home .team-abbr-large {
-                text-align: right;
-            }
-            
-            .compact-game-box.live-game .team-record-sm {
-                font-size: 13px;
-                color: #888;
-            }
-            
-            .compact-game-box.live-game .score-large {
-                font-size: 32px;
-                font-weight: 700;
-                color: #0252bb;
-                min-width: 40px;
-                text-align: center;
-            }
-            
-            .compact-game-box.live-game .inning-indicator {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                padding: 5px 0;
-                border-top: 1px solid #041e41;
-                border-bottom: 1px solid #041e41;
-            }
-            
-            .compact-game-box.live-game .inning-text {
-                font-size: 14px;
-                font-weight: 600;
-                color: #ef4444;
-                letter-spacing: 1px;
-            }
-            
-            .compact-game-box.live-game .compact-bases-outs {
-                display: block;
-                margin: 0 auto;
-            }
-
-            
-            /* FINAL GAME LAYOUT */
-            .compact-game-box.final-game {
-                background: #1a1a1a;
-            }
-            
-            .compact-game-box.final-game .final-header {
-                display: flex;
-                flex-direction:row;
-                gap: 8px;
-                margin-bottom: 16px;
-            }
-            
-            .compact-game-box.final-game .team-final-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-            
-            .compact-game-box.final-game .team-logo-sm {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .compact-game-box.final-game .team-abbr {
-                font-size: 16px;
-                font-weight: 600;
-                color: #0252bb;
-                min-width: 45px;
-            }
-            
-            .compact-game-box.final-game .team-record {
-                font-size: 13px;
-                color: #888;
-                min-width: 50px;
-            }
-            
-            .compact-game-box.final-game .final-label {
-                font-size: 12px;
-                color: #BF0D3D;
-                text-transform: uppercase;
-                flex: 1;
-                text-align: center;
-                font-weight: 600;
-                margin-left: 10px;
-            }
-            
-            .compact-game-box.final-game .score-md {
-                font-size: 24px;
-                font-weight: 700;
-                color: #0252bb;
-                min-width: 35px;
-                text-align: right;
-            }
-            
-            .compact-game-box.final-game .pitchers-final {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 18px;
-                padding: 12px 0;
-                border-top: 1px solid #333;
-                align-items: center;
-                justify-content: space-between;
-            }
-            
-            .compact-game-box.final-game .pitcher-result {
-                font-weight: 600;
-                color: #333;
-            }
-            
-            .compact-game-box.final-game .pitcher-stats {
-                color: #888;
-            }
-
-            .pitcher-headshot-small {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-            }
-
-            .pitcher-final {
-                margin-right: 20px;
-            }
-            
-            /* LINE SCORE TABLE (Shared for Live & Final) */
-            .line-score-compact {
-                overflow-x: auto;
-                margin: 12px 0;
-                border-radius: 6px;
-                background: #0a0a0a;
-                padding: 8px;
-            }
-            
-            .line-score-compact table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 12px;
-                min-width: 300px;
-            }
-            
-            .line-score-compact th,
-            .line-score-compact td {
-                padding: 6px 4px;
-                text-align: center;
-                border: none;
-            }
-            
-            .line-score-compact th {
-                font-weight: 600;
-                color: #888;
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            .line-score-compact td {
-                color: #fff;
-                font-weight: 500;
-            }
-            
-            .line-score-compact .team-cell {
-                font-weight: 700;
-                text-align: left;
-                padding-left: 8px;
-                min-width: 45px;
-            }
-            
-            .line-score-compact .total {
-                font-weight: 700;
-                color: #fff;
-                background: rgba(255, 255, 255, 0.05);
-            }
-            
-            .line-score-compact tr {
-                border-bottom: 1px solid #222;
-            }
-            
-            .line-score-compact tr:last-child {
-                border-bottom: none;
-            }
-            
-            /* Venue Info (Shared) */
-            .venue-info {
-                margin-top: 12px;
-                text-align: right;
-                font-size: 11px;
-                color: #666;
-                padding-top: 8px;
-                border-top: 1px solid #2a2a2a;
-            }
-            
-            /* Dark Mode Adjustments */
-            body.dark-mode .compact-game-box {
-                background: #111;
-                border-color: #2a2a2a;
-            }
-            
-            body.dark-mode .compact-game-box.live-game {
-                background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
-                border-color: #333;
-            }
-            
-            body.dark-mode .line-score-compact {
-                background: #000;
-            }
-            
-            body.dark-mode .line-score-compact tr {
-                border-bottom-color: #1a1a1a;
-            }
-            
-            /* Light Mode Styles */
-            body:not(.dark-mode) .compact-game-box {
-                background: #fff;
-                border-color: #e5e7eb;
-            }
-            
-            body:not(.dark-mode) .compact-game-box.live-game {
-                background: linear-gradient(135deg, #f9fafb 0%, #fff 100%);
-                border-color: #d1d5db;
-            }
-            
-            body:not(.dark-mode) .line-score-compact {
-                background: #f9fafb;
-            }
-            
-            body:not(.dark-mode) .line-score-compact td {
-                color: #111;
-            }
-            
-            body:not(.dark-mode) .line-score-compact th {
-                color: #6b7280;
-            }
-            
-            body:not(.dark-mode) .line-score-compact tr {
-                border-bottom-color: #e5e7eb;
-            }
-            
-            body:not(.dark-mode) .line-score-compact .total {
-                background: rgba(0, 0, 0, 0.03);
-            }
-            
-            body:not(.dark-mode) .compact-game-box .inning-text {
-                color: #dc2626;
-            }
-            
-            body:not(.dark-mode) .venue-info {
-                color: #9ca3af;
-                border-top-color: #e5e7eb;
-            }
-            
-            body:not(.dark-mode) .pitchers-row,
-            body:not(.dark-mode) .inning-indicator,
-            body:not(.dark-mode) .pitchers-final {
-                border-color: #e5e7eb;
-            }
-        }
-
-        /* Ensure standard layout is hidden in compact mode */
-        @media (min-width: 401px) {
-            .compact-game-box {
-                display: none;
-            }
-        }
-
-        @media (min-width: 401px) and (max-width: 600px) {
-
-            .score-bug-container {
-                width: 60px;
-                min-width: 60px;
-            }
-            
-            .bases-outs-svg {
-                width: 65px;
-                height: 55px;
-            }
-
-            .game-box {
-                padding-bottom: 8px; /* Extra space for scorebug */
-                width: 20rem;
-            }
-        }
-
-        @media (min-width: 601px) {
-            .score-bug-container {
-                width: 70px;
-                min-width: 70px;
-            }
-            
-            .bases-outs-svg {
-                width: 75px;
-                height: 60px;
-            }
-
-            .game-box {
-                padding-bottom: 8px; /* Extra space for scorebug */
-                width: 17rem;
-            }
-        }
-
-        /* Animation for bases and outs updates */
-        .bases-outs-svg rect,
-        .bases-outs-svg circle {
-            transition: fill 0.4s ease-in-out;
-        }
-
-        /* Enhanced game box for scorebug games */
-        .game-box.with-scorebug {
-            min-height: 140px;
-            padding-bottom: 5px;
-        }
-
-        /* Ensure scorebug doesn't interfere with click events */
-        .score-bug-container {
-            pointer-events: none;
-        }
-
-        /* Make sure the SVG elements are properly sized */
-        .bases-outs-svg rect {
-            stroke-width: 1;
-        }
-
-        .bases-outs-svg circle {
-            stroke-width: 1;
-        }
-
-        .bases-outs-svg polygon {
-            stroke-width: 1;
-        }
-
-        /* Text styling for inning display in SVG */
-        .inning-text {
-            font-family: 'Rubik', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 8px;
-        }
-
-        /* Hover effects for better interactivity */
-        .game-box:hover .bases-outs-svg {
-            transform: scale(1.05);
-        }
-
-        /* Additional spacing for games with scorebugs */
-        .game-box:has(.score-bug-container) {
-            padding-bottom: 8px;
-        }
-
-        /* Ensure proper stacking order */
-        .score-bug-container {
-            position: relative;
-            z-index: 1;
-        }
-
-        .player-card {
-            padding: 10px 20px;
-        }
-
-    .player-matchup-container {
-        display: flex;
-        flex-direction: row;
-        gap: 5px;
-        padding: 20px 20px;
-        justify-content: space-between;
-        border-top: 1px solid #333;
-    }
-    
-    .player-image {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-    }
-    
-    .player-name {
-        font-size: 14px;
-        font-weight: bold;
+    <style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --navy:     #041e42;
+        --navy-mid: #0d2d5e;
+        --red:      #bf0d3d;
+        --bg:       #f0f4f8;
+        --surface:  #ffffff;
+        --surface-2:#f7fafc;
+        --text:     #041e42;
+        --muted:    rgba(4,30,66,0.42);
+        --muted-2:  rgba(4,30,66,0.6);
+        --border:   rgba(4,30,66,0.11);
+        --shadow:   0 1px 4px rgba(4,30,66,0.08);
     }
 
-    .player-position {
-        color: #ff1453;
-        font-style: italic;
+    html { scrollbar-width: thin; scrollbar-color: var(--red) transparent; }
 
-    }
-    
-    .player-stats span {
-        font-size: 13px;
+    body {
+        font-family: 'Rubik', sans-serif;
+        background: var(--bg);
+        color: var(--text);
         display: flex;
         flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
     }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .page-header {
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        padding: 9px 14px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-shrink: 0;
+    }
+
+    .header-logo  { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
+
+    .header-title {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+        flex: 1;
+    }
+
+    /* ── Date bar ───────────────────────────────────────── */
+    .date-bar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 6px 12px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-shrink: 0;
+    }
+
+    .date-arrow {
+        width: 24px; height: 24px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface-2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.14s;
+        flex-shrink: 0;
+        padding: 0;
+    }
+    .date-arrow:hover     { background: var(--navy); border-color: var(--navy); }
+    .date-arrow:hover svg { stroke: white; }
+    .date-arrow svg {
+        width: 11px; height: 11px;
+        stroke: var(--muted);
+        fill: none;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .date-display-wrap { position: relative; flex: 1; min-width: 0; }
+    .date-display {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 5px 9px;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.14s;
+    }
+    .date-display:hover { border-color: var(--navy); background: var(--surface); }
+    .date-display svg {
+        width: 12px; height: 12px;
+        stroke: var(--red);
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex-shrink: 0;
+    }
+    .date-display-text {
+        font-family: 'Rubik', sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text);
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .date-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+    }
+    .today-btn {
+        font-family: 'Rubik', sans-serif;
+        font-size: 9px;
+        font-weight: 700;
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 9px;
+        cursor: pointer;
+        transition: all 0.14s;
+        flex-shrink: 0;
+    }
+    .today-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Games area ─────────────────────────────────────── */
+    #scorebug {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 10px 12px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--red) transparent;
+    }
+
+    #games-container {
+        display: grid;
+        /* At default 610px window (586px content area):
+         *   2×320 + 8 = 648 > 586 → 1 column
+         * At ~660px+ content:
+         *   2 columns (each 320–340px)
+         * At ~990px+ content:
+         *   3 columns
+         */
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 10px;
+    }
+
+    /* ── Compact-gamebox base — all the rich detail ─────── */
+    .compact-game-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 10px 11px 9px;
+        cursor: pointer;
+        transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .compact-game-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 16px rgba(191,13,61,0.13);
+        border-color: rgba(191,13,61,0.3);
+    }
+
+    /* ── Pre-game ───────────────────────────────────────── */
+    .compact-game-box.pre-game .compact-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .compact-game-box.pre-game .team-info {
+        display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0;
+    }
+    .compact-game-box.pre-game .team-info.away { justify-content: flex-start; }
+    .compact-game-box.pre-game .team-info.home { justify-content: flex-end; }
+
+    .compact-game-box.pre-game .team-logo-sm { width: 26px; height: 26px; flex-shrink: 0; }
+
+    .compact-game-box.pre-game .team-abbr {
+        font-weight: 700; font-size: 13px; color: var(--text);
+    }
+    .compact-game-box.pre-game .team-record {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px; color: var(--muted-2); font-weight: 500;
+    }
+
+    .compact-game-box.pre-game .game-time {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: var(--red);
+        font-weight: 700;
+        padding: 0 6px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .compact-game-box.pre-game .pitchers-row {
+        display: flex; justify-content: space-between; align-items: center; gap: 6px;
+        padding: 8px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .compact-game-box.pre-game .pitcher {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+    }
+    .compact-game-box.pre-game .pitcher.home {
+        justify-content: flex-end;
+        flex-direction: row-reverse;
+    }
+    .compact-game-box.pre-game .pitcher-info {
+        display: flex; flex-direction: column; gap: 1px; min-width: 0;
+    }
+    .compact-game-box.pre-game .pitcher.home .pitcher-info { text-align: right; }
+
+    .compact-game-box.pre-game .pitcher-label {
+        font-size: 8px; color: var(--muted); text-transform: uppercase;
+        letter-spacing: 0.6px; font-weight: 700;
+    }
+    .compact-game-box.pre-game .pitcher-name {
+        font-size: 11px; font-weight: 700; color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .compact-game-box.pre-game .pitcher-stats {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px; color: var(--muted-2); font-weight: 500;
+    }
+
+    .compact-game-box.pre-game .vs-divider {
+        font-size: 10px; color: var(--muted); font-weight: 700;
+        padding: 0 4px; flex-shrink: 0;
+    }
+
+    /* ── Live game ──────────────────────────────────────── */
+    .compact-game-box.live-game { border-left: 3px solid var(--red); }
+
+    .compact-game-box.live-game .live-header {
+        display: flex; align-items: center; gap: 6px;
+    }
+    .compact-game-box.live-game .team-score-row {
+        display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;
+    }
+    .compact-game-box.live-game .team-score-row.away { justify-content: flex-start; }
+    .compact-game-box.live-game .team-score-row.home { justify-content: flex-end; flex-direction: row-reverse; }
+
+    .compact-game-box.live-game .team-logo-md { width: 30px; height: 30px; flex-shrink: 0; }
+    .compact-game-box.live-game .team-abbr-large {
+        font-size: 12px; font-weight: 600; color: var(--text);
+    }
+    .compact-game-box.live-game .team-record-sm {
+        font-family: 'Rubik', sans-serif;
+        font-size: 7px; color: var(--muted-2); font-weight: 500;
+    }
+
+    /* Stack the logo and record vertically — saves horizontal space and
+       gives the record its own line so it never wraps or gets squeezed */
+    .compact-game-box.live-game .team-logo-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        flex-shrink: 0;
+    }
+    .compact-game-box.live-game .team-logo-stack .team-record-sm {
+        white-space: nowrap;
+    }
+    .compact-game-box.live-game .score-large {
+        font-family: 'Rubik', sans-serif;
+        font-size: 22px; font-weight: 800; color: var(--text);
+        min-width: 26px; text-align: center;
+    }
+
+    .compact-game-box.live-game .inning-indicator {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 2px;
+        padding: 0 6px;
+        flex-shrink: 0;
+    }
+    .compact-game-box.live-game .inning-text {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px; font-weight: 700; color: var(--red); letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    /* Live ping ring */
+    .live-ring { position: relative; width: 7px; height: 7px; flex-shrink: 0; }
+    .live-ring::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--red); }
+    .live-ring::before {
+        content: ''; position: absolute; inset: -3px; border-radius: 50%;
+        border: 1.5px solid var(--red); animation: livePing 1.6s ease-out infinite; opacity: 0;
+    }
+    @keyframes livePing {
+        0%   { transform: scale(0.6); opacity: 0.9; }
+        100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* ── Final game ─────────────────────────────────────── */
+    /* Single row: Away [logo abbr rec score]   FINAL   [score rec abbr logo] Home */
+    .compact-game-box.final-game .final-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .compact-game-box.final-game .team-final-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex: 1;
+        min-width: 0;
+    }
+    .compact-game-box.final-game .team-final-row.away { justify-content: flex-start; }
+    .compact-game-box.final-game .team-final-row.home { justify-content: flex-end;   }
+
+    .compact-game-box.final-game .team-logo-sm { width: 26px; height: 26px; flex-shrink: 0; }
+    .compact-game-box.final-game .team-abbr {
+        font-size: 13px; font-weight: 700; color: var(--text);
+    }
+    .compact-game-box.final-game .team-record {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px; color: var(--muted-2); font-weight: 500;
+    }
+    .compact-game-box.final-game .final-label {
+        font-size: 10px;
+        color: var(--red);
+        text-transform: uppercase;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: 0.7px;
+        padding: 0 6px;
+        flex-shrink: 0;
+    }
+    .compact-game-box.final-game .score-md {
+        font-family: 'Rubik', sans-serif;
+        font-size: 20px; font-weight: 800; color: var(--text);
+        min-width: 22px; text-align: center;
+    }
+
+    /* Winner emphasis on final games */
+    .team-final-row.winner .score-md     { color: var(--text); font-weight: 800; }
+    .team-final-row.winner .team-abbr    { color: var(--text); }
+    .team-final-row.loser  .score-md     { color: var(--muted); font-weight: 700; }
+    .team-final-row.loser  .team-abbr    { color: var(--muted); }
+    .team-final-row.loser  .team-record  { color: var(--muted); }
+
+    .compact-game-box.final-game .pitchers-final {
+        display: flex; flex-wrap: wrap; gap: 8px;
+        padding: 8px 0 0;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        justify-content: space-between;
+    }
+
+    /* ── Pitcher decision cards ─────────────────────────── */
+    .pitcher-decision {
+        display: flex; align-items: center; gap: 6px;
+        flex: 1; min-width: 0;
+    }
+    .pitcher-decision-info {
+        display: flex; flex-direction: column; gap: 1px; min-width: 0;
+    }
+    .pitcher-result {
+        font-size: 10px; font-weight: 700; color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pitcher-stats {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px; color: var(--muted-2); font-weight: 500;
+    }
+    .pitcher-headshot,
+    .pitcher-headshot-small {
+        width: 28px; height: 28px;
+        border-radius: 50%; object-fit: cover; flex-shrink: 0;
+        background: var(--surface-2);
+    }
+
+    /* ── Linescore (live + final) ───────────────────────── */
+    .line-score-compact {
+        overflow-x: auto;
+        border-radius: 5px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        padding: 5px;
+    }
+    .line-score-compact table {
+        width: 100%; border-collapse: collapse;
+        font-size: 10px;
+    }
+    .line-score-compact th {
+        font-family: 'DM Mono', monospace;
+        font-weight: 600; color: var(--muted); font-size: 8px;
+        text-transform: uppercase; letter-spacing: 0.4px;
+        padding: 4px 5px; text-align: center;
+    }
+    .line-score-compact td {
+        font-family: 'DM Mono', monospace;
+        color: var(--text); font-weight: 500; padding: 4px 5px; text-align: center;
+    }
+    .line-score-compact .team-cell {
+        font-family: 'Rubik', sans-serif;
+        font-weight: 700; text-align: left; padding-left: 6px; min-width: 32px;
+    }
+    .line-score-compact .total {
+        font-weight: 800; color: var(--text);
+        background: rgba(4,30,66,0.04);
+    }
+    .line-score-compact tr { border-bottom: 1px solid var(--border); }
+    .line-score-compact tr:last-child { border-bottom: none; }
+
+    /* ── Player matchup (live games) ────────────────────── */
+    .player-matchup-container {
+        display: flex; gap: 8px;
+        padding: 8px 0 0;
+        border-top: 1px solid var(--border);
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Player card — left side (away team) is default; right side (home team) mirrors */
+    .player-card {
+        display: flex; align-items: center; gap: 7px;
+        flex: 1; min-width: 0;
+    }
+    .player-card.right {
+        flex-direction: row-reverse;
+    }
+    .player-card.right .player-info {
+        text-align: right;
+        align-items: flex-end;
+    }
+
+    .player-image {
+        width: 32px; height: 32px;
+        border-radius: 50%; object-fit: cover; flex-shrink: 0;
+        background: var(--surface-2);
+    }
+    .player-info {
+        display: flex; flex-direction: column; gap: 1px; min-width: 0;
+    }
+    .player-name {
+        font-size: 11px; font-weight: 700; color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .player-position {
+        font-size: 8px; color: var(--red); font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .player-stats {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px; color: var(--muted-2); font-weight: 500;
+        display: flex; flex-direction: column; gap: 2px; text-align: left;
+    }
+    .player-stats span { margin-right: 6px; }
+    .player-card.right .player-stats span { margin-right: 0; margin-left: 6px; }
+
+    /* ── Venue ──────────────────────────────────────────── */
+    .venue-info {
+        display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 9px; color: var(--muted);
+        font-weight: 500;
+    }
+    .team-logo-venue { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Loading / empty states ─────────────────────────── */
+    .state-msg {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 48px 20px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .state-spinner {
+        width: 16px; height: 16px;
+        border: 2px solid var(--border);
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
-    <div class="header-container">
-        <img src="assets/teams-darkmode/1.svg" alt="MLB Icon" class="header-logo">
-       <!-- <div class="dark-mode-toggle">
-            <div class="toggle-switch" id="darkModeToggle">
-                <div class="toggle-slider"></div>
+
+    <header class="page-header">
+        <img src="assets/teams-darkmode/1.svg" alt="MLB" class="header-logo">
+        <span class="header-title">MLB Live Scores</span>
+    </header>
+
+    <div class="date-bar">
+        <button class="date-arrow" id="date-prev" title="Previous day">
+            <svg viewBox="0 0 13 13"><polyline points="9 2 4 6.5 9 11"/></svg>
+        </button>
+        <div class="date-display-wrap">
+            <div class="date-display">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8"  y1="2" x2="8"  y2="6"/>
+                    <line x1="3"  y1="10" x2="21" y2="10"/>
+                </svg>
+                <span class="date-display-text" id="date-display-text">Loading…</span>
             </div>
-        </div> -->
+            <input type="date" id="date-input" class="date-input">
+        </div>
+        <button class="date-arrow" id="date-next" title="Next day">
+            <svg viewBox="0 0 13 13"><polyline points="4 2 9 6.5 4 11"/></svg>
+        </button>
+        <button class="today-btn" id="today-btn">Today</button>
     </div>
-    <div class="date-picker-container">
-            <div class="datepicker">
-                <input type="date" id="date-input" class="date-input">
-                <button class="apply">Apply</button>
-            </div>
-            <button id="openFloatingBtn" class="floating-btn" title="Floating Window">
-                 <img src="assets/floating_window_icon.svg" alt="Floating Window" width="32" height="32">
-            </button>
-    </div>
+
     <div id="scorebug">
-        <div id="games-container-wrapper">
-            <div id="games-container"></div>
+        <div id="games-container">
+            <div class="state-msg">
+                <div class="state-spinner"></div>
+                Loading games…
+            </div>
         </div>
     </div>
+
 </body>
 </html>

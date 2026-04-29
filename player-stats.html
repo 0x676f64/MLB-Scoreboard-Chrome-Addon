@@ -3,403 +3,684 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Player Stats</title>
-    <link rel="stylesheet" href="style.css">
+    <title>XLabs — Player Stats</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="navigation.js" defer></script>
     <script src="player-stats.js" defer></script>
     <style>
-html {
-    scrollbar-width: none;
-}
 
-body {
-    width: 700px; /* Overall content width */
-    font-family: "Rubik", sans-serif;
-    margin: 0 auto; /* Center the entire body content */
-    display: flex; /* Make body a flex container to stack children */
-    flex-direction: column;
-    align-items: center; /* Center children horizontally */
-    background-color: #f7fafc;
-}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Hide scrollbar in Webkit browsers */
-body::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-}
+    :root {
+        --navy:      #041e42;
+        --navy-mid:  #0d2d5e;
+        --red:       #bf0d3d;
+        --red-soft:  rgba(191,13,61,0.08);
+        --bg:        #f0f4f8;
+        --surface:   #ffffff;
+        --surface-2: #f7fafc;
+        --text:      #041e42;
+        --muted:     rgba(4,30,66,0.42);
+        --muted-2:   rgba(4,30,66,0.6);
+        --border:    rgba(4,30,66,0.11);
+        --shadow-sm: 0 1px 4px rgba(4,30,66,0.06);
+        --shadow:    0 4px 14px rgba(4,30,66,0.08);
+        --container: 700px;
 
-/* --- Header image styling --- */
-.statsheader-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 15px 0;
-    margin-left: 19rem;
-}
+        --hot-bg:    #fde7ed;
+        --hot-fg:    #bf0d3d;
+        --steady-bg: #e3eaf3;
+        --steady-fg: #041e42;
+        --cold-bg:   #d8e9fa;
+        --cold-fg:   #1976d2;
 
-.statsheader-container img {
-    width: 250px;
-    height: 90px;
-    margin: 0;
-}
+        --good-bg: #e0f3eb;
+        --good-fg: #007d56;
+        --bad-bg:  #fdeaea;
+        --bad-fg:  #c62828;
+    }
 
-/* --- Search Container --- */
-.search-container {
-    margin: 10px 0;
-    width: 50%;
-    display: flex;
-    gap: 10px;
-    padding: 0 15px;
-    justify-content: center;
-    box-sizing: border-box;
-    margin-left: 19rem;
-}
+    html { scrollbar-width: none; }
+    html::-webkit-scrollbar { width: 0; background: transparent; }
 
-.search-container input {
-    flex-grow: 1;
-    max-width: 400px;
-    padding: 10px 15px;
-    border: 1px solid #041e42;
-    border-radius: 25px;
-    font-size: 16px;
-    outline: none;
-    transition: all 0.3s;
-}
+    body {
+        font-family: 'Rubik', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        width: var(--container);
+        margin: 0 auto;
+        padding-bottom: 70px;        /* clear the fixed bottom nav */
+        min-height: 100vh;
+    }
 
-.search-container input:focus {
-    border-color: #041e42;
-    box-shadow: 1px 3px 3px 1px #041e4259;
-}
+    /* ── Sticky header ───────────────────────────────────── */
+    .top-bar {
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-.search-container button {
-    background-color: #bf0d3e;
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s, transform 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+    .top-bar-logo  { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+    .top-bar-title {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 2.4px;
+        text-transform: uppercase;
+        color: white;
+    }
+    .top-bar-spacer { flex: 1; }
+    .top-bar-meta {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: rgba(255,255,255,0.55);
+        font-weight: 500;
+    }
 
-.search-container button:hover {
-    background-color: #980a31;
-    transform: translateY(-1px);
-}
+    /* ── Search section ──────────────────────────────────── */
+    .search-section {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 16px;
+        position: sticky;
+        top: 50px;
+        z-index: 90;
+        box-shadow: var(--shadow-sm);
+    }
 
-/* --- Loading & Error Messages --- */
-.loading,
-.error-message {
-    text-align: center;
-    margin: 10px auto;
-    font-style: italic;
-    font-size: 13px;
-    padding: 8px;
-    border-radius: 5px;
-    box-sizing: border-box;
-    width: 90%;
-    max-width: 400px;
-    display: none;
-    margin-right: 15px;
-}
+    .search-bar {
+        position: relative;
+        display: flex;
+        gap: 8px;
+    }
 
-.loading {
-    color: #666;
-    background-color: #f9f9f9;
-    border: 1px solid #eee;
-}
+    .search-input-wrap {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
 
-.error-message {
-    color: #e53e3e;
-    background-color: #fed7d7;
-    border: 1px solid #e53e3e;
-}
+    .search-input-wrap svg.search-icon {
+        position: absolute;
+        left: 14px;
+        width: 14px; height: 14px;
+        stroke: var(--muted);
+        fill: none;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+    }
 
-/* --- Player Container & Info (Main Player Profile Section) --- */
-.player-container {
-    align-items: center; /* Center player image/name horizontally */
-    background: transparent;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
-    width: 100%; /* Spans full body width */
-    box-sizing: border-box;
-}
+    #player-search {
+        flex: 1;
+        width: 100%;
+        padding: 10px 38px 10px 38px;
+        font-family: 'Rubik', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        outline: none;
+        transition: border-color 0.16s, box-shadow 0.16s, background 0.16s;
+    }
 
-.player-image {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto 10px;
-    border: 3px solid #bf0d3e;
-    background-color: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
+    #player-search:focus {
+        border-color: var(--navy);
+        background: var(--surface);
+        box-shadow: 0 0 0 3px rgba(4,30,66,0.08);
+    }
 
-.player-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+    #player-search::placeholder { color: var(--muted); font-weight: 400; }
 
-.player-name {
-    font-size: 2.8rem;
-    font-weight: 700;
-    margin-bottom: 5px;
-    font-family: "Roboto Condensed", sans-serif;
-    color: #041e42;
-    line-height: 1.1;
-    margin-left: 19rem;
-}
+    .search-clear {
+        position: absolute;
+        right: 8px;
+        width: 22px; height: 22px;
+        background: var(--border);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.14s;
+    }
+    .search-clear:hover { background: rgba(4,30,66,0.2); }
+    .search-clear svg {
+        width: 9px; height: 9px;
+        stroke: white;
+        fill: none;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+    }
+    .search-clear.visible { display: flex; }
 
-.player-position {
-    font-size: 1.6rem;
-    color: #041e42;
-    margin-bottom: 15px;
-    font-weight: 400;
-    font-family: "Roboto Condensed", sans-serif;
-    margin-left: 19rem;
-}
+    .search-btn {
+        background: var(--red);
+        color: white;
+        border: none;
+        border-radius: 22px;
+        padding: 0 18px;
+        font-family: 'Rubik', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.14s, transform 0.14s;
+        flex-shrink: 0;
+    }
+    .search-btn:hover { background: #a40b34; transform: translateY(-1px); }
+    .search-btn:active { transform: translateY(0); }
 
-#playerImage{
-    margin-right: 130px;
-}
+    /* Suggestions dropdown */
+    .suggestions {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 70px;     /* leave room for the search button */
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(4,30,66,0.18);
+        overflow: hidden;
+        max-height: 320px;
+        overflow-y: auto;
+        z-index: 200;
+    }
 
-/* --- Main Stats Container (Holds both Summary Row and Stat Grid) --- */
-.stats-container {
-    /* This container now acts as the overall wrapper for all player stats content */
-    display: flex; /* Stack its direct children (summary row, stat grid) vertically */
-    flex-direction: column;
-    align-items: center; /* Center content horizontally within the container */
-    padding: 15px; /* Padding inside the entire stats block */
-    background: linear-gradient(135deg, #f8f9fa, #d9e6f3ff);
-    border: 3px solid #041e42;
-    border-radius: 8px;
-    box-sizing: border-box;
-    width: 970px; /* Adjusted width to better fit 5 columns with padding/border */
-    /* Removed margin-left/right auto as align-items on parent handles centering */
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    display: none;
-}
+    .sg-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        width: 100%;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        transition: background 0.12s;
+    }
+    .sg-item:last-child { border-bottom: none; }
+    .sg-item:hover, .sg-item.active { background: var(--surface-2); }
 
-/* --- NEW: Summary Row (Qualification & Recent Performance) --- */
-.player-stats-summary-row {
-    display: flex; /* Arrange children (qual/perf) horizontally */
-    justify-content: center; /* Center them within this row */
-    align-items: center; /* Vertically align them */
-    gap: 20px; /* Space between qual and perf */
-    width: 100%; /* Take full width of stats-container */
-    margin-bottom: 20px; /* Space below this row, before the stat items */
-    flex-wrap: wrap; /* Allow wrapping if content is too wide */
-}
+    .sg-photo {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        background: var(--border);
+    }
+    .sg-info { flex: 1; min-width: 0; }
+    .sg-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sg-meta {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: var(--muted-2);
+        font-weight: 500;
+        margin-top: 1px;
+    }
+    .sg-empty {
+        padding: 16px 14px;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+        font-style: italic;
+    }
 
-.qualification-status,
-.recent-performance {
-    padding: 8px 12px; /* Reduced padding */
-    border-radius: 10px;
-    text-align: center;
-    font-size: 1.1em;
-    font-weight: 500;
-    box-sizing: border-box;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    flex-shrink: 0; /* Prevent shrinking if space is tight */
-    min-height: 35px; /* Min height for consistency */
-    display: flex; /* For centering content within */
-    align-items: center;
-    justify-content: center;
-    flex-basis: auto; /* Allow content to dictate width, but shrink if needed */
-    max-width: 48%; /* Ensure they can sit side-by-side */
-}
+    /* ── States ──────────────────────────────────────────── */
+    .empty-state, .loading-state, .error-state {
+        padding: 60px 24px;
+        text-align: center;
+        color: var(--muted);
+    }
 
-/* Specific colors for qualification status */
-.qualification-status.qualified {
-    background-color: #e5f2ee;
-    color: #007d56;
-    border: 1px solid #007d56;
-}
+    .empty-state-icon {
+        width: 56px; height: 56px;
+        margin: 0 auto 14px;
+        opacity: 0.4;
+    }
+    .empty-state-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+    .empty-state-msg {
+        font-size: 12px;
+        color: var(--muted-2);
+        max-width: 320px;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
 
-.qualification-status.not-qualified {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #c62828;
-}
+    .loading-state { display: none; }
+    .loading-state.visible { display: block; }
+    .loading-spinner {
+        width: 22px; height: 22px;
+        margin: 0 auto 12px;
+        border: 3px solid var(--border);
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-.recent-performance {
-    gap: 8px; /* Space between icon and text */
-}
+    .error-state { display: none; color: var(--red); }
+    .error-state.visible { display: block; }
 
-/* --- NEW: Stat Items Grid Wrapper --- */
-.stats-grid-wrapper {
-    display: flex; /* Make it a flex container for stat-items */
-    flex-wrap: wrap; /* Allow stat-items to wrap to the next row */
-    justify-content: space-between; /* Distribute columns evenly within this wrapper */
-    align-items: stretch; /* Make all stat-items in a row the same height */
-    gap: 15px 10px; /* Vertical gap between rows, Horizontal gap between columns */
-    width: 100%; /* Take full width of stats-container */
-}
+    /* ── Player content (profile + stats) ────────────────── */
+    .player-content { display: none; padding: 14px 16px; }
+    .player-content.visible { display: block; }
 
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    flex-basis: calc(20% - 8px); /* 10px gap / 5 items = 2px per side, 8px total deduction */
-    min-width: 0; /* Allow item to shrink if needed */
-    padding: 10px 5px; /* Slightly reduced padding */
-    background-color: #f7fafc;
-    border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    box-sizing: border-box;
-}
+    /* Profile card */
+    .profile-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 12px;
+    }
 
-.stat-name {
-    width: 100%;
-    font-weight: 600;
-    text-align: center;
-    font-size: 13px; /* Slightly smaller to fit 5 columns */
-    color: #041e42;
-    margin-bottom: 5px; /* Reduced margin */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    order: 1;
-}
+    .profile-headshot {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: var(--surface-2);
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        border: 3px solid var(--red);
+    }
+    .profile-headshot img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+    }
 
-.stat-value {
-    width: 100%;
-    font-weight: 700;
-    text-align: center;
-    font-size: 1.7em; /* Adjusted for 5 columns */
-    margin-bottom: 8px; /* Reduced margin */
-    color: #041e42;
-    line-height: 1;
-    order: 2;
-    font-style: italic; /* Italic for emphasis */
-}
+    .profile-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .profile-name {
+        font-family: 'Rubik', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.1;
+        margin-bottom: 4px;
+        letter-spacing: -0.3px;
+    }
+    .profile-position {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted-2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .profile-team-logo { width: 16px; height: 16px; object-fit: contain; }
+    .profile-dot {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--muted);
+        display: inline-block;
+    }
+    .profile-details {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 500;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .profile-details span { display: inline-flex; align-items: center; gap: 5px; }
+    .profile-details strong {
+        color: var(--text);
+        font-weight: 600;
+    }
 
-.percentile-container {
-    width: 90%;
-    max-width: 100px; /* Reduced max-width for percentile bar */
-    height: 12px; /* Reduced height */
-    background-color: #e0eaf8ff;
-    border-radius: 6px; /* Adjusted radius */
-    position: relative;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    overflow: visible; /* Crucial for circle visibility */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-    order: 3;
-}
+    /* Status badges row */
+    .status-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
 
-.percentile-bar {
-    height: 100%;
-    border-radius: 6px; /* Adjusted radius */
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: width 1.3s ease-out;
-}
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 7px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        flex: 1;
+        min-width: 0;
+        border: 1px solid transparent;
+    }
 
-.percentile-circle {
-    position: absolute;
-    top: -6px; /* Adjust to center vertically (half of its 24px height) */
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px; /* Smaller font for circle text */
-    font-weight: 500;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: left 1.3s ease-out;
-    z-index: 2;
-}
+    .status-badge.qualified { background: var(--good-bg); color: var(--good-fg); border-color: rgba(0,125,86,0.25); }
+    .status-badge.not-qualified { background: var(--bad-bg);  color: var(--bad-fg);  border-color: rgba(198,40,40,0.25); }
 
-/* --- Navigation Container --- */
-.nav-container {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #ef4444;
-    position: relative;
-    align-items: center;
-    padding: 10px;
-    height: 50px;
-    width: 140%;
-    bottom: 0;
-    align-items: center;
-    margin-right: auto;
-    margin-left: auto;
-    margin-bottom: 0px;
-    transition: background-color 0.3s ease;
-}
+    .status-badge.hot    { background: var(--hot-bg);    color: var(--hot-fg);    border-color: rgba(191,13,61,0.25); }
+    .status-badge.steady { background: var(--steady-bg); color: var(--steady-fg); border-color: rgba(4,30,66,0.18); }
+    .status-badge.cold   { background: var(--cold-bg);   color: var(--cold-fg);   border-color: rgba(25,118,210,0.25); }
+    .status-badge.no-data { background: var(--surface-2); color: var(--muted-2); border-color: var(--border); font-style: italic; }
 
-.nav-container button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-    margin-right: 20px;
-}
+    .status-badge .badge-emoji { font-size: 13px; line-height: 1; }
+    .status-badge .badge-text  { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-badge .badge-value {
+        font-family: 'DM Mono', monospace;
+        font-weight: 600;
+    }
 
-.nav-container svg {
-    height: 28px;
-    width: 28px;
-    fill: #6b7280;
-    transition: fill 0.2s; 
-}
+    /* ── Stats card ──────────────────────────────────────── */
+    .stats-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
 
-.nav-container svg:hover {
-    fill: #3b82f6;
-    background-color: transparent;
-}
-</style>
+    /* Tabs (only shown for two-way players) */
+    .stats-tabs {
+        display: none;
+        position: relative;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+    }
+    .stats-tabs.visible { display: flex; }
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 11px 20px;
+        font-family: 'Rubik', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        color: var(--muted-2);
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: color 0.18s;
+        position: relative;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-underline {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--red);
+        transition: left 0.22s ease, width 0.22s ease;
+    }
+
+    /* Stats header */
+    .stats-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 12px 14px 10px;
+        border-bottom: 1px solid var(--border);
+    }
+    .stats-title {
+        font-family: 'Rubik', sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--text);
+    }
+    .stats-subtitle {
+        font-family: 'DM Mono', monospace;
+        font-size: 9.5px;
+        font-weight: 500;
+        color: var(--muted-2);
+    }
+
+    /* Stats grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 10px 12px 12px;
+    }
+
+    /* Compact stat card — same elements, ~25% less vertical space */
+    .sc {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 9px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-height: 60px;
+        position: relative;
+    }
+
+    .sc-name {
+        font-family: 'Rubik', sans-serif;
+        font-size: 8.5px;
+        font-weight: 700;
+        color: var(--muted-2);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sc-value {
+        font-family: 'Rubik', sans-serif;
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.05;
+        letter-spacing: -0.3px;
+    }
+
+    .sc-bar-wrap {
+        position: relative;
+        height: 5px;
+        background: rgba(4,30,66,0.06);
+        border-radius: 3px;
+        margin-top: 3px;
+        overflow: visible;
+    }
+
+    .sc-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+
+    .sc-circle {
+        position: absolute;
+        top: 50%;
+        transform: translate(0, -50%);
+        right: -7px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Rubik', sans-serif;
+        font-size: 7px;
+        font-weight: 800;
+        color: white;
+        box-shadow: 0 0 0 1.25px white, 0 1px 2px rgba(0,0,0,0.2);
+        transition: left 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+
+    .sc-rank {
+        font-family: 'DM Mono', monospace;
+        font-size: 7.5px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-top: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sc.unqualified .sc-value { color: var(--muted-2); }
+    .sc.unqualified .sc-circle { background: var(--muted) !important; }
+    .sc.unqualified .sc-bar    { opacity: 0.35; }
+
+    /* ── Bottom nav ──────────────────────────────────────── */
+    .nav-container {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: var(--container);
+        height: 56px;
+        background: rgba(255,255,255,0.94);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 150;
+        box-shadow: 0 -2px 12px rgba(4,30,66,0.06);
+    }
+
+    .nav-container button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 14px;
+        border-radius: 8px;
+        transition: background 0.14s;
+    }
+    .nav-container button:hover { background: var(--surface-2); }
+
+    .nav-container svg {
+        height: 22px; width: 22px;
+        fill: var(--muted);
+        transition: fill 0.16s;
+    }
+    .nav-container button:hover svg,
+    .nav-container button.active svg { fill: var(--red); }
+
+    </style>
 </head>
 <body>
-    <div class="search-container">
-        <input type="text" id="playerSearch" placeholder="Enter Player Name">
-        <button id="searchButton">Search</button>
+
+    <header class="top-bar">
+        <img src="assets/teams-darkmode/1.svg" alt="" class="top-bar-logo">
+        <span class="top-bar-title">XLabs · Player Stats</span>
+        <span class="top-bar-spacer"></span>
+        <span class="top-bar-meta" id="season-label">2026 Season</span>
+    </header>
+
+    <div class="search-section">
+        <div class="search-bar">
+            <div class="search-input-wrap">
+                <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+                <input type="text" id="player-search" placeholder="Search for a player..." autocomplete="off" spellcheck="false">
+                <button type="button" class="search-clear" id="search-clear" aria-label="Clear">
+                    <svg viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10"/></svg>
+                </button>
+            </div>
+            <button type="button" class="search-btn" id="search-button">Search</button>
+            <div class="suggestions" id="suggestions" hidden></div>
+        </div>
     </div>
 
-    <div class="loading" id="loading">Searching...</div>
-    <div class="error-message" id="errorMessage"></div>
-
-    <div class="player-container" id="playerContainer">
-        <div class="player-image" id="playerImage">
-            </div>
-        <div class="player-name" id="playerName"></div>
-        <div class="player-position" id="playerPosition"></div>
-
-        <div class="stats-container" id="statsContainer">
-            </div>
+    <div class="empty-state" id="empty-state">
+        <svg class="empty-state-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="32" cy="32" r="24"/>
+            <path d="M16 18 Q32 32 16 46"/>
+            <path d="M48 18 Q32 32 48 46"/>
+        </svg>
+        <div class="empty-state-title">Search for a player</div>
+        <div class="empty-state-msg">Type any MLB player's name above to view their season stats with league percentile rankings.</div>
     </div>
 
-    <div class="nav-container">
+    <div class="loading-state" id="loading-state">
+        <div class="loading-spinner"></div>
+        <div style="font-size:12px; color: var(--muted-2); font-weight: 500;">Loading player data…</div>
+    </div>
+
+    <div class="error-state" id="error-state"></div>
+
+    <div class="player-content" id="player-content">
+        <!-- Profile -->
+        <div class="profile-card">
+            <div class="profile-headshot" id="profile-headshot"></div>
+            <div class="profile-info">
+                <div class="profile-name" id="profile-name"></div>
+                <div class="profile-position" id="profile-position"></div>
+                <div class="profile-details" id="profile-details"></div>
+            </div>
+        </div>
+
+        <!-- Status badges (qualification + recent performance) -->
+        <div class="status-row" id="status-row"></div>
+
+        <!-- Stats -->
+        <div class="stats-card">
+            <div class="stats-tabs" id="stats-tabs">
+                <button type="button" class="tab-btn" data-mode="hitting">Hitting</button>
+                <button type="button" class="tab-btn" data-mode="pitching">Pitching</button>
+                <div class="tab-underline" id="tab-underline"></div>
+            </div>
+            <div class="stats-header">
+                <span class="stats-title" id="stats-title">Season Stats</span>
+                <span class="stats-subtitle" id="stats-subtitle"></span>
+            </div>
+            <div class="stats-grid" id="stats-grid"></div>
+        </div>
+    </div>
+
+    <nav class="nav-container">
         <button id="home-btn" title="Home">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5-138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg>
         </button>
         <button id="standings-btn" title="Standings">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
         </button>
-        <button id="stats-btn" title="Stats">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
+        <button id="stats-btn" title="Team Stats">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
         </button>
-        <button id="player-btn" title="Player Stats">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
+        <button id="player-btn" class="active" title="Player Stats">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
         </button>
-    </div>
+    </nav>
+
 </body>
 </html>

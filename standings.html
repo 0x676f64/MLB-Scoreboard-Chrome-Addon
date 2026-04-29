@@ -1,222 +1,1012 @@
 <!DOCTYPE html>
-<html lang="en_US">
-    <head>
-    <title>MLB Standings</title>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Scores - Games List</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Standings — XLabs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="standings.js" defer></script>
     <script src="navigation.js" defer></script>
     <style>
 
-/* --- Core HTML & Body Styling for Standings Page --- */
-html {
-      box-sizing: border-box;
-      scrollbar-width: none;
-      height: 0;
-      min-height: 0;
-      overflow: hidden;
-      max-width: 700px;
+    /* ── Reset & Base ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --red:         #bf0d3d;
+        --red-light:   rgba(191,13,61,0.08);
+        --red-mid:     rgba(191,13,61,0.18);
+        --navy:        #041e42;
+        --navy-mid:    #0d2d5e;
+        --navy-light:  rgba(4,30,66,0.06);
+        --navy-border: rgba(4,30,66,0.1);
+        --bg:          #f0f4f8;
+        --surface:     #ffffff;
+        --surface-2:   #f7fafc;
+        --text:        #041e42;
+        --text-muted:  rgba(4,30,66,0.45);
+        --border:      rgba(4,30,66,0.09);
+        --shadow-sm:   0 1px 4px rgba(4,30,66,0.08);
+        --shadow-md:   0 4px 16px rgba(4,30,66,0.1);
+        --radius:      10px;
+        --radius-sm:   6px;
     }
+
+    html {
+        scrollbar-width: none;
+        width: 700px;
+        overflow-x: hidden;
+    }
+    html::-webkit-scrollbar { display: none; }
 
     body {
-      font-family: "Rubik", sans-serif;
-      text-align: center;
-      width: 1000px;
-      box-sizing: border-box;
+        font-family: 'Rubik', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        width: 700px;
+        overflow-x: hidden;
+        /* No min-height — Chrome extension popup must shrink when content shrinks.
+           min-height: 100vh creates a feedback loop: expanding content raises the
+           viewport height, which raises the min-height floor, so the popup never
+           shrinks back. Height is always driven by actual content only. */
     }
 
-/* Webkit-specific styles to hide scrollbar while allowing scrolling */
-body::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
-    background: transparent;
-}
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .standings-header {
+        background: var(--navy);
+        padding: 14px 16px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
 
-/* --- Header Styling --- */
-.header-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 15px 0;
-}
+    .header-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
 
-.header-container img {
-    width: 250px;
-    height: 90px;
-}
+    .header-logo {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
 
-/* --- Tabs Container Styling (AL, NL, WC buttons) --- */
-#tabs-container {
-    display: flex;
-    justify-content: center; /* Centers the buttons within this container */
-    margin: 10px auto; /* Centers the tabs container horizontally on the page */
-    width: 100%; /* Ensure it spans the full width to allow centering */
-    padding: 0 20px;
-    box-sizing: border-box;
-}
+    .header-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
 
-#tabs-container button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    background-color: #041e42;
-    border: 1px solid #bf0d3e;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+    /* ── Year Navigator ──────────────────────────────────────────────── */
+    .year-nav {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 99px;
+        padding: 2px 4px;
+    }
 
-#tabs-container button.active {
-    background-color: #bf0d3e;
-    color: white;
-    border-color: #041e42;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transform: translateY(-2px);
-}
+    .year-arrow {
+        width: 22px;
+        height: 22px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.15s ease, opacity 0.15s ease;
+        padding: 0;
+        flex-shrink: 0;
+    }
 
-/* --- Main Standings Display Area --- */
-#standings-container {
-    padding: 15px;
-    display: flex; /* Make it a flex container to arrange divisions in a row */
-    flex-wrap: nowrap; /* PREVENT WRAPPING - This is the key change! */
-    justify-content: center; /* Center all three divisions if they don't fill full width */
-    align-items: flex-start;
-    gap: 20px; /* Space between division columns */
-    width: 100%; /* Occupy full width of the body */
-    box-sizing: border-box;
-}
+    .year-arrow:hover { background: rgba(255,255,255,0.12); }
 
-/* --- Individual Division/Wildcard Containers --- */
-.division-container,
-.wildcard-container {
-    /* Calculate width for 3 columns. Make them truly equal parts of the total width. */
-    /* Ensure this width is enough for content without horizontal scroll */
-    width: calc(34% - 50px); /* Approx 1/3rd width minus the gap */
-    min-width: 200px; /* Increase min-width for better content display, adjust as needed */
-    flex-shrink: 0; /* Prevent them from shrinking below their calculated width */
-    margin-bottom: 0;
-    border: 2px solid #bf0d3e;
-    padding: 15px;
-    background: linear-gradient(135deg, #f8f9fa, #d9e6f3ff);
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+    .year-arrow:disabled {
+        opacity: 0.2;
+        cursor: not-allowed;
+    }
 
-.division-container h2,
-.wildcard-container h2 {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #bf0d3e;
-    font-size: 16px;
-    letter-spacing: 0.5px;
-}
+    .year-arrow svg {
+        width: 12px;
+        height: 12px;
+        stroke: white;
+        fill: none;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: block;
+    }
 
-/* --- Team Row Styling within Divisions --- */
-.team-row {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-    gap: 5px;
-    padding: 5px 0;
-    border-bottom: 1px solid #ccc;
-    align-items: center;
-    width: 100%;
-    font-size: 14px;
-    color: #041e42;
-    font-weight: 500;
-}
+    .year-display {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+        min-width: 38px;
+        text-align: center;
+        letter-spacing: 0.5px;
+        transition: opacity 0.15s ease;
+        user-select: none;
+    }
 
-.team-row:first-of-type {
-    font-weight: bold;
-    font-size: 13px;
-    color: #041e42;
-    text-transform: uppercase;
-}
+    .year-display.changing {
+        opacity: 0;
+        transform: scale(0.85);
+    }
 
-.team-row:last-child {
-    border-bottom: none;
-}
+    /* Historical season banner — subtle pill below the header */
+    .historical-banner {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 5px 14px;
+        background: rgba(191,13,61,0.12);
+        border-bottom: 1px solid rgba(191,13,61,0.18);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--red);
+        letter-spacing: 0.3px;
+    }
 
-.team-logo-standing {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
-}
+    .historical-banner.visible { display: flex; }
 
-.wildcard-team-row.playoff-cutoff {
-    border-top: 1px solid #bf0d3e;
-}
+    .historical-banner svg {
+        width: 10px;
+        height: 10px;
+        stroke: var(--red);
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        flex-shrink: 0;
+    }
 
-/* --- Navigation Container --- */
-.nav-container {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #ef4444;
-    position: relative;
-    align-items: center;
-    padding: 10px;
-    height: 50px;
-    width: 100%;
-    bottom: 0;
-    align-items: center;
-    margin-right: auto;
-    margin-left: auto;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    transition: background-color 0.3s ease;
-}
+    /* ── Tab Nav ─────────────────────────────────────────────────────── */
+    .tab-nav {
+        display: flex;
+        gap: 0;
+        position: relative;
+    }
 
-.nav-container button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-    margin-right: 20px;
-}
+    .tab-btn {
+        flex: 1;
+        padding: 10px 6px 12px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-family: 'Rubik', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.45);
+        position: relative;
+        transition: color 0.2s ease;
+    }
 
-.nav-container svg {
-    height: 28px;
-    width: 28px;
-    fill: #6b7280;
-    transition: fill 0.2s; 
-}
+    .tab-btn.active { color: white; }
 
-.nav-container svg:hover {
-    fill: #3b82f6;
-    background-color: transparent;
-}
+    /* Animated underline indicator */
+    .tab-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2.5px;
+        background: var(--red);
+        border-radius: 2px 2px 0 0;
+        transform: translateX(-50%);
+        transition: width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tab-btn.active::after { width: 60%; }
+
+    /* ── Content Area ────────────────────────────────────────────────── */
+    #standings-container {
+        padding: 12px 14px 14px;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    /* ── Loading State ───────────────────────────────────────────────── */
+    .loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 48px 24px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--border);
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Division Card ───────────────────────────────────────────────── */
+    .division-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        animation: cardIn 0.3s ease-out both;
+        /* Cards stretch equally to fill the full container width */
+        flex: 1;
+        min-width: 0;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateX(10px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .division-card:nth-child(2) { animation-delay: 0.06s; }
+    .division-card:nth-child(3) { animation-delay: 0.12s; }
+
+    /* Card header strip */
+    .division-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px 9px;
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .division-header-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+    }
+
+    .division-name {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    .division-season {
+        margin-left: auto;
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        color: rgba(255,255,255,0.28);
+        letter-spacing: 0.3px;
+    }
+
+    /* Column header row */
+    .col-header {
+        display: grid;
+        grid-template-columns: 24px 1fr 30px 30px 30px 48px;
+        gap: 0;
+        padding: 6px 10px 5px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .col-header span {
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        font-weight: 500;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    .col-header span:nth-child(2) { text-align: left; padding-left: 4px; }
+
+    /* ── Team Row ─────────────────────────────────────────────────────── */
+    .team-row {
+        display: grid;
+        grid-template-columns: 24px 1fr 30px 30px 30px 48px;
+        gap: 0;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+        align-items: center;
+        transition: background 0.12s ease;
+        animation: rowIn 0.28s ease-out both;
+        cursor: default;
+    }
+
+    .team-row:last-child { border-bottom: none; }
+    .team-row:hover { background: var(--red-light); }
+
+    /* Stagger each row */
+    .team-row:nth-child(1) { animation-delay: 0.05s; }
+    .team-row:nth-child(2) { animation-delay: 0.10s; }
+    .team-row:nth-child(3) { animation-delay: 0.15s; }
+    .team-row:nth-child(4) { animation-delay: 0.20s; }
+    .team-row:nth-child(5) { animation-delay: 0.25s; }
+
+    @keyframes rowIn {
+        from { opacity: 0; transform: translateX(-8px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Playoff-clinch top line */
+    .team-row.playoff-line {
+        border-top: 1.5px solid rgba(191,13,61,0.35);
+    }
+
+    /* Position number */
+    .team-pos {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    .team-pos.first-place {
+        color: var(--red);
+        font-weight: 700;
+    }
+
+    /* Team identity cell */
+    .team-identity {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        padding-left: 2px;
+    }
+
+    .team-logo {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+        flex-shrink: 0;
+        transition: transform 0.15s ease;
+    }
+
+    .team-row:hover .team-logo { transform: scale(1.1); }
+
+    .team-abbr {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Stat cells */
+    .team-stat {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text);
+        text-align: center;
+    }
+
+    .team-stat.muted { color: var(--text-muted); }
+
+    /* Win % bar cell */
+    .pct-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+        padding-right: 2px;
+    }
+
+    .pct-value {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .pct-bar-track {
+        width: 42px;
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .pct-bar-fill {
+        height: 100%;
+        background: var(--red);
+        border-radius: 2px;
+        transform-origin: left;
+        animation: barGrow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .team-row:nth-child(1) .pct-bar-fill { animation-delay: 0.08s; }
+    .team-row:nth-child(2) .pct-bar-fill { animation-delay: 0.13s; }
+    .team-row:nth-child(3) .pct-bar-fill { animation-delay: 0.18s; }
+    .team-row:nth-child(4) .pct-bar-fill { animation-delay: 0.23s; }
+    .team-row:nth-child(5) .pct-bar-fill { animation-delay: 0.28s; }
+
+    @keyframes barGrow {
+        from { transform: scaleX(0); }
+        to   { transform: scaleX(1); }
+    }
+
+    /* First place gold accent */
+    .team-row.leader .team-abbr { color: var(--red); }
+
+    /* ── Wild Card specific ──────────────────────────────────────────── */
+    .wc-league-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px 7px;
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .wc-league-label span {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    .wc-spots-badge {
+        margin-left: auto;
+        font-size: 8px;
+        font-weight: 700;
+        color: white;
+        background: var(--red);
+        padding: 2px 7px;
+        border-radius: 99px;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Navigation ──────────────────────────────────────────────────── */
+    .nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 0 10px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+    }
+
+    .nav-container button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        transition: background 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-container button:hover { background: var(--navy-light); }
+
+    .nav-container svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--text-muted);
+        transition: fill 0.2s ease;
+        display: block;
+    }
+
+    .nav-container button:hover svg { fill: var(--red); }
+    .nav-container button.active svg { fill: var(--navy); }
+
+    /* ── Playoff Bracket ─────────────────────────────────────────────── */
+
+    .bracket-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* "Projected" vs actual season banner */
+    .bracket-mode-banner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+    }
+
+    .bracket-mode-banner.projected {
+        background: rgba(245,158,11,0.1);
+        border: 1px solid rgba(245,158,11,0.25);
+        color: #b45309;
+    }
+
+    .bracket-mode-banner.historical {
+        background: rgba(16,185,129,0.08);
+        border: 1px solid rgba(16,185,129,0.2);
+        color: #065f46;
+    }
+
+    .bracket-mode-banner svg {
+        width: 11px; height: 11px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2; stroke-linecap: round;
+        flex-shrink: 0;
+    }
+
+    /* Two league columns side by side */
+    .bracket-leagues {
+        display: flex;
+        gap: 10px;
+    }
+
+    .bracket-league {
+        flex: 1;
+        min-width: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .bracket-league-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px 7px;
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    }
+
+    .bracket-league-header-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+    }
+
+    .bracket-league-name {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    .bracket-league-note {
+        margin-left: auto;
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        color: rgba(255,255,255,0.35);
+    }
+
+    /* Round columns inside each league bracket */
+    .bracket-rounds {
+        display: flex;
+        padding: 8px 6px;
+        gap: 0;
+        align-items: stretch;
+    }
+
+    .bracket-round {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .bracket-round-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 7px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: center;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    /* Connector column between rounds */
+    .bracket-connector {
+        width: 14px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* The matchup groupings within a round */
+    .bracket-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        position: relative;
+    }
+
+    /* Spacer to vertically align LCS with the midpoint of its two DS matchups */
+    .bracket-spacer {
+        flex: 1;
+    }
+
+    /* Individual matchup card */
+    .bracket-matchup {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 4px;
+        position: relative;
+        transition: box-shadow 0.15s ease;
+    }
+
+    .bracket-matchup:hover {
+        box-shadow: 0 2px 8px rgba(4,30,66,0.1);
+    }
+
+    .bracket-matchup.bye-card {
+        border-style: dashed;
+        border-color: rgba(4,30,66,0.12);
+    }
+
+    /* Each team row inside a matchup */
+    .bkt-team {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 6px;
+        transition: background 0.12s;
+        position: relative;
+    }
+
+    .bkt-team + .bkt-team {
+        border-top: 1px solid var(--border);
+    }
+
+    .bkt-team.winner {
+        background: rgba(191,13,61,0.06);
+    }
+
+    .bkt-team.loser {
+        opacity: 0.45;
+    }
+
+    .bkt-team.tbd {
+        opacity: 0.35;
+    }
+
+    .bkt-seed {
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--text-muted);
+        width: 10px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .bkt-seed.in-playoff {
+        color: var(--red);
+    }
+
+    .bkt-logo {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .bkt-abbr {
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text);
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .bkt-rec {
+        font-family: 'DM Mono', monospace;
+        font-size: 7.5px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+
+    /* Winner check mark */
+    .bkt-win-mark {
+        width: 11px; height: 11px;
+        border-radius: 50%;
+        background: var(--red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .bkt-win-mark svg {
+        width: 7px; height: 7px;
+        stroke: white; fill: none;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    /* Series result badge (e.g. "3-1") */
+    .bkt-series-result {
+        position: absolute;
+        top: 50%;
+        right: 3px;
+        transform: translateY(-50%);
+        font-family: 'DM Mono', monospace;
+        font-size: 7px;
+        font-weight: 700;
+        color: var(--red);
+        background: rgba(191,13,61,0.1);
+        padding: 1px 4px;
+        border-radius: 3px;
+        pointer-events: none;
+    }
+
+    /* Round connector lines (CSS bracket lines) */
+    .bkt-connector-top,
+    .bkt-connector-bot {
+        flex: 1;
+        border-right: 1.5px solid var(--border);
+    }
+
+    .bkt-connector-top { border-bottom: 1.5px solid var(--border); }
+    .bkt-connector-bot { border-top: 1.5px solid var(--border); }
+
+    .bkt-connector-mid {
+        width: 14px;
+        height: 1.5px;
+        background: var(--border);
+        align-self: center;
+    }
+
+    /* LCS matchup sits in the vertical middle */
+    .lcs-wrap {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+    }
+
+    /* World Series banner at bottom */
+    .bracket-ws {
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: var(--radius);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: var(--shadow-md);
+        animation: cardIn 0.35s ease-out 0.2s both;
+    }
+
+    .ws-label {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.45);
+        flex-shrink: 0;
+    }
+
+    .ws-matchup {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+
+    .ws-team {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .ws-team.right { flex-direction: row-reverse; }
+
+    .ws-logo {
+        width: 30px; height: 30px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .ws-team-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        white-space: nowrap;
+    }
+
+    .ws-league-badge {
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        color: rgba(255,255,255,0.35);
+        white-space: nowrap;
+    }
+
+    .ws-vs {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.3);
+        flex-shrink: 0;
+    }
+
+    /* World Series champion crown */
+    .ws-champion {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex: 1;
+    }
+
+    .ws-crown {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .ws-champ-logo {
+        width: 40px; height: 40px;
+        object-fit: contain;
+    }
+
+    .ws-champ-name {
+        font-size: 12px;
+        font-weight: 800;
+        color: white;
+        text-align: center;
+    }
+
+    .ws-champ-result {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        color: rgba(255,255,255,0.45);
+    }
+
+    .ws-runner-up {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        opacity: 0.5;
+    }
+
+    .ws-runner-up-logo {
+        width: 28px; height: 28px;
+        object-fit: contain;
+    }
+
+    .ws-runner-up-name {
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.6);
+    }
+
+    /* "Projected" TBD slot */
+    .bkt-tbd-logo {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: var(--border);
+        flex-shrink: 0;
+    }
+
+    /* Animate bracket rows in */
+    .bracket-matchup { animation: rowIn 0.25s ease-out both; }
+    .bracket-matchup:nth-child(1) { animation-delay: 0.05s; }
+    .bracket-matchup:nth-child(2) { animation-delay: 0.10s; }
+    .bracket-matchup:nth-child(3) { animation-delay: 0.15s; }
+    .bracket-matchup:nth-child(4) { animation-delay: 0.20s; }
+
+    /* ── Slide transition on tab switch ─────────────────────────────── */
+    .slide-exit {
+        animation: slideExit 0.16s ease-in forwards;
+    }
+
+    @keyframes slideExit {
+        to { opacity: 0; transform: translateY(4px); }
+    }
+
     </style>
-        
-    </head>
-    <body>
-       <div id="tabs-container">
-  <button id="al-tab">American League</button>
-  <button id="nl-tab">National League</button>
-  <button id="wildcard-tab">Wild Card</button>
-</div>
-<div id="standings-container">
-  <!-- Standings will display here -->
-</div>      
-<div class="nav-container">
-    <button id="home-btn" title="Home">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-    </button>
-    <button id="standings-btn" title="Standings">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
-    </button>
-    <button id="stats-btn" title="Stats">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
-    </button>
-    <button id="player-btn" title="Player Stats">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
-    </button>
-</div>
-    </body>
+</head>
+<body>
+
+    <!-- ── Header & Tabs ─────────────────────────────────────── -->
+    <header class="standings-header">
+        <div class="header-top">
+            <img src="assets/teams-darkmode/1.svg" alt="MLB Logo" class="header-logo">
+            <span class="header-title">Standings</span>
+
+            <!-- Year navigator -->
+            <div class="year-nav">
+                <button class="year-arrow" id="year-prev" title="Previous season" aria-label="Previous season">
+                    <svg viewBox="0 0 12 12"><polyline points="8 2 4 6 8 10"/></svg>
+                </button>
+                <span class="year-display" id="year-display">2026</span>
+                <button class="year-arrow" id="year-next" title="Next season" aria-label="Next season" disabled>
+                    <svg viewBox="0 0 12 12"><polyline points="4 2 8 6 4 10"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Historical mode banner — only visible for past seasons -->
+        <div class="historical-banner" id="historical-banner">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+            Viewing historical season
+        </div>
+
+        <nav class="tab-nav" role="tablist">
+            <button class="tab-btn active" id="al-tab" role="tab" data-league="AL">American League</button>
+            <button class="tab-btn" id="nl-tab" role="tab" data-league="NL">National League</button>
+            <button class="tab-btn" id="wildcard-tab" role="tab" data-league="WC">Wild Card</button>
+            <button class="tab-btn" id="bracket-tab" role="tab" data-league="BRACKET">Bracket</button>
+        </nav>
+    </header>
+
+    <!-- ── Standings Content ──────────────────────────────────── -->
+    <main id="standings-container" role="main">
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            Loading standings…
+        </div>
+    </main>
+
+    <!-- ── Navigation ─────────────────────────────────────────── -->
+    <nav class="nav-container" role="navigation">
+        <button id="home-btn" title="Home">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+        </button>
+        <button id="standings-btn" title="Standings" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
+        </button>
+        <button id="stats-btn" title="Stats">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
+        </button>
+        <button id="player-btn" title="Players">
+            <!-- Bat & ball — matches every other XLabs page nav -->
+           <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
+        </button>
+    </nav>
+
+</body>
 </html>

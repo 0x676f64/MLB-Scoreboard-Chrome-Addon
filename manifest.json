@@ -1,7 +1,7 @@
 {  
   "manifest_version": 3,
   "name": "MLB Scoreboard",
-  "version": "3.4.0",
+  "version": "3.4.2",
   "description": "View live scores, stats, and results for all things Baseball in real time.",
   "permissions": ["storage", "windows", "tabs"],
   "content_scripts": [
@@ -9,7 +9,8 @@
       "matches": ["*://*/*"],
       "js": [
             "mlb-video-matcher.js",
-            "navigation.js"
+            "navigation.js",
+            "playoff-history.json"
           ]
     }
   ],

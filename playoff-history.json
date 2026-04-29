@@ -1,0 +1,269 @@
+{
+  "note": "Format WC_GAME = single wild-card game era (2015-2021). Format WC_SERIES = best-of-3 wild card series era (2022+). All team IDs match MLB Stats API. Winner/loser IDs reference the team's MLB Stats API ID.",
+
+  "2025": {
+    "format": "WC_SERIES",
+    "champion": 119,
+    "AL": {
+      "wc": [
+        { "winner": 116, "loser": 114, "wins": 2, "losses": 1 },
+        { "winner": 147, "loser": 111, "wins": 2, "losses": 1 }
+      ],
+      "ds": [
+        { "winner": 141, "loser": 147, "wins": 3, "losses": 1 },
+        { "winner": 136, "loser": 116, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 141, "loser": 136, "wins": 4, "losses": 3 }
+    },
+    "NL": {
+      "wc": [
+        { "winner": 119, "loser": 113, "wins": 2, "losses": 0 },
+        { "winner": 112, "loser": 135, "wins": 2, "losses": 1 }
+      ],
+      "ds": [
+        { "winner": 119, "loser": 143, "wins": 3, "losses": 1 },
+        { "winner": 158, "loser": 112, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 119, "loser": 158, "wins": 4, "losses": 0 }
+    },
+    "ws": { "winner": 119, "loser": 141, "wins": 4, "losses": 3 }
+  },
+
+  "2024": {
+    "format": "WC_SERIES",
+    "champion": 119,
+    "AL": {
+      "wc": [
+        { "winner": 147, "loser": 110, "wins": 2, "losses": 0 },
+        { "winner": 118, "loser": 116, "wins": 2, "losses": 1 }
+      ],
+      "ds": [
+        { "winner": 147, "loser": 118, "wins": 3, "losses": 1 },
+        { "winner": 114, "loser": 117, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 147, "loser": 114, "wins": 4, "losses": 1 }
+    },
+    "NL": {
+      "wc": [
+        { "winner": 135, "loser": 144, "wins": 2, "losses": 0 },
+        { "winner": 121, "loser": 158, "wins": 2, "losses": 1 }
+      ],
+      "ds": [
+        { "winner": 119, "loser": 135, "wins": 3, "losses": 2 },
+        { "winner": 121, "loser": 143, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 119, "loser": 121, "wins": 4, "losses": 2 }
+    },
+    "ws": { "winner": 119, "loser": 147, "wins": 4, "losses": 1 }
+  },
+
+  "2023": {
+    "format": "WC_SERIES",
+    "champion": 140,
+    "AL": {
+      "wc": [
+        { "winner": 140, "loser": 139, "wins": 2, "losses": 0 },
+        { "winner": 117, "loser": 111, "wins": 2, "losses": 0 }
+      ],
+      "ds": [
+        { "winner": 140, "loser": 142, "wins": 3, "losses": 1 },
+        { "winner": 117, "loser": 110, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 140, "loser": 117, "wins": 4, "losses": 3 }
+    },
+    "NL": {
+      "wc": [
+        { "winner": 109, "loser": 119, "wins": 2, "losses": 0 },
+        { "winner": 143, "loser": 112, "wins": 2, "losses": 0 }
+      ],
+      "ds": [
+        { "winner": 109, "loser": 119, "wins": 3, "losses": 0 },
+        { "winner": 143, "loser": 144, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 109, "loser": 143, "wins": 4, "losses": 3 }
+    },
+    "ws": { "winner": 140, "loser": 109, "wins": 4, "losses": 1 }
+  },
+
+  "2022": {
+    "format": "WC_SERIES",
+    "champion": 117,
+    "AL": {
+      "wc": [
+        { "winner": 136, "loser": 139, "wins": 2, "losses": 0 },
+        { "winner": 147, "loser": 114, "wins": 2, "losses": 0 }
+      ],
+      "ds": [
+        { "winner": 117, "loser": 136, "wins": 3, "losses": 0 },
+        { "winner": 147, "loser": 114, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 117, "loser": 147, "wins": 4, "losses": 0 }
+    },
+    "NL": {
+      "wc": [
+        { "winner": 143, "loser": 138, "wins": 2, "losses": 0 },
+        { "winner": 135, "loser": 134, "wins": 2, "losses": 0 }
+      ],
+      "ds": [
+        { "winner": 143, "loser": 144, "wins": 3, "losses": 1 },
+        { "winner": 135, "loser": 119, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 143, "loser": 135, "wins": 4, "losses": 1 }
+    },
+    "ws": { "winner": 117, "loser": 143, "wins": 4, "losses": 2 }
+  },
+
+  "2021": {
+    "format": "WC_GAME",
+    "champion": 144,
+    "AL": {
+      "wcGame": { "winner": 111, "loser": 147 },
+      "ds": [
+        { "winner": 117, "loser": 111, "wins": 3, "losses": 1 },
+        { "winner": 139, "loser": 110, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 117, "loser": 111, "wins": 4, "losses": 2 }
+    },
+    "NL": {
+      "wcGame": { "winner": 134, "loser": 138 },
+      "ds": [
+        { "winner": 119, "loser": 134, "wins": 3, "losses": 1 },
+        { "winner": 144, "loser": 143, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 144, "loser": 119, "wins": 4, "losses": 2 }
+    },
+    "ws": { "winner": 144, "loser": 117, "wins": 4, "losses": 2 }
+  },
+
+  "2020": {
+    "format": "WC_GAME",
+    "champion": 119,
+    "AL": {
+      "wcGame": { "winner": 117, "loser": 142 },
+      "ds": [
+        { "winner": 139, "loser": 147, "wins": 3, "losses": 2 },
+        { "winner": 117, "loser": 111, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 139, "loser": 117, "wins": 4, "losses": 3 }
+    },
+    "NL": {
+      "wcGame": { "winner": 134, "loser": 158 },
+      "ds": [
+        { "winner": 119, "loser": 158, "wins": 3, "losses": 0 },
+        { "winner": 144, "loser": 121, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 119, "loser": 144, "wins": 4, "losses": 3 }
+    },
+    "ws": { "winner": 119, "loser": 139, "wins": 4, "losses": 2 }
+  },
+
+  "2019": {
+    "format": "WC_GAME",
+    "champion": 120,
+    "AL": {
+      "wcGame": { "winner": 139, "loser": 147 },
+      "ds": [
+        { "winner": 117, "loser": 139, "wins": 3, "losses": 2 },
+        { "winner": 147, "loser": 142, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 117, "loser": 147, "wins": 4, "losses": 2 }
+    },
+    "NL": {
+      "wcGame": { "winner": 158, "loser": 121 },
+      "ds": [
+        { "winner": 119, "loser": 121, "wins": 3, "losses": 0 },
+        { "winner": 120, "loser": 119, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 120, "loser": 138, "wins": 4, "losses": 0 }
+    },
+    "ws": { "winner": 120, "loser": 117, "wins": 4, "losses": 3 }
+  },
+
+  "2018": {
+    "format": "WC_GAME",
+    "champion": 111,
+    "AL": {
+      "wcGame": { "winner": 147, "loser": 110 },
+      "ds": [
+        { "winner": 111, "loser": 147, "wins": 3, "losses": 1 },
+        { "winner": 117, "loser": 142, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 111, "loser": 117, "wins": 4, "losses": 1 }
+    },
+    "NL": {
+      "wcGame": { "winner": 158, "loser": 109 },
+      "ds": [
+        { "winner": 119, "loser": 143, "wins": 3, "losses": 0 },
+        { "winner": 158, "loser": 112, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 119, "loser": 158, "wins": 4, "losses": 3 }
+    },
+    "ws": { "winner": 111, "loser": 119, "wins": 4, "losses": 1 }
+  },
+
+  "2017": {
+    "format": "WC_GAME",
+    "champion": 117,
+    "AL": {
+      "wcGame": { "winner": 147, "loser": 139 },
+      "ds": [
+        { "winner": 117, "loser": 111, "wins": 3, "losses": 1 },
+        { "winner": 147, "loser": 142, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 117, "loser": 147, "wins": 4, "losses": 3 }
+    },
+    "NL": {
+      "wcGame": { "winner": 134, "loser": 121 },
+      "ds": [
+        { "winner": 119, "loser": 109, "wins": 3, "losses": 0 },
+        { "winner": 112, "loser": 134, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 119, "loser": 112, "wins": 4, "losses": 1 }
+    },
+    "ws": { "winner": 117, "loser": 119, "wins": 4, "losses": 3 }
+  },
+
+  "2016": {
+    "format": "WC_GAME",
+    "champion": 112,
+    "AL": {
+      "wcGame": { "winner": 110, "loser": 139 },
+      "ds": [
+        { "winner": 114, "loser": 111, "wins": 3, "losses": 0 },
+        { "winner": 141, "loser": 110, "wins": 3, "losses": 0 }
+      ],
+      "lcs": { "winner": 114, "loser": 141, "wins": 4, "losses": 1 }
+    },
+    "NL": {
+      "wcGame": { "winner": 134, "loser": 143 },
+      "ds": [
+        { "winner": 112, "loser": 121, "wins": 3, "losses": 0 },
+        { "winner": 119, "loser": 134, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 112, "loser": 119, "wins": 4, "losses": 2 }
+    },
+    "ws": { "winner": 112, "loser": 114, "wins": 4, "losses": 3 }
+  },
+
+  "2015": {
+    "format": "WC_GAME",
+    "champion": 118,
+    "AL": {
+      "wcGame": { "winner": 117, "loser": 147 },
+      "ds": [
+        { "winner": 118, "loser": 117, "wins": 3, "losses": 2 },
+        { "winner": 141, "loser": 140, "wins": 3, "losses": 2 }
+      ],
+      "lcs": { "winner": 118, "loser": 141, "wins": 4, "losses": 2 }
+    },
+    "NL": {
+      "wcGame": { "winner": 134, "loser": 112 },
+      "ds": [
+        { "winner": 121, "loser": 119, "wins": 3, "losses": 2 },
+        { "winner": 112, "loser": 138, "wins": 3, "losses": 1 }
+      ],
+      "lcs": { "winner": 121, "loser": 112, "wins": 4, "losses": 0 }
+    },
+    "ws": { "winner": 118, "loser": 121, "wins": 4, "losses": 1 }
+  }
+}

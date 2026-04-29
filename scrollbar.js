@@ -1,41 +1,39 @@
-// Get button elements
-const scrollLeftBtn = document.getElementById('scrollLeft');
-const scrollRightBtn = document.getElementById('scrollRight');
+// scrollbar.js — horizontal scroll controls for the leaderboard table.
+// Runs after DOMContentLoaded so the table container is guaranteed to exist.
 
-// Scroll amount in pixels
-const scrollAmount = 300;
+document.addEventListener('DOMContentLoaded', () => {
 
-// Right button - scroll right
-scrollRightBtn.addEventListener('click', function() {
-    window.scrollBy({
-        left: scrollAmount,
-        behavior: 'smooth'
+    const leftBtn   = document.getElementById('scrollLeft');
+    const rightBtn  = document.getElementById('scrollRight');
+    const container = document.getElementById('tableContainer');
+
+    if (!leftBtn || !rightBtn || !container) return;
+
+    const SCROLL_AMOUNT = 180;   // px per click
+
+    leftBtn.addEventListener('click', () => {
+        container.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
     });
-});
 
-// Left button - scroll left  
-scrollLeftBtn.addEventListener('click', function() {
-    window.scrollBy({
-        left: -scrollAmount,
-        behavior: 'smooth'
+    rightBtn.addEventListener('click', () => {
+        container.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
     });
-});
 
-// Alternative: If you want to scroll a specific container instead of the whole page
-// Replace '.your-container' with your actual container selector
+    // Update button opacity based on scroll position
+    function syncButtons() {
+        const atStart = container.scrollLeft <= 0;
+        const atEnd   = container.scrollLeft >= container.scrollWidth - container.clientWidth - 1;
+        leftBtn.style.opacity  = atStart ? '0.25' : '1';
+        rightBtn.style.opacity = atEnd   ? '0.25' : '1';
+        leftBtn.disabled  = atStart;
+        rightBtn.disabled = atEnd;
+    }
 
-const container = document.querySelector('.table-container');
+    container.addEventListener('scroll', syncButtons, { passive: true });
 
-scrollRightBtn.addEventListener('click', function() {
-    container.scrollBy({
-        left: scrollAmount,
-        behavior: 'smooth'
-    });
-});
+    // Re-sync when the table re-renders (MutationObserver watches for table changes)
+    const observer = new MutationObserver(syncButtons);
+    observer.observe(container, { childList: true, subtree: true });
 
-scrollLeftBtn.addEventListener('click', function() {
-    container.scrollBy({
-        left: -scrollAmount,
-        behavior: 'smooth'
-    });
+    syncButtons();   // initial state
 });

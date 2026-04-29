@@ -3,694 +3,615 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Leaderboards</title>
+    <title>Leaderboard — XLabs</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="navigation.js"></script>
-</head>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="navigation.js" defer></script>
+    <script src="leaderboard.js" defer></script>
+    <script src="scrollbar.js" defer></script>
+    <style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-        --bottom-nav-height: 60px; /* Set your actual nav bar height here */
+        --red:        #bf0d3d;
+        --navy:       #041e42;
+        --navy-mid:   #0d2d5e;
+        --bg:         #f0f4f8;
+        --surface:    #ffffff;
+        --surface-2:  #f7fafc;
+        --text:       #041e42;
+        --text-muted: rgba(4,30,66,0.42);
+        --border:     rgba(4,30,66,0.09);
+        --radius:     8px;
+        --shadow-sm:  0 1px 4px rgba(4,30,66,0.08);
     }
 
-    html {
-        width: 100%;
-        max-width: 700px;
-        scrollbar-width: none;
-        height: auto;
-    }
+    html { scrollbar-width: none; width: 700px; overflow-x: hidden; }
+    html::-webkit-scrollbar { display: none; }
 
     body {
-        font-family: "Rubik", sans-serif;
+        font-family: 'Rubik', sans-serif;
+        background: var(--bg);
+        color: var(--text);
         width: 700px;
-        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-        color: #2d3748;
-        font-size: 10px;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        overflow-x: hidden;
     }
 
-    .header {
-    flex-shrink: 0;
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    z-index: 10;
-    padding: 8px 0;
-}
-
-    .header img {
-        display: flex;
-        width: 250px;
-        height: 90px;
-        margin: 1px auto;
+    /* ── Header ── */
+    .lb-header {
+        background: var(--navy);
+        position: sticky;
+        top: 0;
+        z-index: 120;
     }
 
-    .controls {
-        background: white;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-    }
-
-    .control-row {
+    .lb-header-top {
         display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
         align-items: center;
+        gap: 10px;
+        padding: 13px 18px 0;
     }
 
-    .control-row:last-child {
-        margin-bottom: 0;
+    .header-logo {
+        width: 30px; height: 30px;
+        object-fit: contain; flex-shrink: 0;
+    }
+
+    .header-title {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    /* Batting / Pitching tab switcher in header */
+    .lb-tabs {
+        display: flex;
+        margin-top: 12px;
+    }
+
+    .lb-tab {
+        flex: 0;
+        padding: 10px 22px 12px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-family: 'Rubik', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.42);
+        position: relative;
+        transition: color 0.2s;
+        white-space: nowrap;
+    }
+
+    .lb-tab.active { color: white; }
+
+    .lb-tab::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 50%;
+        width: 0; height: 2.5px;
+        background: var(--red);
+        border-radius: 2px 2px 0 0;
+        transform: translateX(-50%);
+        transition: width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .lb-tab.active::after { width: 60%; }
+
+    /* ── Controls bar ── */
+    .lb-controls {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 18px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        position: sticky;
+        top: 87px;   /* header height */
+        z-index: 110;
+        box-shadow: var(--shadow-sm);
     }
 
     .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
         flex: 1;
+        min-width: 0;
     }
 
     .control-label {
-        font-size: 11px;
-        font-weight: 400;
-        color: #4a5568;
-        margin-bottom: 4px;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: var(--text-muted);
     }
 
-    select, .stat-buttons {
+    .lb-select {
         width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e0;
-        border-radius: 8px;
-        font-size: 10px;
-        background: white;
-        color: #2d3748;
-        transition: all 0.2s ease;
-    }
-
-    select:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .stat-buttons {
-        display: flex;
-        padding: 0;
-        background: #f7fafc;
-        border: 1px solid #e2e8f0;
-    }
-
-    .stat-btn {
-        flex: 1;
-        padding: 8px 4px;
-        background: transparent;
-        border: none;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-family: 'Rubik', sans-serif;
         font-size: 11px;
         font-weight: 500;
-        color: #718096;
+        color: var(--text);
+        background: var(--surface);
         cursor: pointer;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23041e42' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.4'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 24px;
+        transition: border-color 0.15s;
     }
 
-    .stat-btn.active {
-        background: #041e42;
-        color: white;
-        border-radius: 6px;
-        margin: 2px;
+    .lb-select:focus {
+        outline: none;
+        border-color: var(--red);
     }
 
-    .stat-btn:hover:not(.active) {
-        background: #e2e8f0;
-        color: #4a5568;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 40px;
-        color: #718096;
-    }
-
-    .spinner {
-        width: 24px;
-        height: 24px;
-        border: 2px solid #e2e8f0;
-        border-top: 2px solid #3b82f6;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 12px;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .leaderboard {
-        flex: 1;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
+    /* ── Table toolbar (pagination + scroll controls) ── */
+    .lb-toolbar {
         display: flex;
-        flex-direction: column;
-        min-height: 0;
-        margin-bottom: 15px; /* Space above nav bar */
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 18px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
+        gap: 10px;
     }
 
-    .table-container {
-        overflow-x: auto;
-        max-height: 400px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        margin-bottom: 20px;
+    .lb-toolbar-info {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        font-weight: 500;
+        color: var(--text-muted);
+        flex-shrink: 0;
     }
 
-    .table-container::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        right: 8px;
-        transform: translateY(-50%);
-        width: 6px;
-        height: 30px;
-        background: linear-gradient(to bottom, transparent, #3b82f6, transparent);
-        border-radius: 3px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-        z-index: 4;
+    .lb-toolbar-info span {
+        color: var(--text);
+        font-weight: 700;
     }
 
-    .table-container::-webkit-scrollbar {
-        display: none;
+    .lb-toolbar-center {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
-    /* Horizontal Scroll Buttons */
+    /* Horizontal scroll nudge buttons */
     .scroll-btn {
-        position: fixed;
-        top: 70%;
-        transform: translateY(-50%);
-        border: 1px solid #041e42;
-        border-radius: 50%;
-        width: 26px;
-        height: 26px;
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 24px; height: 24px;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
         cursor: pointer;
-        z-index: 100;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(10px);
-        background-color: transparent;
-        opacity: 0.4;
+        transition: all 0.15s;
+        flex-shrink: 0;
     }
 
     .scroll-btn:hover {
-        opacity: 0.9;
-        transform: translateY(-50%) scale(1.1);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        border-color: var(--navy);
+        background: var(--navy);
     }
 
-    .scroll-btn:active {
-        transform: translateY(-50%) scale(0.95);
-    }
+    .scroll-btn:hover svg { stroke: white; }
 
     .scroll-btn svg {
-        width: 18px;
-        height: 18px;
-        fill: #041e42;
-        transition: transform 0.2s ease;
+        width: 12px; height: 12px;
+        stroke: var(--text-muted);
+        fill: none;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
-    .scroll-btn:hover svg {
-        transform: scale(1.1);
-    }
-
-    .scroll-btn-left {
-        left: 8px;
-    }
-
-    .scroll-btn-right {
-        right: 8px;
-    }
-
-    .scroll-btn-left.visible {
-        opacity: 1;
-        pointer-events: all;
-    }
-
-    .scroll-btn-right.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    /* Gradient overlays to indicate more content */
-    .scroll-gradient {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 20px;
-        pointer-events: none;
-        z-index: 50;
-        transition: opacity 0.3s ease;
-    }
-
-    .scroll-gradient-left {
-        left: 0;
-        background: linear-gradient(to right, rgba(255,255,255,0.8), transparent);
-        opacity: 0;
-    }
-
-    .scroll-gradient-right {
-        right: 0;
-        background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
-        opacity: 1;
-    }
-
-    .scroll-gradient-left.visible {
-        opacity: 1;
-    }
-
-    .scroll-gradient-right.hidden {
-        opacity: 0;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-    }
-
-    th {
-        background: #f8fafc;
-        padding: 12px 8px;
-        text-align: left;
-        font-weight: 600;
-        color: #4a5568;
-        border-bottom: 1px solid #e2e8f0;
-        position: sticky;
-        top: 0;
-        cursor: pointer;
-        user-select: none;
-        transition: background-color 0.2s ease;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    th:hover {
-        background: #edf2f7;
-    }
-
-    td {
-        padding: 10px 8px;
-        border-bottom: 1px solid #f1f5f9;
-        font-size: 9px;
-    }
-
-    tr:hover {
-        background: #f8fafc;
-    }
-
-    th, td, .rank, .player-name, .team {
-        position: sticky;
-    }
-
-    .rank {
-        font-weight: 600;
-        color: #3b82f6;
-        width: 30px;
-        text-align: center;
-    }
-
-    .player-name {
-        font-weight: 500;
-        color: #1a202c;
-        max-width: 120px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .team {
-        color: #718096;
-        font-size: 11px;
-        text-transform: uppercase;
-        font-weight: 500;
-    }
-
-    .stat-value {
-        font-weight: 500;
-        text-align: right;
-    }
-
-    .error {
-        text-align: center;
-        padding: 40px;
-        color: #e53e3e;
-        background: #fed7d7;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-
-    #tableHeader tr,
-    #tableHeader th {
-        position: sticky;
-        top: 0;
-        background-color: white;
-        z-index: 20; /* Higher than column z-index */
-    }
-
-    /* Set specific widths for sticky columns */
-    th:nth-child(1), td:nth-child(1) { /* Rank */
-        position: sticky;
-        left: 0;
-        background-color: white;
-        z-index: 12;
-    }
-
-    th:nth-child(2), td:nth-child(2) { /* Player Name */
-        position: sticky;
-        left: 25px; /* Exactly the width of rank column */
-        background-color: white;
-        z-index: 11;
-    }
-
-    th:nth-child(3), td:nth-child(3) { /* Team */
-        position: sticky;
-        left: 100px; /* 50px (rank) + 150px (player) = 200px */
-        width: 90px; /* Width for team logo/abbr */
-        min-width: 90px;
-        background-color: white;
-        z-index: 10;
-        border-right: 2px solid #ddd;
-    }
-
-    /* Prevent text overflow in player name column */
-    .player-name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Center align rank and team columns */
-    .rank, .team {
-        text-align: center;
-    }
-
-    /* Pagination Controls */
-    .pagination-controls {
-        position: sticky;
-        bottom: calc(var(--bottom-nav-height) + 350px); /* Nav height + some margin */
-        left: 0;
-        right: 0;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        background: rgba(248, 250, 252, 0.98);
-        backdrop-filter: blur(10px);
-        border-top: 1px solid #e2e8f0;
-        z-index: 30;
-        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-        flex-shrink: 0;
-    }
-        
-    .pagination-info {
-        font-size: 8px;
-        color: #4a5568;
-        font-weight: 500;
-    }
-
-    .pagination-buttons {
-        display: flex;
-        gap: 8px;
-    }
-
-    .pagination-btn {
-        background: #3b82f6;
-        color: white;
-        border: none;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 9px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .pagination-btn:hover:not(:disabled) {
-        background: #2563eb;
-    }
-
-    .pagination-btn:disabled {
-        background: #cbd5e0;
-        color: #9ca3af;
+    .scroll-btn:disabled {
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
-    .pagination-btn svg {
-        width: 16px;
-        height: 16px;
+    .scroll-lbl {
+        font-size: 8px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    /* Pagination */
+    .lb-pagination {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .page-btn {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 9px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        font-family: 'Rubik', sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        border-color: var(--red);
+        color: var(--red);
+    }
+
+    .page-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .page-btn svg {
+        width: 12px; height: 12px;
         fill: currentColor;
     }
 
-    /* Team logo styles */
-    .team-logo-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 20px;
+    /* ── Table container ── */
+    .table-wrap {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 400px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--red) transparent;
+        background: var(--surface-2);
+        /* Padding creates breathing room between table and card edges */
+        padding: 10px 10px 68px;  /* bottom = table padding + fixed nav height */
+    }
+
+    .table-wrap::-webkit-scrollbar { width: 3px; height: 3px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+
+    /* ── Table ── */
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 900px;   /* force horizontal scroll */
+        border-radius: var(--radius);
         overflow: hidden;
     }
 
-    .team-logo {
-        width: 18px;
-        height: 18px;
-        object-fit: contain;
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-        transition: transform 0.2s ease;
-    }
-
-    .team-logo:hover {
-        transform: scale(1.1);
-    }
-
-    .team-abbr-fallback {
-        font-size: 10px;
+    /* ── Bubbly header cells ── */
+    /* The box-shadow trick: same color as .table-wrap background creates
+       the visual "gap" between pills without affecting layout or sticky positioning */
+    thead th {
+        position: sticky;
+        top: 0;
+        background: rgba(4,30,66,0.09);
+        border-radius: 6px;
+        box-shadow: 0 0 0 3px var(--surface-2);   /* visual gap between pills */
+        color: var(--text-muted);
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
         font-weight: 600;
-        color: #6c757d;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 8px 8px;
         text-align: center;
-        display: inline-block;
-        min-width: 20px;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s, color 0.15s;
+        z-index: 50;
+        border: none;
     }
 
-    /* Adjust team column width */
-    th.team, td.team {
-        width: 40px;
+    thead th:hover {
+        background: rgba(4,30,66,0.16);
+        color: var(--navy);
+    }
+
+    /* Active sort column — navy bubble, white text */
+    thead th.sort-asc,
+    thead th.sort-desc {
+        background: var(--navy);
+        color: white;
+    }
+
+    thead th.sort-asc::after  { content: ' ↑'; color: var(--red); }
+    thead th.sort-desc::after { content: ' ↓'; color: var(--red); }
+
+    /* ── Sticky columns ── */
+    /* Separate z-index for thead vs tbody sticky cells */
+    .col-rank   { position: sticky; left: 0;     width: 28px;  min-width: 28px; }
+    .col-player { position: sticky; left: 28px;  width: 130px; min-width: 130px; }
+    .col-team   { position: sticky; left: 158px; width: 44px;  min-width: 44px; }
+
+    thead .col-rank   { z-index: 70; }   /* header sticky rank   — highest */
+    thead .col-player { z-index: 69; }   /* header sticky player */
+    thead .col-team   { z-index: 68; }   /* header sticky team   */
+
+    tbody .col-rank,
+    tbody .col-player,
+    tbody .col-team   { z-index: 40; background: var(--surface); }
+
+    /* Body sticky columns match row hover */
+    tbody tr:hover .col-rank,
+    tbody tr:hover .col-player,
+    tbody tr:hover .col-team {
+        background: rgba(191,13,61,0.04);
+    }
+
+    /* Divider after frozen columns — only on body */
+    tbody td.col-team { border-right: 1.5px solid var(--border) !important; }
+
+    /* Body rows */
+    tbody td {
+        padding: 8px 8px;
+        border-bottom: 1px solid rgba(4,30,66,0.05);
+        font-size: 11px;
+        text-align: center;
+        white-space: nowrap;
+        font-family: 'DM Mono', monospace;
+        color: var(--text);
+    }
+
+    tbody tr:hover td { background: rgba(191,13,61,0.03); }
+
+    /* Rank cell */
+    td.col-rank {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    /* Player name */
+    td.col-player {
+        text-align: left;
+        font-family: 'Rubik', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text);
+        padding-left: 10px;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Team logo cell */
+    td.col-team {
         text-align: center;
         padding: 4px 6px;
-        z-index: 10;
     }
 
-    /* For very compact display, you can make logos even smaller */
-    @media (max-width: 400px) {
-        .team-logo {
-            width: 16px;
-            height: 16px;
-        }
-        
-        .team-abbr-fallback {
-            font-size: 9px;
-        }
-        
-        th.team, td.team {
-            width: 32px;
-            padding: 4px 4px;
-        }
+    .team-logo {
+        width: 20px; height: 20px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        transition: transform 0.15s;
     }
 
-    /* Navigation Container */
+    .team-logo:hover { transform: scale(1.15); }
+
+    .team-abbr-fallback {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+
+    /* Highlighted stat value (active sort column) */
+    td.highlight {
+        font-weight: 700;
+        color: var(--navy);
+    }
+
+    /* ── Loading / Error ── */
+    .lb-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 48px 24px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 500;
+        background: var(--surface);
+    }
+
+    .lb-spinner {
+        width: 18px; height: 18px;
+        border: 2px solid var(--border);
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .lb-error { color: #ef4444; flex-direction: row; }
+    .lb-error svg { width: 16px; height: 16px; stroke: #ef4444; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── Navigation ── */
     .nav-container {
         display: flex;
         justify-content: space-around;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        border-top: 1px solid #ef4444;
+        align-items: center;
+        padding: 8px 0 10px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        /* Fixed keeps the nav visible no matter how the table scrolls */
         position: fixed;
-        align-items: center;
-        padding: 10px;
-        height: 50px;
-        width: 105%;
         bottom: 0;
-        align-items: center;
-        margin-right: auto;
-        margin-left: auto;
-        margin-top: 10px;
-        margin-bottom: 0px;
-        transition: background-color 0.3s ease;
-        z-index: 100;
+        left: 0;
+        width: 700px;
+        z-index: 200;
+        box-shadow: 0 -1px 8px rgba(4,30,66,0.08);
     }
 
     .nav-container button {
         background: none;
         border: none;
         cursor: pointer;
-        padding: 10px;
-        margin-right: 20px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background 0.15s;
+        display: flex; align-items: center; justify-content: center;
     }
+
+    .nav-container button:hover { background: rgba(4,30,66,0.06); }
 
     .nav-container svg {
-        height: 20px;
-        width: 20px;
-        fill: #6b7280;
-        transition: fill 0.2s; 
+        width: 22px; height: 22px;
+        fill: var(--text-muted);
+        transition: fill 0.2s;
+        display: block;
     }
 
-    .nav-container svg:hover {
-        fill: #3b82f6;
-        background-color: transparent;
+    .nav-container button:hover svg { fill: var(--red); }
+    .nav-container button.active svg { fill: var(--navy); }
+
+    /* Row entry animation */
+    @keyframes rowIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
-</style>
+
+    tbody tr {
+        animation: rowIn 0.2s ease-out both;
+    }
+
+    </style>
+</head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="assets/teams-darkmode/1.svg" alt="MLB Icon" class="header-logo">
+
+    <!-- ── Header ─────────────────────────────────────── -->
+    <header class="lb-header">
+        <div class="lb-header-top">
+            <img src="assets/teams-darkmode/1.svg" alt="MLB Logo" class="header-logo">
+            <span class="header-title">Leaderboard</span>
         </div>
+        <nav class="lb-tabs" role="tablist">
+            <button class="lb-tab active" data-category="hitting" role="tab">Batting</button>
+            <button class="lb-tab"        data-category="pitching" role="tab">Pitching</button>
+        </nav>
+    </header>
 
-        <div class="controls">
-            <div class="control-row">
-                <div class="control-group">
-                    <div class="stat-buttons">
-                        <button class="stat-btn active" data-category="hitting">Batting</button>
-                        <button class="stat-btn" data-category="pitching">Pitching</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="control-row">
-                <div class="control-group">
-                    <div class="control-label">League</div>
-                    <select id="leagueSelect">
-                        <option value="">MLB</option>
-                        <option value="AL">American League</option>
-                        <option value="NL">National League</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <div class="control-label">Season</div>
-                    <select id="yearSelect">
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <div class="control-label">Team</div>
-                    <select id="teamSelect">
-                        <option value="">All Teams</option>
-                    </select>
-                </div>
-            </div>
+    <!-- ── Filter controls ────────────────────────────── -->
+    <div class="lb-controls">
+        <div class="control-group">
+            <div class="control-label">League</div>
+            <select class="lb-select" id="leagueSelect">
+                <option value="">All MLB</option>
+                <option value="AL">American League</option>
+                <option value="NL">National League</option>
+            </select>
         </div>
-
-        <div class="leaderboard">
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                Loading leaderboard...
-            </div>
-            
-            <div class="error" id="error" style="display: none;">
-                Failed to load data. Please try again.
-            </div>
-
-            <div class="pagination-controls" id="paginationControls">
-                    <div class="pagination-info">
-                        Showing <span id="currentRange">1-50</span> of <span id="totalPlayers">0</span> players
-                    </div>
-                    <div class="pagination-buttons">
-                        <button class="pagination-btn" id="prevBtn" disabled>
-                            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-                            Previous
-                        </button>
-                        <button class="pagination-btn" id="nextBtn">
-                            Next
-                            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-            <div class="table-container" id="tableContainer" style="display: none;">
-                 <!-- Horizontal scroll controls -->
-                <button class="scroll-btn scroll-btn-left" id="scrollLeft">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                    </svg>
-                </button>
-                
-                <button class="scroll-btn scroll-btn-right" id="scrollRight">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                    </svg>
-                </button>
-
-                <!-- Gradient overlays -->
-                <div class="scroll-gradient scroll-gradient-left" id="gradientLeft"></div>
-                <div class="scroll-gradient scroll-gradient-right" id="gradientRight"></div>
-
-                <table id="leaderboardTable">
-                    <thead id="tableHeader">
-                        <!-- Dynamic headers will be inserted here -->
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Dynamic rows will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
+        <div class="control-group">
+            <div class="control-label">Season</div>
+            <select class="lb-select" id="yearSelect">
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <div class="control-label">Team</div>
+            <select class="lb-select" id="teamSelect">
+                <option value="">All Teams</option>
+            </select>
         </div>
     </div>
 
-    <div class="nav-container">
+    <!-- ── Toolbar: scroll controls + pagination ──────── -->
+    <div class="lb-toolbar">
+        <div class="lb-toolbar-info">
+            Showing <span id="currentRange">—</span> of <span id="totalPlayers">—</span>
+        </div>
+
+        <div class="lb-toolbar-center">
+            <span class="scroll-lbl">Scroll</span>
+            <button class="scroll-btn" id="scrollLeft" title="Scroll table left">
+                <svg viewBox="0 0 12 12"><polyline points="8 2 4 6 8 10"/></svg>
+            </button>
+            <button class="scroll-btn" id="scrollRight" title="Scroll table right">
+                <svg viewBox="0 0 12 12"><polyline points="4 2 8 6 4 10"/></svg>
+            </button>
+        </div>
+
+        <div class="lb-pagination">
+            <button class="page-btn" id="prevBtn" disabled>
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                Prev
+            </button>
+            <button class="page-btn" id="nextBtn">
+                Next
+                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Table ──────────────────────────────────────── -->
+    <div class="table-wrap" id="tableContainer">
+
+        <!-- Loading state -->
+        <div class="lb-state" id="loading">
+            <div class="lb-spinner"></div>
+            Loading leaderboard…
+        </div>
+
+        <!-- Error state -->
+        <div class="lb-state lb-error" id="error" style="display:none;">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Failed to load data. Please try again.
+        </div>
+
+        <!-- Data table -->
+        <table id="leaderboardTable" style="display:none;">
+            <thead id="tableHeader"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+    </div>
+
+    <!-- ── Navigation ─────────────────────────────────── -->
+    <nav class="nav-container" role="navigation">
         <button id="home-btn" title="Home">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
         </button>
         <button id="standings-btn" title="Standings">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
         </button>
         <button id="stats-btn" title="Stats">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
         </button>
-        <button id="player-btn" title="Player Stats">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"><g><path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/><path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/><path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/><polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/></g></svg>
+        <button id="player-btn" title="Players">
+           <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
         </button>
-    </div>
+    </nav>
 
-    <script src="leaderboard.js"></script>
-    <script src="scrollbar.js"></script>
 </body>
 </html>

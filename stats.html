@@ -3,245 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Team Stats</title>
-</head>
- <link rel="stylesheet" href="style.css">
-<script src="navigation.js" defer></script>
+    <title>Teams — XLabs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="navigation.js" defer></script>
+    <style>
 
-<style>
-    html {
-      width: 100%;
-      max-width: 350px;
-      box-sizing: border-box;
-      scrollbar-width: none;
-      height: 0;
-      min-height: 0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --red:        #bf0d3d;
+        --navy:       #041e42;
+        --navy-mid:   #0d2d5e;
+        --bg:         #f0f4f8;
+        --surface:    #ffffff;
+        --surface-2:  #f7fafc;
+        --text:       #041e42;
+        --text-muted: rgba(4,30,66,0.42);
+        --border:     rgba(4,30,66,0.09);
+        --radius:     10px;
+        --shadow-sm:  0 1px 4px rgba(4,30,66,0.08);
     }
+
+    html { scrollbar-width: thin; scrollbar-color: var(--red) transparent; width: 700px; }
+    html::-webkit-scrollbar { width: 4px; }
+    html::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
 
     body {
-      font-family: "Rubik", sans-serif;
-      text-align: center;
-      width: 500px;
-      box-sizing: border-box;
-      background-color: #f7fafc;
+        font-family: 'Rubik', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        width: 700px;
+        overflow-x: hidden;
     }
 
-    h1 {
-      color: #041e42;
-      font-weight: 400;
-      font-size: 16px;
+    /* ── Header ── */
+    .page-header {
+        background: var(--navy);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-   /* Header image styling */
-    .header-container img {
-    width: 250px;
-    height: 90px;
-    margin-top: 15px;
-    margin-bottom: 15px;
+    .header-logo {
+        width: 30px; height: 30px;
+        object-fit: contain; flex-shrink: 0;
     }
 
-    /* Grid layout for team logos */
-    #team-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
-    justify-content: center;
-    max-width: 100%;
-    overflow-x: auto;
-    padding: 30px;
+    .header-title {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
     }
 
-    /* Team logos only */
-    .team-logo {
-    width: 67px;
-    height: 67px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+    .leaderboard-btn {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 99px;
+        color: rgba(255,255,255,0.7);
+        font-family: 'Rubik', sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.18s, border-color 0.18s;
     }
 
-    .team-logo:hover {
-    transform: scale(1.2);
+    .leaderboard-btn:hover {
+        color: white;
+        border-color: rgba(255,255,255,0.5);
     }
 
-  #leaderboard-btn {
-    display: block;
-    margin: 1px auto; /* centers horizontally */
-    background: #041e41ec;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #f7fafc;
-    padding: 5px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: rgba(4, 26, 124, 0.295) 0px 6px 20px;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 40%;
-}
+    .leaderboard-btn svg {
+        width: 10px; height: 10px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
 
-a {
-  text-decoration: none;
-}
+    /* ── Content ── */
+    .content {
+        padding: 16px 16px 12px;
+        display: flex;
+        gap: 12px;
+    }
 
-#leaderboard-btn:hover {
-  transform: scale(1.1);
-}
+    /* ── League column ── */
+    .league-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
+    .league-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 10px 6px;
+        background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
 
-   /* --- Navigation Container --- */
-.nav-container {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #ef4444;
-    position: relative;
-    align-items: center;
-    padding: 10px;
-    height: 50px;
-    width: 100%;
-    bottom: 0;
-    align-items: center;
-    margin-right: auto;
-    margin-left: auto;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    transition: background-color 0.3s ease;
-}
+    .league-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+    }
 
-.nav-container button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-    margin-right: 20px;
-}
+    .league-name {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: white;
+    }
 
-.nav-container svg {
-    height: 28px;
-    width: 28px;
-    fill: #6b7280;
-    transition: fill 0.2s; 
-}
+    /* ── Division block ── */
+    .division-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
 
-.nav-container svg:hover {
-    fill: #3b82f6;
-    background-color: transparent;
-}
+    .division-label {
+        padding: 5px 10px 4px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
+        font-size: 7.5px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
 
-</style>
+    .division-teams {
+        display: flex;
+        padding: 8px 4px;
+    }
+
+    /* ── Team cell ── */
+    .team-cell {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 4px;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background 0.12s;
+        cursor: pointer;
+    }
+
+    .team-cell:hover {
+        background: rgba(191,13,61,0.06);
+    }
+
+    .team-cell:hover .team-logo-img {
+        transform: scale(1.15);
+        filter: drop-shadow(0 2px 8px rgba(191,13,61,0.35));
+    }
+
+    .team-logo-img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        transition: transform 0.18s ease, filter 0.18s ease;
+        animation: logoFadeIn 0.3s ease-out both;
+    }
+
+    @keyframes logoFadeIn {
+        from { opacity: 0; transform: scale(0.85); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    .team-abbr-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    /* Stagger team logo animations */
+    .team-cell:nth-child(1) .team-logo-img { animation-delay: 0.03s; }
+    .team-cell:nth-child(2) .team-logo-img { animation-delay: 0.06s; }
+    .team-cell:nth-child(3) .team-logo-img { animation-delay: 0.09s; }
+    .team-cell:nth-child(4) .team-logo-img { animation-delay: 0.12s; }
+    .team-cell:nth-child(5) .team-logo-img { animation-delay: 0.15s; }
+
+    /* ── Nav ── */
+    .nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 0 10px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+    }
+
+    .nav-container button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background 0.15s;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .nav-container button:hover { background: rgba(4,30,66,0.06); }
+
+    .nav-container svg {
+        width: 22px; height: 22px;
+        fill: var(--text-muted);
+        transition: fill 0.2s;
+        display: block;
+    }
+
+    .nav-container button:hover svg { fill: var(--red); }
+    .nav-container button.active svg { fill: var(--navy); }
+
+    </style>
+</head>
 <body>
-    <div class="header-container">
-        <img src="assets/teams-darkmode/1.svg" alt="MLB Icon" class="header-logo">
+
+    <header class="page-header">
+        <img src="assets/teams-darkmode/1.svg" alt="MLB Logo" class="header-logo">
+        <span class="header-title">MLB Teams Stats</span>
+        <a href="leaderboard.html" class="leaderboard-btn">
+            Leaderboards
+            <svg viewBox="0 0 12 12"><polyline points="4 2 8 6 4 10"/></svg>
+        </a>
+    </header>
+
+    <div class="content">
+
+        <!-- ── American League ───────────────────────── -->
+        <div class="league-col">
+            <div class="league-header">
+                <div class="league-dot"></div>
+                <span class="league-name">American League</span>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">AL East</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=147&teamName=New York Yankees">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/147.svg" alt="Yankees">
+                        <span class="team-abbr-label">NYY</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=111&teamName=Boston Red Sox">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/111.svg" alt="Red Sox">
+                        <span class="team-abbr-label">BOS</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=141&teamName=Toronto Blue Jays">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/141.svg" alt="Blue Jays">
+                        <span class="team-abbr-label">TOR</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=139&teamName=Tampa Bay Rays">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/139.svg" alt="Rays">
+                        <span class="team-abbr-label">TB</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=110&teamName=Baltimore Orioles">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/110.svg" alt="Orioles">
+                        <span class="team-abbr-label">BAL</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">AL Central</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=114&teamName=Cleveland Guardians">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/114.svg" alt="Guardians">
+                        <span class="team-abbr-label">CLE</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=145&teamName=Chicago White Sox">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/145.svg" alt="White Sox">
+                        <span class="team-abbr-label">CWS</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=116&teamName=Detroit Tigers">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/116.svg" alt="Tigers">
+                        <span class="team-abbr-label">DET</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=118&teamName=Kansas City Royals">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/118.svg" alt="Royals">
+                        <span class="team-abbr-label">KC</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=142&teamName=Minnesota Twins">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/142.svg" alt="Twins">
+                        <span class="team-abbr-label">MIN</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">AL West</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=117&teamName=Houston Astros">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/117.svg" alt="Astros">
+                        <span class="team-abbr-label">HOU</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=108&teamName=Los Angeles Angels">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/108.svg" alt="Angels">
+                        <span class="team-abbr-label">LAA</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=133&teamName=Athletics">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/133.svg" alt="Athletics">
+                        <span class="team-abbr-label">ATH</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=136&teamName=Seattle Mariners">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/136.svg" alt="Mariners">
+                        <span class="team-abbr-label">SEA</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=140&teamName=Texas Rangers">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/140.svg" alt="Rangers">
+                        <span class="team-abbr-label">TEX</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── National League ───────────────────────── -->
+        <div class="league-col">
+            <div class="league-header">
+                <div class="league-dot"></div>
+                <span class="league-name">National League</span>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">NL East</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=143&teamName=Philadelphia Phillies">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/143.svg" alt="Phillies">
+                        <span class="team-abbr-label">PHI</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=121&teamName=New York Mets">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/121.svg" alt="Mets">
+                        <span class="team-abbr-label">NYM</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=144&teamName=Atlanta Braves">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/144.svg" alt="Braves">
+                        <span class="team-abbr-label">ATL</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=146&teamName=Miami Marlins">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/146.svg" alt="Marlins">
+                        <span class="team-abbr-label">MIA</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=120&teamName=Washington Nationals">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/120.svg" alt="Nationals">
+                        <span class="team-abbr-label">WSH</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">NL Central</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=112&teamName=Chicago Cubs">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/112.svg" alt="Cubs">
+                        <span class="team-abbr-label">CHC</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=138&teamName=St. Louis Cardinals">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/138.svg" alt="Cardinals">
+                        <span class="team-abbr-label">STL</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=158&teamName=Milwaukee Brewers">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/158.svg" alt="Brewers">
+                        <span class="team-abbr-label">MIL</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=134&teamName=Pittsburgh Pirates">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/134.svg" alt="Pirates">
+                        <span class="team-abbr-label">PIT</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=113&teamName=Cincinnati Reds">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/113.svg" alt="Reds">
+                        <span class="team-abbr-label">CIN</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="division-block">
+                <div class="division-label">NL West</div>
+                <div class="division-teams">
+                    <a class="team-cell" href="stats-dashboard.html?teamId=119&teamName=Los Angeles Dodgers">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/119.svg" alt="Dodgers">
+                        <span class="team-abbr-label">LAD</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=109&teamName=Arizona Diamondbacks">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/109.svg" alt="Diamondbacks">
+                        <span class="team-abbr-label">ARI</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=135&teamName=San Diego Padres">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/135.svg" alt="Padres">
+                        <span class="team-abbr-label">SD</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=115&teamName=Colorado Rockies">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/115.svg" alt="Rockies">
+                        <span class="team-abbr-label">COL</span>
+                    </a>
+                    <a class="team-cell" href="stats-dashboard.html?teamId=137&teamName=San Francisco Giants">
+                        <img class="team-logo-img" src="https://www.mlbstatic.com/team-logos/137.svg" alt="Giants">
+                        <span class="team-abbr-label">SF</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
-    <h1>Select a Team to View Stats</h1>
-    <a href="leaderboard.html">
-      <button id="leaderboard-btn">Leaderboards</button>
-    </a>
 
-
-    <section id="team-grid">
-        <a href="stats-dashboard.html?teamName=Yankees&logo=https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png" alt="Yankees" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Red Sox&logo=https://a.espncdn.com/i/teamlogos/mlb/500/bos.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/bos.png" alt="Red Sox" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Blue Jays&logo=https://a.espncdn.com/i/teamlogos/mlb/500/tor.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/tor.png" alt="Blue Jays" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Rays&logo=https://a.espncdn.com/i/teamlogos/mlb/500/tb.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/tb.png" alt="Rays" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Orioles&logo=https://a.espncdn.com/i/teamlogos/mlb/500/bal.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/bal.png" alt="Orioles" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Guardians&logo=https://a.espncdn.com/i/teamlogos/mlb/500/cle.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/cle.png" alt="Guardians" />
-          </a>
-          <a href="stats-dashboard.html?teamName=White Sox&logo=https://a.espncdn.com/i/teamlogos/mlb/500/cws.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/cws.png" alt="White Sox" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Tigers&logo=https://a.espncdn.com/i/teamlogos/mlb/500/det.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/det.png" alt="Tigers" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Royals&logo=https://a.espncdn.com/i/teamlogos/mlb/500/kc.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/kc.png" alt="Royals" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Twins&logo=https://a.espncdn.com/i/teamlogos/mlb/500/min.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/min.png" alt="Twins" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Astros&logo=https://a.espncdn.com/i/teamlogos/mlb/500/hou.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/hou.png" alt="Astros" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Angels&logo=https://a.espncdn.com/i/teamlogos/mlb/500/laa.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/laa.png" alt="Angels" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Athletics&logo=https://a.espncdn.com/i/teamlogos/mlb/500/oak.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/oak.png" alt="Athletics" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Mariners&logo=https://a.espncdn.com/i/teamlogos/mlb/500/sea.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/sea.png" alt="Mariners" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Rangers&logo=https://a.espncdn.com/i/teamlogos/mlb/500/tex.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/tex.png" alt="Rangers" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Phillies&logo=https://a.espncdn.com/i/teamlogos/mlb/500/phi.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/phi.png" alt="Phillies" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Mets&logo=https://a.espncdn.com/i/teamlogos/mlb/500/nym.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/nym.png" alt="Mets" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Braves&logo=https://a.espncdn.com/i/teamlogos/mlb/500/atl.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/atl.png" alt="Braves" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Marlins&logo=https://a.espncdn.com/i/teamlogos/mlb/500/mia.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/mia.png" alt="Marlins" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Nationals&logo=https://a.espncdn.com/i/teamlogos/mlb/500/was.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/was.png" alt="Nationals" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Cubs&logo=https://a.espncdn.com/i/teamlogos/mlb/500/chc.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/chc.png" alt="Cubs" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Cardinals&logo=https://a.espncdn.com/i/teamlogos/mlb/500/stl.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/stl.png" alt="Cardinals" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Brewers&logo=https://a.espncdn.com/i/teamlogos/mlb/500/mil.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/mil.png" alt="Brewers" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Pirates&logo=https://a.espncdn.com/i/teamlogos/mlb/500/pit.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/pit.png" alt="Pirates" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Reds&logo=https://a.espncdn.com/i/teamlogos/mlb/500/cin.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/cin.png" alt="Reds" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Dodgers&logo=https://a.espncdn.com/i/teamlogos/mlb/500/lad.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/lad.png" alt="Dodgers" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Diamondbacks&logo=https://a.espncdn.com/i/teamlogos/mlb/500/ari.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/ari.png" alt="Diamondbacks" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Padres&logo=https://a.espncdn.com/i/teamlogos/mlb/500/sd.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/sd.png" alt="Padres" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Rockies&logo=https://a.espncdn.com/i/teamlogos/mlb/500/col.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/col.png" alt="Rockies" />
-          </a>
-          <a href="stats-dashboard.html?teamName=Giants&logo=https://a.espncdn.com/i/teamlogos/mlb/500/sf.png">
-            <img class="team-logo" src="https://a.espncdn.com/i/teamlogos/mlb/500/sf.png" alt="Giants" />
-          </a>
-      </section>
-
-    <div class="nav-container">
+    <nav class="nav-container" role="navigation">
         <button id="home-btn" title="Home">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M224-288q45-35 70.5-85T320-480q0-57-25.5-107T224-672q-31 42-47.5 91T160-480q0 52 16.5 101t47.5 91Zm256 128q55 0 106.5-17.5T680-230q-57-46-88.5-111.5T560-480q0-73 31.5-138.5T680-730q-42-35-93.5-52.5T480-800q-55 0-106.5 17.5T280-730q57 46 88.5 111.5T400-480q0 73-31.5 138.5T280-230q42 35 93.5 52.5T480-160Zm256-128q31-42 47.5-91T800-480q0-52-16.5-101T736-672q-45 35-70.5 85T640-480q0 57 25.5 107t70.5 85ZM480-480Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
         </button>
         <button id="standings-btn" title="Standings">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg>
         </button>
-        <button id="stats-btn" title="Stats">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
+        <button id="stats-btn" title="Stats" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
         </button>
-        <button id="player-btn" title="Player Stats">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.4
+        <button id="player-btn" title="Players">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" width="24px" viewBox="0 0 512 512"  <g> <path class="st0" d="M507.492,68.467c-2.904-14.028-11.092-28.089-25.136-42.118C469.854,13.847,457.417,6.004,444.899,2.37 c-9.352-2.74-18.622-2.978-27.073-1.363c-12.749,2.42-23.528,8.631-32.798,15.62c-9.254,7.015-17.162,14.972-23.938,21.74 c-24.053,24.062-55.342,55.334-91.422,91.422c-10.008,10.041-19.918,23.258-30.092,38.196 c-15.242,22.388-30.944,48.64-46.383,72.758c-15.374,24.094-30.682,46.105-43.808,59.174l-87.337,87.337 c-15.324-6.974-33.996-4.3-46.596,8.286c-16.194,16.202-16.194,42.544,0,58.747l38.967,38.958 c16.194,16.195,42.544,16.195,58.738-0.008c12.585-12.585,15.259-31.264,8.286-46.581l87.336-87.336 c8.712-8.729,21.412-18.508,36.031-28.55c21.936-15.078,48.155-30.838,72.438-46.293c24.332-15.514,46.614-30.485,61.66-45.449 c36.08-36.088,67.352-67.369,91.422-91.422c6.005-6.03,12.962-12.945,19.361-20.911c4.808-5.973,9.303-12.56,12.782-19.951 C507.689,95.728,510.429,82.479,507.492,68.467z M95.339,475.42c-6.382,6.374-16.736,6.374-23.102,0.008L33.27,436.46 c-6.367-6.374-6.367-16.72,0-23.093c6.382-6.383,16.735-6.383,23.118-0.008l38.951,38.959 C101.721,458.692,101.721,469.037,95.339,475.42z M105.56,426.894l-23.758-23.758L92.09,392.85l33.947,13.568L105.56,426.894z M138.966,393.497l-33.947-13.577l19.738-19.746l33.947,13.577L138.966,393.497z M171.633,360.822l-33.948-13.57l28.336-28.335 l23.758,23.766L171.633,360.822z M482.913,86.203c-1.345,7.302-5.316,14.833-10.943,22.257 c-5.612,7.416-12.699,14.578-19.475,21.329c-24.053,24.053-55.326,55.334-91.423,91.422c-8.006,8.024-20.246,17.352-34.537,27.081 c-21.494,14.627-47.63,30.287-72.176,45.99c-19.295,12.371-37.524,24.668-52.175,37.04l-24.824-24.824 c7.121-8.442,14.193-17.975,21.33-28.328c15.718-22.88,31.568-49.288,46.777-73.194c15.16-23.873,29.911-45.334,42.02-57.36 c36.08-36.088,67.368-67.368,91.422-91.422c6.005-6.022,12.305-12.298,18.868-17.548c4.906-3.946,9.91-7.285,14.865-9.606 c7.514-3.463,14.488-4.766,22.478-3.158c7.99,1.649,17.736,6.628,29.418,18.286c10.354,10.354,15.439,19.254,17.589,26.662 C483.734,76.416,483.817,81.298,482.913,86.203z"/> <path class="st0" d="M452.396,354.908c-3.035-4.57-6.53-8.917-10.386-13.019l-0.05-0.05l-1.132-1.14 c-19.672-20.23-45.941-30.404-72.127-30.404c-9.63,0-19.229,1.37-28.564,4.126c-8.04,2.346-15.932,5.776-23.315,10.239l0.066-0.033 l-0.098,0.057c-6.12,3.659-11.962,8.073-17.36,13.15c-20.984,19.812-31.584,46.606-31.584,73.35c0,18.171,4.873,36.4,14.766,52.495 c2.543,4.224,5.464,8.269,8.729,12.15c0,0.008,0.016,0.017,0.016,0.024c0.017,0.008,0.017,0.008,0.017,0.025 c1.279,1.542,2.625,3.068,4.02,4.545c19.82,20.968,46.597,31.584,73.34,31.576c14.75,0,29.534-3.241,43.218-9.755 c9.32-4.397,18.113-10.344,26.006-17.793c4.791-4.512,9.041-9.377,12.699-14.562c12.535-17.424,18.885-38.008,18.885-58.624v-0.082 v-0.017v-0.049v-0.165c0-19.524-5.709-39.115-17.179-56.08L452.396,354.908z M303.056,453.179l-0.459,0.377 c-8.122-12.568-12.42-27.195-12.453-42.372c0.033-19.106,6.874-37.384,19.328-51.618c-0.246,2.28-0.361,4.578-0.361,6.932 c0,6.382,0.902,12.945,2.658,19.516c2.494,9.048,3.839,19.23,3.823,28.672c0.016,6.226-0.558,12.166-1.756,17.671 c-1.805,8.376-5.086,15.152-9.549,19.681L303.056,453.179z M368.735,489.694c-21.772,0-41.986-8.664-56.933-24.39l0.574-0.468 c2.149-1.797,4.151-3.913,5.955-6.284c4.217-5.505,7.417-12.404,9.484-20.493c1.772-7.014,2.674-14.873,2.674-23.38 c0-10.895-1.493-22.166-4.332-32.602c-1.427-5.258-2.15-10.492-2.15-15.578c0-6.867,1.28-13.758,3.823-20.477 c0.312-0.886,0.689-1.748,0.673-2.306c12.141-7.277,26.054-11.116,40.198-11.116c21.805,0,42.085,8.737,57.082,24.594 c1.624,1.732,3.133,3.503,4.578,5.316l-0.64,1.017c-3.937,5.768-10.205,10.518-18.638,14.16 c-15.308,6.563-27.909,17.342-36.458,31.158c-7.596,12.248-11.78,26.653-11.78,40.559c0,13.069,3.544,24.611,10.238,33.373 c1.756,2.33,3.741,4.413,5.874,6.194l0.05,0.04C375.627,489.464,372.165,489.694,368.735,489.694z M422.65,468.241 c-6.448,6.087-13.88,11.009-21.494,14.529c-1.198-0.115-2.346-0.287-3.462-0.59c-1.64-0.378-3.199-0.936-4.758-1.723 c-4.643-2.305-8.368-6.211-11.042-11.608c-2.708-5.424-4.135-12.15-4.135-19.443c0-11.174,3.38-22.798,9.516-32.724 c6.989-11.222,17.261-19.976,29.681-25.317c8.974-3.806,16.292-8.917,21.74-15.152l0.23-0.27 c5.448,10.78,8.319,22.921,8.319,35.178C447.245,432.966,438.516,453.253,422.65,468.241z"/> <path class="st0" d="M282.629,463.713c0-0.008,0-0.016-0.016-0.033v0.008L282.629,463.713z"/> <polygon class="st0" points="450.657,469.899 450.657,469.89 450.624,469.939 "/> </g> </g> </svg>
+        </button>
+    </nav>
+
+</body>
+</html>
