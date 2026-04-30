@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Floating Scoreboard</title>
+    <title>XLabs — Floating Scores</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -245,13 +245,18 @@
         min-width: 0;
     }
     .compact-game-box.pre-game .pitcher.home {
-        justify-content: flex-end;
+        /* row-reverse alone packs items at the visual right (flex-start of the
+           reversed axis). Setting justify-content: flex-end here would pull the
+           content toward the LEFT, leaving empty space on the right edge. */
         flex-direction: row-reverse;
     }
     .compact-game-box.pre-game .pitcher-info {
         display: flex; flex-direction: column; gap: 1px; min-width: 0;
     }
-    .compact-game-box.pre-game .pitcher.home .pitcher-info { text-align: right; }
+    .compact-game-box.pre-game .pitcher.home .pitcher-info {
+        text-align: right;
+        align-items: flex-end;     /* mirrors the column so each line right-aligns */
+    }
 
     .compact-game-box.pre-game .pitcher-label {
         font-size: 8px; color: var(--muted); text-transform: uppercase;
@@ -264,6 +269,26 @@
     .compact-game-box.pre-game .pitcher-stats {
         font-family: 'DM Mono', monospace;
         font-size: 9px; color: var(--muted-2); font-weight: 500;
+    }
+
+    /* TBD placeholder for unannounced probable pitchers */
+    .compact-game-box.pre-game .pitcher-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        color: var(--muted);
+    }
+    .compact-game-box.pre-game .pitcher-placeholder svg {
+        width: 14px;
+        height: 14px;
+    }
+    .compact-game-box.pre-game .pitcher-tbd .pitcher-name {
+        color: var(--muted-2);
+        font-style: italic;
+    }
+    .compact-game-box.pre-game .pitcher-tbd .pitcher-stats {
+        color: var(--muted);
     }
 
     .compact-game-box.pre-game .vs-divider {

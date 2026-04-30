@@ -205,12 +205,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 detailedState: gameData.status.detailedState,
             };
 
-            // Probable pitchers (pre-game)
-            if (gameData.probablePitchers) {
-                const { away, home } = gameData.probablePitchers;
-                if (away) state.awayPitcher = { id: away.id, name: away.fullName, record: `${away.wins||0}-${away.losses||0}`, era: away.era || '0.00' };
-                if (home) state.homePitcher = { id: home.id, name: home.fullName, record: `${home.wins||0}-${home.losses||0}`, era: home.era || '0.00' };
-            }
+            // Probable pitchers (pre-game) — normalize TBD/missing into a sentinel
+            // so we can render a proper placeholder downstream instead of a broken
+            // image. Pull W-L and ERA from boxscore.seasonStats — the probablePitchers
+            // field itself only carries {id, fullName}, which is why we were getting
+            // 0-0 / 0.00 ERA for every pitcher (all the `p.wins || 0` paths fired).
+            const normalizePitcher = (p, side) => {
+                if (!p) return null;
+                const name = p.fullName || '';
+                if (!p.id || /\btbd\b/i.test(name)) return { tbd: true };
+
+                const stats = liveData.boxscore?.teams?.[side]?.players?.[`ID${p.id}`]?.seasonStats?.pitching || {};
+                const hasSeason = parseFloat(stats.inningsPitched || 0) > 0;
+
+                return {
+                    id: p.id,
+                    name,
+                    record: hasSeason ? `${stats.wins ?? 0}-${stats.losses ?? 0}` : null,
+                    era:    hasSeason ? (stats.era || '0.00') : null,
+                };
+            };
+            const pp = gameData.probablePitchers || {};
+            state.awayPitcher = normalizePitcher(pp.away, 'away');
+            state.homePitcher = normalizePitcher(pp.home, 'home');
 
             // Current matchup (live)
             if (state.isLive && liveData.plays?.currentPlay?.matchup) {
@@ -318,15 +335,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         const awayRec  = getRecord(game.teams.away);
         const homeRec  = getRecord(game.teams.home);
 
-        const pitcherSection = (p, side) => !p ? '' : `
-            <div class="pitcher ${side}">
-                ${p.id ? `<img src="${API.headshot(p.id)}" class="pitcher-headshot" alt="${p.name}" onerror="this.style.opacity='.3'">` : ''}
-                <div class="pitcher-info">
-                    <div class="pitcher-label">PROBABLE</div>
-                    <div class="pitcher-name">${fmtPitcherName(p.name, true)}</div>
-                    <div class="pitcher-stats">${p.record} · ${p.era} ERA</div>
-                </div>
-            </div>`;
+        const pitcherSection = (p, side) => {
+            // No probable pitcher announced yet — render a clean TBD placeholder
+            // with a silhouette icon instead of attempting (and failing) to load
+            // a real headshot.
+            if (!p || p.tbd) {
+                return `
+                    <div class="pitcher ${side} pitcher-tbd">
+                        <div class="pitcher-headshot pitcher-placeholder">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                        </div>
+                        <div class="pitcher-info">
+                            <div class="pitcher-label">PROBABLE</div>
+                            <div class="pitcher-name">TBD</div>
+                            <div class="pitcher-stats">—</div>
+                        </div>
+                    </div>`;
+            }
+            return `
+                <div class="pitcher ${side}">
+                    <img src="${API.headshot(p.id)}" class="pitcher-headshot" alt="${p.name}" onerror="this.style.opacity='.3'">
+                    <div class="pitcher-info">
+                        <div class="pitcher-label">PROBABLE</div>
+                        <div class="pitcher-name">${fmtPitcherName(p.name, true)}</div>
+                        <div class="pitcher-stats">${p.record ? `${p.record} · ${p.era} ERA` : 'No 2026 stats yet'}</div>
+                    </div>
+                </div>`;
+        };
 
         return `
             <div class="compact-game-box pre-game" data-pk="${game.gamePk}">

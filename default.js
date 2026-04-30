@@ -27,17 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // If the sig hasn't changed we skip that card entirely — zero DOM work.
     const cardCache = new Map();
 
-    function gameSig(game, inningText) {
-        // Fingerprint of everything visible on a card.
-        // Any change here will trigger an in-place patch of that card only.
-        return [
-            game.status.detailedState,
-            game.teams.home.score ?? 0,
-            game.teams.away.score ?? 0,
-            inningText || '',
-        ].join('|');
-    }
-
     // ── Date helpers ──────────────────────────────────────────────────────────
 
     function getBaseballToday() {
@@ -75,11 +64,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         dateDisplayTxt.textContent = formatDisplayDate(ymd);
     }
 
+    // ── Postponed-game detection ──────────────────────────────────────────────
+    // MLB's API is unreliable about flipping games to "Postponed" — they
+    // often stay "Scheduled" for hours past first pitch. We detect this
+    // using three signals from the schedule payload itself, so no extra
+    // network calls are needed (default.js already pulls /schedule).
+    //
+    //   1. statusCode is one of the postponed/rain codes (DR/PR/P)
+    //   2. A rescheduleDate field is present (MLB has booked a makeup game
+    //      — the most reliable "API hasn't flipped detailedState yet" tell)
+    //   3. Time heuristic: still "Scheduled" or "Pre-Game" 90+ minutes
+    //      after first pitch was supposed to happen
+    //
+    // 90 min is the threshold because rain delays often run 60+ min;
+    // anything past 90 with no transition out of pre-game means the game
+    // isn't happening today.
+
+    const PPD_STATUS_CODES = new Set(['DR', 'PR', 'P']);
+
+    function isLikelyPostponed(game) {
+        const status = game?.status || {};
+
+        // 1. Explicit postponed code
+        if (PPD_STATUS_CODES.has(status.statusCode)) return true;
+        if (/postponed/i.test(status.detailedState || '')) return true;
+
+        // 2. Makeup game scheduled — MLB sets this before flipping the state
+        if (game?.rescheduleDate || game?.rescheduleGameDate) return true;
+
+        // 3. Time-based heuristic
+        const detailedState = status.detailedState || '';
+        const stuckInPreGame = detailedState === 'Scheduled'
+                            || detailedState === 'Pre-Game'
+                            || status.abstractGameState === 'Preview';
+        if (stuckInPreGame && game?.gameDate) {
+            const minutesPast = (Date.now() - new Date(game.gameDate).getTime()) / 60000;
+            if (minutesPast > 90) return true;
+        }
+
+        return false;
+    }
+
     // ── Game status classification ────────────────────────────────────────────
 
     function classifyStatus(game, inningText) {
         const state = game.status.detailedState || '';
         const abs   = game.status.abstractGameState || '';
+
+        // Check for postponement BEFORE any pre-game branches, since a
+        // postponed game often masquerades as "Scheduled" / "Pre-Game"
+        if (isLikelyPostponed(game))
+            return { label: 'POSTPONED', cssClass: 'postponed', isLive: false, isFinal: false };
 
         if (abs === 'Final' || state === 'Final' || state === 'Game Over' || state.startsWith('Completed'))
             return { label: 'FINAL', cssClass: 'final', isLive: false, isFinal: true };
@@ -90,9 +125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (state === 'Warmup')
             return { label: 'WARM', cssClass: 'live', isLive: true, isFinal: false };
-
-        if (state === 'Postponed')
-            return { label: 'PPD', cssClass: 'postponed', isLive: false, isFinal: false };
 
         if (state.startsWith('Delayed')) {
             const reason = state.includes('Rain')      ? 'RAIN DLY'
@@ -111,6 +143,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return { label: formatGameTime(game.gameDate), cssClass: 'scheduled', isLive: false, isFinal: false };
 
         return { label: formatGameTime(game.gameDate), cssClass: 'scheduled', isLive: false, isFinal: false };
+    }
+
+    // ── Signature: include postponed-detection result ────────────────────────
+    // Including isLikelyPostponed() in the fingerprint means a card whose
+    // detailedState hasn't changed but has just crossed the 90-min heuristic
+    // (or just got a rescheduleDate added) will trigger a patch and flip
+    // from start-time to "PPD" without a full rebuild.
+
+    function gameSig(game, inningText) {
+        return [
+            game.status.detailedState,
+            game.teams.home.score ?? 0,
+            game.teams.away.score ?? 0,
+            inningText || '',
+            isLikelyPostponed(game) ? 'PPD' : '',
+        ].join('|');
     }
 
     // ── Live inning fetch ─────────────────────────────────────────────────────
@@ -224,7 +272,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // we fetch — the user sees no change until we have new data.
 
         try {
-            const res   = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${dateStr}`);
+            // hydrate=game(content(summary)) gives us rescheduleDate when
+            // present — that's our most reliable signal for "this game is
+            // postponed even though detailedState still says Scheduled"
+            const res   = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${dateStr}&hydrate=game(content(summary))`);
             const data  = await res.json();
             const games = data.dates?.[0]?.games || [];
 

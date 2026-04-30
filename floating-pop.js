@@ -1329,13 +1329,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         openGameDetailsPage('win-prob');
     });
 
-    // Auto-refresh (dynamic tab only)
-    setInterval(()=>{
-        if(!gamePk)return;
-        const activeTab=document.querySelector('.tab-button.active');
-        if(activeTab?.id==='dynamic-tab'){fetchGameDetails(gamePk);fetchGameData(gamePk);}
-    },2000);
-
     toggleContainers(true);
 
     // ── Video Matcher ─────────────────────────────────────────────────────────
@@ -1359,9 +1352,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     let _lastPitchCount = -1;   // number of pitches in current at-bat
     let _lastResultEvt  = '';   // result event text of current play
 
+    let mainRefreshTimer = null;
+
     const params=new URLSearchParams(window.location.search);
     const gamePk=params.get("gamePk");
-    if(gamePk){fetchGameDetails(gamePk);fetchGameData(gamePk);}
+    if (gamePk) {
+        refreshGame(gamePk);
+        startRefreshLoop(gamePk);
+    }
 
     function formatGameTime(gameDate){
         const d=new Date(gameDate),h=d.getHours(),m=d.getMinutes(),ampm=h>=12?"PM":"AM";
@@ -1373,61 +1371,91 @@ document.addEventListener("DOMContentLoaded", async () => {
         return n!==9?`FINAL/${n}`:'FINAL';
     }
 
-    let gameRefreshInterval=null,currentGamePk=null;
-
-    function startAutoRefresh(pk){
-        if(gameRefreshInterval&&currentGamePk===pk)return;
-        stopAutoRefresh();
-        currentGamePk=pk;
-        gameRefreshInterval=setInterval(()=>fetchGameDetails(pk),2000);
-    }
-
-    function stopAutoRefresh(){
-        if(gameRefreshInterval){clearInterval(gameRefreshInterval);gameRefreshInterval=null;currentGamePk=null;}
-    }
-
-    // ── fetchGameDetails ──────────────────────────────────────────────────────
-
-    async function fetchGameDetails(pk){
-        try{
-            const response=await fetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`);
-            const data=await response.json();
-            if(!data?.gameData||!data?.liveData){inningInfo.textContent="Game data unavailable.";return;}
-
-            const game=data.gameData,linescore=data.liveData.linescore;
-            const awayTeam=game.teams.away,homeTeam=game.teams.home;
-            const statusText=game.status.detailedState;
-
-            const dynTabEl=document.getElementById("dynamic-tab");
-            if(dynTabEl){
-                if(isFinalState(statusText))dynTabEl.textContent="Wrap";
-                else if(isPreGameState(statusText))dynTabEl.textContent="Game Info";
-                else if(["Warmup","Delayed","Postponed","Suspended","Cancelled","Cancelled: Rain"].includes(statusText))dynTabEl.textContent=statusText;
-                else dynTabEl.textContent="Live";
+    // Single source of truth for "fetch + update everything." Replaces
+    // fetchGameDetails + fetchGameData, which were independently hitting
+    // the same /feed/live endpoint and both calling updatePlayerInfo.
+    async function refreshGame(pk) {
+        try {
+            const res = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`);
+            const data = await res.json();
+            if (!data?.gameData || !data?.liveData) {
+                inningInfo.textContent = "Game data unavailable.";
+                return;
             }
 
-            let inningText="",inningStyle="";
-            if(statusText==="Suspended: Rain"||statusText==="Suspended"){inningText="SUSP";inningStyle="color:#bf0d3d;";}
-            else if(statusText==="Cancelled"||statusText==="Cancelled: Rain"){inningText="CXLD";inningStyle="color:#bf0d3d;";}
-            else if(statusText==="Postponed"){inningText="PPD";inningStyle="color:#bf0d3d;";}
-            else if(isFinalState(statusText)){inningText=getFinalInningText(linescore);inningStyle="color:#bf0d3d;";}
-            else if(isPreGameState(statusText)){inningText=formatGameTime(game.datetime.dateTime);inningStyle="color:rgba(4,30,66,0.55);font-size:10px;";}
-            else{const half=linescore.inningHalf==="Top"?"▲":"▼";inningText=`${half} ${linescore.currentInning||''}`;inningStyle="color:#bf0d3d;";}
+            const game = data.gameData;
+            const linescore = data.liveData.linescore;
+            const awayTeam = game.teams.away, homeTeam = game.teams.home;
+            const statusText = game.status.detailedState;
 
-            awayLogo.src=`https://www.mlbstatic.com/team-logos/${awayTeam.id}.svg`;
-            awayLogo.alt=awayTeam.name;
-            awayScore.textContent=linescore.teams.away.runs??0;
-            awayRecord.textContent=`${game.teams.away.record?.wins??0}-${game.teams.away.record?.losses??0}`;
-            inningInfo.textContent=inningText;inningInfo.style=inningStyle;
-            homeScore.textContent=linescore.teams.home.runs??0;
-            homeLogo.src=`https://www.mlbstatic.com/team-logos/${homeTeam.id}.svg`;
-            homeLogo.alt=homeTeam.name;
-            homeRecord.textContent=`${game.teams.home.record?.wins??0}-${game.teams.home.record?.losses??0}`;
+            // Dynamic tab label
+            const dynTabEl = document.getElementById("dynamic-tab");
+            if (dynTabEl) {
+                if (isFinalState(statusText)) dynTabEl.textContent = "Wrap";
+                else if (isPreGameState(statusText)) dynTabEl.textContent = "Game Info";
+                else if (["Warmup","Delayed","Postponed","Suspended","Cancelled","Cancelled: Rain"].includes(statusText)) dynTabEl.textContent = statusText;
+                else dynTabEl.textContent = "Live";
+            }
 
+            // Inning indicator
+            let inningText = "", inningStyle = "";
+            if (statusText === "Suspended: Rain" || statusText === "Suspended") { inningText = "SUSP"; inningStyle = "color:#bf0d3d;"; }
+            else if (statusText === "Cancelled" || statusText === "Cancelled: Rain") { inningText = "CXLD"; inningStyle = "color:#bf0d3d;"; }
+            else if (statusText === "Postponed") { inningText = "PPD"; inningStyle = "color:#bf0d3d;"; }
+            else if (isFinalState(statusText)) { inningText = getFinalInningText(linescore); inningStyle = "color:#bf0d3d;"; }
+            else if (isPreGameState(statusText)) { inningText = formatGameTime(game.datetime.dateTime); inningStyle = "color:rgba(4,30,66,0.55);font-size:11px;"; }
+            else { const half = linescore.inningHalf === "Top" ? "▲" : "▼"; inningText = `${half} ${linescore.currentInning || ''}`; inningStyle = "color:#bf0d3d;"; }
+
+            // Header DOM (text/attribute writes are diff'd by the browser, so
+            // setting them every tick is cheap and the values are always live)
+            awayLogo.src = `https://www.mlbstatic.com/team-logos/${awayTeam.id}.svg`;
+            awayLogo.alt = awayTeam.name;
+            awayScore.textContent = linescore.teams.away.runs ?? 0;
+            awayRecord.textContent = `${game.teams.away.record?.wins ?? 0}-${game.teams.away.record?.losses ?? 0}`;
+            inningInfo.textContent = inningText;
+            inningInfo.style = inningStyle;
+            homeScore.textContent = linescore.teams.home.runs ?? 0;
+            homeLogo.src = `https://www.mlbstatic.com/team-logos/${homeTeam.id}.svg`;
+            homeLogo.alt = homeTeam.name;
+            homeRecord.textContent = `${game.teams.home.record?.wins ?? 0}-${game.teams.home.record?.losses ?? 0}`;
+
+            // Inner widgets — each handles its own diff guards internally
+            updateScorebug(data);
             updatePlayerInfo(data);
-            if(isLiveState(statusText))startAutoRefresh(pk);else stopAutoRefresh();
 
-        }catch(err){console.error("fetchGameDetails error:",err);inningInfo.textContent="Error loading game.";}
+            // Safety net: hide live-at-bat for non-live states (updatePlayerInfo
+            // already does this in its branches, but states like Suspended fall
+            // through and we still want the widget hidden)
+            if (isFinalState(statusText) || isPreGameState(statusText)) {
+                const lab = document.getElementById('live-at-bat');
+                if (lab) lab.style.display = 'none';
+            }
+
+            // Stop polling once the game is final — nothing more will change
+            if (isFinalState(statusText)) stopRefreshLoop();
+
+        } catch (err) {
+            console.error("refreshGame error:", err);
+            inningInfo.textContent = "Error loading game.";
+        }
+    }
+
+    function startRefreshLoop(pk) {
+        stopRefreshLoop();
+        // One interval, gated by active tab so we don't burn API calls when
+        // the user is on Box Score / Plays / Win Prob (those have their own
+        // refresh logic at slower cadences)
+        mainRefreshTimer = setInterval(() => {
+            const active = document.querySelector('.tab-button.active');
+            if (active?.id === 'dynamic-tab') refreshGame(pk);
+        }, 2000);
+    }
+
+    function stopRefreshLoop() {
+        if (mainRefreshTimer) {
+            clearInterval(mainRefreshTimer);
+            mainRefreshTimer = null;
+        }
     }
 
     // ── updatePlayerInfo ──────────────────────────────────────────────────────
@@ -1522,10 +1550,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Pre-game lineups almost never change between 2-second refreshes.
             // If the pitcher IDs and all 18 player IDs are identical to last
             // render, skip the rebuild completely — zero flicker, zero scroll jump.
+            // Use 'TBD' as the cache key for unannounced pitchers so the panel
+            // rebuilds the moment a real pitcher gets named — even if the API
+            // assigned the placeholder a real-looking id.
+            const tbdKey = (p) => {
+                if (!p || !p.id || /\btbd\b/i.test(p.fullName || '')) return 'TBD';
+                return String(p.id);
+            };
             const pregameKey = [
-                awayP?.id||'', homeP?.id||'',
-                ...awayPlayers.map(p=>p.id),
-                ...homePlayers.map(p=>p.id)
+                tbdKey(awayP), tbdKey(homeP),
+                ...awayPlayers.map(p => p.id || ''),
+                ...homePlayers.map(p => p.id || '')
             ].join('|');
 
             if(pregameKey === _lastPregameKey && document.getElementById('pregame-lineup-card')){
@@ -1534,26 +1569,57 @@ document.addEventListener("DOMContentLoaded", async () => {
             _lastPregameKey = pregameKey;
 
             // Build the inner HTML for one team's panel
-            const buildPanelHTML=(pitcher,hand,seasonStats,players)=>{
-                const pid=pitcher?.id||null;
-                const pitcherImg=pid
-                    ?`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${pid}/headshot/67/current`
-                    :'https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';
-                const ppStats=pid&&seasonStats
-                    ?`${seasonStats.era||'---'} ERA · ${seasonStats.inningsPitched||'0'} IP · ${seasonStats.strikeOuts||'0'} K`
-                    :'Stats unavailable';
-                const handBadge=hand?`<span class="plc-hand">${hand}</span>`:'';
-                const ppHTML=`
-                    <div class="plc-pp">
-                        <img src="${pitcherImg}" class="plc-pp-img"
-                            onerror="this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
-                        <div class="plc-pp-info">
-                            <div class="plc-pp-label">Probable Pitcher</div>
-                            <div class="plc-pp-name">${pitcher?.fullName||'TBD'}${handBadge}</div>
-                            <div class="plc-pp-stats">${ppStats}</div>
-                        </div>
-                    </div>`;
-                const rowsHTML=players.map((p,i)=>`
+            const buildPanelHTML = (pitcher, hand, seasonStats, players) => {
+                // Detect TBD: missing pitcher object, missing id, OR name matching
+                // /tbd/i. The API sometimes returns {id: <real>, fullName: 'TBD'}
+                // before a starter is announced — id-only checks miss those cases.
+                const pname = pitcher?.fullName || '';
+                const isTBD = !pitcher || !pitcher.id || /\btbd\b/i.test(pname);
+
+                let ppHTML;
+                if (isTBD) {
+                    // Placeholder card — silhouette in the circle instead of a real
+                    // headshot, italic muted text below. Same overall dimensions as
+                    // the real card so the layout doesn't shift when a starter gets
+                    // named between refreshes.
+                    ppHTML = `
+                        <div class="plc-pp plc-pp-tbd">
+                            <div class="plc-pp-img plc-pp-placeholder">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            <div class="plc-pp-info">
+                                <div class="plc-pp-label">Probable Pitcher</div>
+                                <div class="plc-pp-name">TBD</div>
+                                <div class="plc-pp-stats">Not yet announced</div>
+                            </div>
+                        </div>`;
+                } else {
+                    // Real pitcher — gate stats on inningsPitched > 0 so first-
+                    // start-of-the-season cases show "No 2026 stats yet" instead
+                    // of a misleading "0.00 ERA · 0 IP · 0 K" line.
+                    const pid = pitcher.id;
+                    const pitcherImg = `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${pid}/headshot/67/current`;
+                    const ip = parseFloat(seasonStats?.inningsPitched || 0);
+                    const hasSeason = ip > 0;
+                    const ppStats = hasSeason
+                        ? `${seasonStats.era || '---'} ERA · ${seasonStats.inningsPitched || '0'} IP · ${seasonStats.strikeOuts || '0'} K`
+                        : 'No 2026 stats yet';
+                    const handBadge = hand ? `<span class="plc-hand">${hand}</span>` : '';
+                    ppHTML = `
+                        <div class="plc-pp">
+                            <img src="${pitcherImg}" class="plc-pp-img"
+                                onerror="this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';this.onerror=null;">
+                            <div class="plc-pp-info">
+                                <div class="plc-pp-label">Probable Pitcher</div>
+                                <div class="plc-pp-name">${pitcher.fullName}${handBadge}</div>
+                                <div class="plc-pp-stats">${ppStats}</div>
+                            </div>
+                        </div>`;
+                }
+
+                const rowsHTML = players.map((p,i) => `
                     <div class="plc-row">
                         <span class="plc-num">${i+1}</span>
                         <img src="https://midfield.mlbstatic.com/v1/people/${p.id}/spots/60"
@@ -1564,7 +1630,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="plc-pos">${p.field}</span>
                         <span class="plc-avg">${p.avg}</span>
                     </div>`).join('');
-                return ppHTML+`<div class="plc-rows">${rowsHTML}</div>`;
+                return ppHTML + `<div class="plc-rows">${rowsHTML}</div>`;
             };
 
             // ── Save scroll positions before tearing down ─────────────────────

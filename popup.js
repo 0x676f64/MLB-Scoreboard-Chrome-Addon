@@ -451,7 +451,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             padding: 12px 8px 10px;
             background: transparent;
             border: 2px solid transparent;
-            border-radius: 12px;
             cursor: pointer;
             opacity: 0.35;
             transform: scale(0.95);
@@ -461,8 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         .plc-team-btn.active {
             opacity: 1;
-            border-color: #bf0d3d;
-            background: rgba(191,13,61,0.04);
+            border-bottom-color: #bf0d3d;
             transform: scale(1);
         }
 
@@ -1482,7 +1480,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const decHTML=(img,name,cls,label)=>`
                     <div class="decision-pitcher">
                         <img src="${img}" alt="${name}" class="decision-pitcher-image"
-                            onerror="this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
+                            onerror="this.src='https://prod-gameday.mlbstatic.com/responsive-gameday-assets/1.3.0/images/players/default-batter.svg'">
                         <div class="decision-pitcher-info">
                             <span class="${cls}">${label}</span>
                             <span class="decision-pitcher-name">
@@ -1564,7 +1562,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const pid=pitcher?.id||null;
                 const pitcherImg=pid
                     ?`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_100,h_100,c_fill,q_auto:best/v1/people/${pid}/headshot/67/current`
-                    :'https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png';
+                    :'https://prod-gameday.mlbstatic.com/responsive-gameday-assets/1.3.0/images/players/default-batter.svg';
                 const ppStats=pid&&seasonStats
                     ?`${seasonStats.era||'---'} ERA · ${seasonStats.inningsPitched||'0'} IP · ${seasonStats.strikeOuts||'0'} K`
                     :'Stats unavailable';
@@ -1572,7 +1570,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const ppHTML=`
                     <div class="plc-pp">
                         <img src="${pitcherImg}" class="plc-pp-img"
-                            onerror="this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
+                            onerror="this.src='https://prod-gameday.mlbstatic.com/responsive-gameday-assets/1.3.0/images/players/default-batter.svg'">
                         <div class="plc-pp-info">
                             <div class="plc-pp-label">Probable Pitcher</div>
                             <div class="plc-pp-name">${pitcher?.fullName||'TBD'}${handBadge}</div>
@@ -2030,7 +2028,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const{name,stats,imageUrl}=getStats(p);
             const parts=name.split(" ");
             return`<div class="top-performer">
-                <img src="${imageUrl}" alt="${name}" class="performer-image" onerror="this.src='https://content.mlb.com/images/headshots/current/60x60/generic_player@2x.png'">
+                <img src="${imageUrl}" alt="${name}" class="performer-image" onerror="this.src='https://prod-gameday.mlbstatic.com/responsive-gameday-assets/1.3.0/images/players/default-batter.svg'">
                 <p class="performer-name"><span>${parts[0]}</span> <span>${parts.slice(1).join(" ")}</span></p>
                 <p class="performer-stats">${stats}</p>
             </div>`;
