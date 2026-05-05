@@ -21,29 +21,29 @@ The MLB Scoreboard Add-on delivers live MLB game updates, stats, and results dir
 
 📸 Screenshots
 
-<img width="1280" height="800" alt="Image-1" src="https://github.com/user-attachments/assets/373efd0a-68f5-4691-a3b0-b0fb346e3613" />
+<img width="700" height="500" alt="Image-1" src="https://github.com/user-attachments/assets/373efd0a-68f5-4691-a3b0-b0fb346e3613" />
 
-<img width="1280" height="800" alt="Image-2" src="https://github.com/user-attachments/assets/5fc22877-2307-4586-abad-1dd8eac7c17a" />
+<img width="700" height="500" alt="Image-2" src="https://github.com/user-attachments/assets/5fc22877-2307-4586-abad-1dd8eac7c17a" />
 
-<img width="1280" height="800" alt="Image-3" src="https://github.com/user-attachments/assets/a0697fd8-91fa-4a47-aa72-e73c45f85939" />
+<img width="700" height="500" alt="Image-3" src="https://github.com/user-attachments/assets/a0697fd8-91fa-4a47-aa72-e73c45f85939" />
 
-<img width="1280" height="800" alt="Image-4" src="https://github.com/user-attachments/assets/2c396a33-1fb1-4bd0-880e-2a6f937c4b24" />
+<img width="700" height="500" alt="Image-4" src="https://github.com/user-attachments/assets/2c396a33-1fb1-4bd0-880e-2a6f937c4b24" />
 
-<img width="1280" height="800" alt="Image-5" src="https://github.com/user-attachments/assets/787757f4-b117-4dcb-a526-5722541e4adf" />
+<img width="700" height="500" alt="Image-5" src="https://github.com/user-attachments/assets/787757f4-b117-4dcb-a526-5722541e4adf" />
 
-<img width="1280" height="800" alt="Image-6" src="https://github.com/user-attachments/assets/4a4093f7-d3dd-4a6a-a590-9d9ff70d7990" />
+<img width="700" height="500" alt="Image-6" src="https://github.com/user-attachments/assets/4a4093f7-d3dd-4a6a-a590-9d9ff70d7990" />
 
-<img width="1280" height="800" alt="Image-7" src="https://github.com/user-attachments/assets/95426d0c-b123-440a-8f9f-8240557cfe06" />
+<img width="700" height="500" alt="Image-7" src="https://github.com/user-attachments/assets/95426d0c-b123-440a-8f9f-8240557cfe06" />
 
-<img width="1280" height="800" alt="Image-8" src="https://github.com/user-attachments/assets/2efc3345-b45f-41c5-b4e2-43f0bb793de0" />
+<img width="700" height="500" alt="Image-8" src="https://github.com/user-attachments/assets/2efc3345-b45f-41c5-b4e2-43f0bb793de0" />
 
-<img width="1280" height="800" alt="Image-9" src="https://github.com/user-attachments/assets/ab8ac3c0-1812-41fe-abdb-c06ecf4682d8" />
+<img width="700" height="500" alt="Image-9" src="https://github.com/user-attachments/assets/ab8ac3c0-1812-41fe-abdb-c06ecf4682d8" />
 
-<img width="1280" height="800" alt="Image-10" src="https://github.com/user-attachments/assets/524dd2b5-6ffc-4730-8c5b-7ff38eeaea1e" />
+<img width="700" height="500" alt="Image-10" src="https://github.com/user-attachments/assets/524dd2b5-6ffc-4730-8c5b-7ff38eeaea1e" />
 
-<img width="1280" height="800" alt="Image-11" src="https://github.com/user-attachments/assets/70c9edab-fb9f-4cbc-b7e6-5a689298c125" />
+<img width="700" height="500" alt="Image-11" src="https://github.com/user-attachments/assets/70c9edab-fb9f-4cbc-b7e6-5a689298c125" />
 
-<img width="1280" height="800" alt="Image-12" src="https://github.com/user-attachments/assets/64523c95-8d8b-4c73-b6ba-71f1ee982311" />
+<img width="700" height="500" alt="Image-12" src="https://github.com/user-attachments/assets/64523c95-8d8b-4c73-b6ba-71f1ee982311" />
 
 🚀 Installation
 
