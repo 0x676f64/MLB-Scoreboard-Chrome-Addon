@@ -64,45 +64,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         dateDisplayTxt.textContent = formatDisplayDate(ymd);
     }
 
-    // ── Postponed-game detection ──────────────────────────────────────────────
-    // MLB's API is unreliable about flipping games to "Postponed" — they
-    // often stay "Scheduled" for hours past first pitch. We detect this
-    // using three signals from the schedule payload itself, so no extra
-    // network calls are needed (default.js already pulls /schedule).
+    // ── Authoritative state detection ────────────────────────────────────────
+    // codedGameState is MLB's true bucket field. Each helper checks it FIRST,
+    // then falls back to a detailedState regex as belt-and-suspenders.
     //
-    //   1. statusCode is one of the postponed/rain codes (DR/PR/P)
-    //   2. A rescheduleDate field is present (MLB has booked a makeup game
-    //      — the most reliable "API hasn't flipped detailedState yet" tell)
-    //   3. Time heuristic: still "Scheduled" or "Pre-Game" 90+ minutes
-    //      after first pitch was supposed to happen
-    //
-    // 90 min is the threshold because rain delays often run 60+ min;
-    // anything past 90 with no transition out of pre-game means the game
-    // isn't happening today.
-
-    const PPD_STATUS_CODES = new Set(['DR', 'PR', 'P']);
+    // Why these MUST run before the Final/Live branches in classifyStatus:
+    //   • Postponed: abstractGameState says "Final"  → would mis-label as FINAL
+    //   • Cancelled: abstractGameState says "Final"  → would mis-label as FINAL
+    //   • Suspended: abstractGameState says "Live"   → would mis-label as LIVE
+    // codedGameState (D / C / U) is the only field that consistently reflects truth.
 
     function isLikelyPostponed(game) {
         const status = game?.status || {};
-
-        // 1. Explicit postponed code
-        if (PPD_STATUS_CODES.has(status.statusCode)) return true;
+        if (status.codedGameState === 'D') return true;
         if (/postponed/i.test(status.detailedState || '')) return true;
-
-        // 2. Makeup game scheduled — MLB sets this before flipping the state
-        if (game?.rescheduleDate || game?.rescheduleGameDate) return true;
-
-        // 3. Time-based heuristic
-        const detailedState = status.detailedState || '';
-        const stuckInPreGame = detailedState === 'Scheduled'
-                            || detailedState === 'Pre-Game'
-                            || status.abstractGameState === 'Preview';
-        if (stuckInPreGame && game?.gameDate) {
-            const minutesPast = (Date.now() - new Date(game.gameDate).getTime()) / 60000;
-            if (minutesPast > 90) return true;
-        }
-
         return false;
+    }
+
+    function isLikelyCancelled(game) {
+        const status = game?.status || {};
+        if (status.codedGameState === 'C') return true;
+        if (/cancelled|canceled/i.test(status.detailedState || '')) return true;
+        return false;
+    }
+
+    function isLikelySuspended(game) {
+        const status = game?.status || {};
+        if (status.codedGameState === 'U') return true;
+        if (/suspended/i.test(status.detailedState || '')) return true;
+        return false;
+    }
+
+    // True when a suspended game has been rescheduled to a future resumption
+    // time. We use this both in classifyStatus (to render the time instead of
+    // a bare "SUSP" badge) and in gameSig (so the card patches when the
+    // resumption time arrives and the API flips the game to In Progress).
+    function hasFutureResumption(game) {
+        if (!game?.gameDate) return false;
+        return new Date(game.gameDate).getTime() > Date.now();
     }
 
     // ── Game status classification ────────────────────────────────────────────
@@ -111,11 +110,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         const state = game.status.detailedState || '';
         const abs   = game.status.abstractGameState || '';
 
-        // Check for postponement BEFORE any pre-game branches, since a
-        // postponed game often masquerades as "Scheduled" / "Pre-Game"
+        // ── Authoritative bucket checks — MUST run before Final/Live branches
+        // because abstractGameState lies for these three states. See the
+        // predicate function comments above for the full explanation.
         if (isLikelyPostponed(game))
             return { label: 'POSTPONED', cssClass: 'postponed', isLive: false, isFinal: false };
 
+        if (isLikelyCancelled(game))
+            return { label: 'CNCLD', cssClass: 'postponed', isLive: false, isFinal: false };
+
+        if (isLikelySuspended(game)) {
+            // If MLB has scheduled a resumption time in the future (the makeup
+            // for a previously-suspended game), show that time instead of a
+            // bare "SUSP" badge. Much more useful — users can see exactly when
+            // the game resumes. A doubleheader's completion game lands here.
+            //
+            // Once first pitch hits at the resumption time, codedGameState
+            // flips U → I and the live branch below picks it up automatically.
+            if (hasFutureResumption(game)) {
+                return { label: formatGameTime(game.gameDate), cssClass: 'scheduled', isLive: false, isFinal: false };
+            }
+            return { label: 'SUSP', cssClass: 'delayed', isLive: false, isFinal: false };
+        }
+
+        // ── Normal states from here down ──────────────────────────────────────
         if (abs === 'Final' || state === 'Final' || state === 'Game Over' || state.startsWith('Completed'))
             return { label: 'FINAL', cssClass: 'final', isLive: false, isFinal: true };
 
@@ -126,6 +144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (state === 'Warmup')
             return { label: 'WARM', cssClass: 'live', isLive: true, isFinal: false };
 
+        // In-game delays — DIFFERENT from postponed (codedGameState 'D').
+        // Delayed games will likely resume; postponed games are off.
         if (state.startsWith('Delayed')) {
             const reason = state.includes('Rain')      ? 'RAIN DLY'
                          : state.includes('Lightning') ? 'LTNG DLY'
@@ -133,23 +153,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return { label: reason, cssClass: 'delayed', isLive: false, isFinal: false };
         }
 
-        if (state === 'Suspended')
-            return { label: 'SUSP', cssClass: 'delayed', isLive: false, isFinal: false };
-
-        if (state === 'Cancelled')
-            return { label: 'CNCLD', cssClass: 'postponed', isLive: false, isFinal: false };
-
         if (state === 'Pre-Game')
             return { label: formatGameTime(game.gameDate), cssClass: 'scheduled', isLive: false, isFinal: false };
 
         return { label: formatGameTime(game.gameDate), cssClass: 'scheduled', isLive: false, isFinal: false };
     }
 
-    // ── Signature: include postponed-detection result ────────────────────────
-    // Including isLikelyPostponed() in the fingerprint means a card whose
-    // detailedState hasn't changed but has just crossed the 90-min heuristic
-    // (or just got a rescheduleDate added) will trigger a patch and flip
-    // from start-time to "PPD" without a full rebuild.
+    // ── Signature: include all three mis-classified state checks ─────────────
+    // Including each predicate's result in the fingerprint means a card whose
+    // detailedState hasn't visibly changed but whose true bucket has flipped
+    // (e.g. LIVE → SUSP when a rain suspension hits mid-game) will trigger a
+    // patch and update the label without a full rebuild.
+    //
+    // We also include hasFutureResumption so the card flips from "7:00 PM" to
+    // "SUSP" if the scheduled resumption time passes without the game starting
+    // (the API hasn't flipped to In Progress yet) — and back to a live inning
+    // label once it does.
 
     function gameSig(game, inningText) {
         return [
@@ -157,7 +176,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             game.teams.home.score ?? 0,
             game.teams.away.score ?? 0,
             inningText || '',
-            isLikelyPostponed(game) ? 'PPD' : '',
+            isLikelyPostponed(game) ? 'PPD'    : '',
+            isLikelyCancelled(game) ? 'CNCLD'  : '',
+            isLikelySuspended(game) ? 'SUSP'   : '',
+            hasFutureResumption(game) ? 'FUT'  : '',
         ].join('|');
     }
 
