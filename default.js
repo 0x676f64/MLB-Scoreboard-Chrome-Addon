@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         134:'PIT', 135:'SD',  136:'SEA', 137:'SF',  138:'STL',
         139:'TB',  140:'TEX', 141:'TOR', 142:'MIN', 143:'PHI',
         144:'ATL', 145:'CWS', 146:'MIA', 147:'NYY', 158:'MIL',
+        159:'AL', 160:'NL',
     };
 
     // ── Elements ──────────────────────────────────────────────────────────────
