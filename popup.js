@@ -1,5 +1,58 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+    // ── Weather helpers ───────────────────────────────────────────────────────
+    // Maps an MLB weather.condition string to (a) a CSS class name that
+    // popup.html's stylesheet colors, and (b) an inline SVG glyph.
+    // Kept small and dependency-free — the SVGs use stroke:currentColor
+    // so they pick up the pill's text color automatically.
+    function weatherClass(cond) {
+        const c = (cond || '').toLowerCase();
+        if (/thunder|storm|lightning/.test(c)) return 'wx-storm';
+        if (/snow|flurr/.test(c))              return 'wx-snow';
+        if (/rain|drizzle|shower/.test(c))     return 'wx-rain';
+        if (/overcast/.test(c))                return 'wx-cloudy';
+        if (/partly.*cloud|mostly.*sunny/.test(c)) return 'wx-partly';
+        if (/cloud/.test(c))                   return 'wx-cloudy';
+        if (/clear|sunny|fair/.test(c))        return 'wx-sunny';
+        if (/dome|roof|indoor/.test(c))        return 'wx-dome';
+        return 'wx-neutral';
+    }
+
+    function weatherIconSVG(cond) {
+        const c = (cond || '').toLowerCase();
+        const sw = 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"';
+        // Sun (clear / sunny)
+        if (/clear|sunny|fair/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
+        }
+        // Partly cloudy (sun peeking behind cloud)
+        if (/partly.*cloud|mostly.*sunny/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M13.5 3.5l-.7.7M3.5 13.5l.7-.7"/><path d="M17.5 20a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 7 15.5"/></svg>`;
+        }
+        // Rain (cloud with drops)
+        if (/rain|drizzle|shower/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><path d="M8 17v2M12 15v3M16 17v2"/></svg>`;
+        }
+        // Snow (cloud with dots)
+        if (/snow|flurr/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><circle cx="8" cy="18" r="0.6" fill="currentColor"/><circle cx="12" cy="20" r="0.6" fill="currentColor"/><circle cx="16" cy="18" r="0.6" fill="currentColor"/></svg>`;
+        }
+        // Storm (cloud with lightning)
+        if (/thunder|storm|lightning/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><path d="m13 14-3 4h3l-2 4"/></svg>`;
+        }
+        // Cloudy / overcast
+        if (/overcast|cloud/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 15.5"/></svg>`;
+        }
+        // Dome / roof
+        if (/dome|roof|indoor/.test(c)) {
+            return `<svg viewBox="0 0 24 24" ${sw}><path d="M2 12l10-8 10 8v9H2z"/><path d="M8 21v-6a4 4 0 0 1 8 0v6"/></svg>`;
+        }
+        // Neutral / unknown
+        return `<svg viewBox="0 0 24 24" ${sw}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>`;
+    }
+
     // ── DOM Construction ──────────────────────────────────────────────────────
 
     const popupContainer = document.createElement("div");
@@ -744,7 +797,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: transparent;
             padding: 8px 10px;
             border-top: 1px solid rgba(4,30,66,0.06);
-            margin-top: 2rem;
+            margin-top: 1rem;
         }
 
         .top-performers-row {
@@ -764,8 +817,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         .performer-image {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: 2px solid #bf0d3d;
             background: #041e42;
@@ -1541,10 +1594,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             const homeTeam=data.gameData.teams.home;
 
             // ── Fingerprint guard ────────────────────────────────────────────
+            // Includes weather condition + temp so the card rebuilds
+            // when weather data arrives (or changes), letting the pill
+            // slide in/out via its CSS transition.
+            const _wx = data.gameData.weather || {};
             const pregameKey=[
                 awayPitcher?.id||'', homePitcher?.id||'',
                 ...awayPlayers.map(p=>p.id||''),
-                ...homePlayers.map(p=>p.id||'')
+                ...homePlayers.map(p=>p.id||''),
+                _wx.condition||'', _wx.temp||''
             ].join('|');
 
             if(pregameKey===_lastPregameKey&&document.getElementById('pregame-lineup-card')){
@@ -1610,6 +1668,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             const card=document.createElement('div');
             card.id='pregame-lineup-card';
 
+            // ── Weather pill (between selector and panels) ────────────────────
+            // Extracts weather from data.gameData.weather (MLB API provides
+            // condition/temp/wind here). If condition + temp are both blank
+            // (which happens for games many hours out), the pill stays in
+            // the DOM without the .show class — CSS keeps it collapsed at
+            // max-height: 0 and animates it open the moment `.show` is
+            // added on a later refresh.
+            const wxCond = (_wx.condition || '').trim();
+            const wxTemp = (_wx.temp || '').trim();
+            const wxWind = (_wx.wind || '').trim();
+            const wxHas  = !!(wxCond && wxCond.toLowerCase() !== 'unknown') && !!wxTemp;
+            const wxClass = weatherClass(wxCond);
+            const wxIcon  = weatherIconSVG(wxCond);
+            const weatherHTML = `
+                <div class="plc-weather ${wxHas?'show':''} ${wxClass}">
+                    <div class="plc-wx-icon">${wxIcon}</div>
+                    <div class="plc-wx-text">
+                        ${wxCond?`<span class="plc-wx-cond">${wxCond}</span>`:''}
+                        ${wxTemp?`<span class="plc-wx-temp">${wxTemp}°</span>`:''}
+                    </div>
+                    ${wxWind?`<div class="plc-wx-wind">${wxWind}</div>`:''}
+                </div>`;
+
             const active=_pregameActiveTeam;
             card.innerHTML=`
                 <div class="plc-selector">
@@ -1623,6 +1704,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="plc-team-abbr">${homeTeam.abbreviation||homeTeam.teamName||'Home'}</span>
                     </button>
                 </div>
+                ${weatherHTML}
                 <div class="plc-panel" id="plc-away-panel" style="display:${active==='away'?'block':'none'};">${buildPanelHTML(awayPitcher,awayHand,awaySS,awayPlayers)}</div>
                 <div class="plc-panel" id="plc-home-panel" style="display:${active==='home'?'block':'none'};">${buildPanelHTML(homePitcher,homeHand,homeSS,homePlayers)}</div>`;
 

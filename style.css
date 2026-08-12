@@ -9,7 +9,6 @@ html {
 
 body {
     margin: 0;
-    transform: scale(0.7); /* 80% of the original size */
     transform-origin: top left; /* Ensures it scales from the top left corner */
     display: flex;
     flex-direction: column;

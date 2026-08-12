@@ -1,117 +1,558 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Details</title>
     <link rel="stylesheet" href="style.css">
     <script defer src="popup.js"></script>
     <script src="mlb-video-matcher.js"></script>
-    <meta charset="UTF-8">
     <style>
+        /* ══════════════════════════════════════════════════════════
+           XLABS MLB — popup shell (v5)
 
-html {
-    scrollbar-width: none;
-}
+           v5 changes on top of v4:
+             • Pregame: #game-info is hidden entirely (redundant with
+               the pregame selector). Uses :has() to target the
+               .pregame class popup.js adds to #gameplay-info-container.
+             • Weather pill styling — the element is inserted by
+               popup.js between .plc-selector and .plc-panel. Colored
+               by condition class (wx-sunny / wx-partly / wx-cloudy /
+               wx-rain / wx-snow / wx-storm / wx-dome / wx-neutral).
+               Low-opacity backgrounds so it sits gently on white.
+               Slides in/out via max-height + opacity transition.
+             • Non-pregame header (Live / Final / etc.):
+                 - justify-content: center (was space-between) so
+                   teams sit close together rather than pinned to
+                   edges.
+                 - Team logos enlarged to 68px (was 56px).
+                 - Score font 38px, .game-status gap tightened.
+             • Live at-bat player images shrunk 36→32 to reclaim
+               vertical space eaten by the bigger header.
+             • Box Score linescore (.ls-wrap) gets margin-top so
+               it doesn't butt against the tab bar.
+           ══════════════════════════════════════════════════════════ */
 
-html::-webkit-scrollbar {
-    display: none;
-}
+        /* ── Reset + hide scrollbars ──────────────────────────────── */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #f0f4f8;
+            scrollbar-width: none;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar { display: none; }
 
-body {
-    width: 600px;
-    min-height: 600px;
-    font-family: "Rubik", sans-serif;
-    transform: scale(0.9);
-    transform-origin: top left;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
+        body {
+            min-height: 500px;
+            font-family: 'Rubik', sans-serif;
+            overflow-x: hidden;
+            animation: fadeInPopup 0.28s ease-out;
+        }
+        @keyframes fadeInPopup {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-#popup-container {
-    width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    background-color: #f7fafc;
-    padding: 0;
-    margin-left: 40px;
-}
+        #popup-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f7fafc;
+        }
 
-.winning-pitcher, .losing-pitcher {
-    color: #bf0d3d;
-    font-weight: 500;
-}
+        /* ── Interior content centering (v3, unchanged) ──────────── */
+        #game-info,
+        #gameplay-info-container,
+        #tabs-container,
+        #boxscore-content,
+        #scoring-plays-container,
+        #all-plays-container,
+        #win-prob-container,
+        #video-buttons,
+        #top-performers,
+        #live-at-bat,
+        #pregame-lineup-card {
+            padding-inline: max(16px, calc((100% - 720px) / 2)) !important;
+        }
 
-.starter-hand {
-    color: #bf0d3d;
-    font-style: italic;
-}
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #1 — hide game-info during pregame
 
-.performer-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid #D7827E;
-    object-fit: cover;
-    margin-bottom: 8px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+           popup.js adds .pregame class to #gameplay-info-container
+           only when the game is in a pre-game state. We use :has()
+           on #popup-container to reach back and hide #game-info
+           when that class is present. Chrome supports :has() since
+           v105 — safe in extension context.
 
-.top-performer {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    padding: 10px;
-}
+           display:none is fine here — the header contains no
+           persistent state, so no need to animate it out.
+           ══════════════════════════════════════════════════════════ */
+        #popup-container:has(#gameplay-info-container.pregame) #game-info {
+            display: none !important;
+        }
 
-.performer-name {
-    font-weight: 400;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-}
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #2 — non-pregame header (bigger, closer team logos)
 
-.performer-name span { display: block; }
+           popup.js sets #game-info { justify-content: space-between }
+           which pins the away and home team-containers to the far
+           edges of the popup. We override to center + controlled gap
+           so the teams sit right next to the scores. Team logos
+           enlarge from 56 → 68 to match the visual weight of the
+           tighter layout.
+           ══════════════════════════════════════════════════════════ */
+        #game-info {
+            padding-block: 12px !important;
+            justify-content: center !important;
+            gap: 20px !important;
+            border-bottom: 1px solid rgba(4,30,66,0.06) !important;
+        }
 
-.performer-stats {
-    font-size: 12px;
-    color: #bf0d3d;
-    font-weight: 500;
-}
+        .team-container {
+            min-width: 0 !important;
+            flex-shrink: 0 !important;
+            padding: 4px 8px !important;
+            gap: 5px !important;
+            border-radius: 12px !important;
+            transition:
+                background 0.2s ease,
+                transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .team-container:hover {
+            background: rgba(4,30,66,0.035);
+            transform: translateY(-1px);
+        }
 
-.video-button {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+        .team-logo {
+            width: 68px !important;
+            height: 68px !important;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.10));
+            transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .team-logo:hover {
+            transform: translateY(-2px) scale(1.04);
+        }
 
-.avg-progress-bar {
-    width: 40px;
-    height: 3px;
-    background-color: #f7fafc;
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-}
+        .team-record {
+            font-size: 10px !important;
+            color: rgba(4,30,66,0.55) !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.3px !important;
+        }
 
-.avg-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #bf0d3d 0%, #d63761 100%);
-    border-radius: 2px;
-    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-    width: 0%;
-}
+        /* .game-status doesn't fill the row anymore — it takes its
+           natural size so the two team-containers can nestle up to it. */
+        .game-status {
+            flex: 0 0 auto !important;
+            gap: 1.8rem !important;
+        }
 
-@keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
+        .team-score {
+            font-size: 38px !important;
+            letter-spacing: -1.5px !important;
+            transition: color 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
 
+        .inning {
+            font-size: 18px !important;
+            letter-spacing: 1px !important;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #3 — WEATHER PILL (inside pregame lineup card)
+
+           Element is inserted by popup.js between .plc-selector and
+           the panels. Always in DOM so both fade-in and fade-out
+           transitions work smoothly. `.show` class toggled based on
+           whether the API returned meaningful weather data.
+
+           Design intent: colored so users can glance and know
+           conditions, but low-opacity so it sits gently on white
+           rather than shouting.
+           ══════════════════════════════════════════════════════════ */
+
+        .plc-weather {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            /* Collapsed state (no weather data yet) */
+            max-height: 0;
+            padding: 0 14px;
+            margin: 0 14px;
+            opacity: 0;
+            overflow: hidden;
+            border-width: 0;
+            transition:
+                max-height 0.4s ease,
+                padding 0.4s ease,
+                margin 0.4s ease,
+                opacity 0.3s ease 0.05s,
+                border-width 0.4s ease;
+        }
+
+        /* Expanded state (weather data present) */
+        .plc-weather.show {
+            max-height: 34px;
+            padding: 6px 14px;
+            margin: 10px 14px;
+            opacity: 1;
+            border-width: 1px;
+        }
+
+        .plc-wx-icon {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .plc-wx-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .plc-wx-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .plc-wx-cond,
+        .plc-wx-temp {
+            white-space: nowrap;
+        }
+
+        .plc-wx-temp {
+            font-weight: 700;
+        }
+
+        .plc-wx-wind {
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0.7;
+            padding-left: 10px;
+            border-left: 1px solid currentColor;
+            border-left-color: color-mix(in srgb, currentColor 30%, transparent);
+        }
+
+        /* ── Condition color variants ─────────────────────────────
+           Backgrounds hover around 0.08–0.14 alpha so the pill
+           reads as a subtle wash, not a shouted badge. Text uses
+           a darker shade of the same hue for legibility. */
+        .plc-weather.wx-sunny {
+            background: rgba(245, 158, 11, 0.11);
+            color: #a05a08;
+            border-color: rgba(245, 158, 11, 0.28);
+        }
+        .plc-weather.wx-partly {
+            background: rgba(59, 130, 246, 0.09);
+            color: #1e40af;
+            border-color: rgba(59, 130, 246, 0.22);
+        }
+        .plc-weather.wx-cloudy {
+            background: rgba(100, 116, 139, 0.13);
+            color: #3f4c5f;
+            border-color: rgba(100, 116, 139, 0.28);
+        }
+        .plc-weather.wx-rain {
+            background: rgba(37, 99, 235, 0.12);
+            color: #1e3a8a;
+            border-color: rgba(37, 99, 235, 0.28);
+        }
+        .plc-weather.wx-snow {
+            background: rgba(148, 163, 184, 0.16);
+            color: #334155;
+            border-color: rgba(148, 163, 184, 0.30);
+        }
+        .plc-weather.wx-storm {
+            background: rgba(147, 51, 234, 0.10);
+            color: #6b21a8;
+            border-color: rgba(147, 51, 234, 0.25);
+        }
+        .plc-weather.wx-dome {
+            background: rgba(4, 30, 66, 0.07);
+            color: #041e42;
+            border-color: rgba(4, 30, 66, 0.16);
+        }
+        .plc-weather.wx-neutral {
+            background: rgba(4, 30, 66, 0.06);
+            color: #475569;
+            border-color: rgba(4, 30, 66, 0.14);
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #4 — box score margin fix
+
+           popup.js's .ls-wrap sits directly under #tab-section with
+           no breathing room. Adding margin-top pushes it down so
+           the linescore doesn't crash into the tab bar.
+           ══════════════════════════════════════════════════════════ */
+        .ls-wrap {
+            margin-top: 10px !important;
+            border-radius: 8px;
+            margin-inline: max(16px, calc((100% - 720px) / 2)) !important;
+            padding-inline: 12px !important;  /* internal, not the outer centering */
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #5 — shrink live-at-bat player headshots
+
+           The bigger header eats extra vertical space; we reclaim
+           some by dropping the batter/pitcher card images from
+           36px to 32px. Overrides the inline width/height
+           popup.js sets in the innerHTML template strings.
+           ══════════════════════════════════════════════════════════ */
+        #away-player-stats img,
+        #home-player-stats img {
+            width: 50px !important;
+            height: 50px !important;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           v4 CARRY-OVERS — pregame selector + lineup rows + polish
+           ══════════════════════════════════════════════════════════ */
+
+        .plc-selector {
+            padding: 10px 14px !important;
+            gap: 12px !important;
+            background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 100%) !important;
+            border-bottom: 1px solid rgba(4,30,66,0.06) !important;
+        }
+
+        .plc-team-btn {
+            padding: 8px 10px !important;
+            gap: 6px !important;
+        }
+
+        .plc-logo {
+            width: 72px !important;
+            height: 72px !important;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .plc-team-abbr {
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .plc-at {
+            font-size: 15px !important;
+            color: rgba(4,30,66,0.4) !important;
+            font-weight: 700 !important;
+        }
+
+        .plc-panel {
+            padding: 12px !important;
+            max-height: 340px !important;
+        }
+
+        .plc-pp {
+            padding: 10px 14px !important;
+            gap: 12px !important;
+            margin-bottom: 10px !important;
+            box-shadow: 0 2px 8px rgba(4,30,66,0.15) !important;
+        }
+
+        .plc-pp-img {
+            width: 48px !important;
+            height: 48px !important;
+        }
+
+        .plc-pp-name {
+            font-size: 13px !important;
+        }
+
+        .plc-pp-stats {
+            font-size: 11px !important;
+        }
+
+        .plc-row {
+            padding: 5px 8px !important;
+            transition: background 0.14s ease, transform 0.14s ease !important;
+        }
+        .plc-row:hover {
+            background: rgba(191,13,61,0.05) !important;
+            transform: translateX(2px);
+        }
+
+        .plc-headshot {
+            width: 30px !important;
+            height: 30px !important;
+        }
+
+        .plc-name {
+            font-size: 12px !important;
+        }
+
+        /* Decision pitchers + top performers hover polish */
+        .decision-pitcher {
+            transition: transform 0.24s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .decision-pitcher-image {
+            transition:
+                transform 0.24s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.24s ease;
+            box-shadow: 0 3px 8px rgba(4,30,66,0.15);
+        }
+        .decision-pitcher-image:hover {
+            transform: scale(1.06);
+            box-shadow: 0 5px 14px rgba(191,13,61,0.25);
+        }
+
+        /* Back button */
+        #backButton {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            z-index: 100;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: none;
+            background: rgba(4,30,66,0.88);
+            color: white;
+            border-radius: 20%;
+            cursor: pointer;
+            font-size: 0;
+            box-shadow: 0 2px 8px rgba(4,30,66,0.28);
+            transition:
+                transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.18s ease,
+                box-shadow 0.18s ease;
+            animation: fadeInBackBtn 0.6s ease-out 0.35s both;
+        }
+        #backButton::before {
+            content: '←';
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        #backButton:hover {
+            background: #bf0d3c9d;
+            transform: scale(1.1);
+            box-shadow: 0 3px 12px rgba(191,13,61,0.45);
+        }
+        #backButton:active {
+            transform: scale(0.92);
+        }
+        @keyframes fadeInBackBtn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Live indicator + pitch dots + tabs + play items */
+        .live-ring { animation: livePulse 1.6s ease-in-out infinite; }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1;   transform: scale(1); }
+            50%      { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        .lab-dot.on { animation: pitchDotPop 0.34s cubic-bezier(0.34,1.56,0.64,1) both; }
+        @keyframes pitchDotPop {
+            0%   { transform: scale(0.4); }
+            60%  { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .play-item { animation: playSlideIn 0.36s ease-out both; }
+        @keyframes playSlideIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-button {
+            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+        .tab-button:not(.active):hover { transform: translateY(-1px); }
+        .tab-button.active { animation: tabActivate 0.32s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes tabActivate {
+            0%   { transform: scale(0.94); }
+            60%  { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .lab-play-event:not(:empty) { animation: playEventFlash 0.55s ease-out; }
+        @keyframes playEventFlash {
+            0%   { color: #bf0d3d; letter-spacing: 3px; opacity: 0; }
+            60%  { color: #bf0d3d; letter-spacing: 0px; opacity: 1; }
+            100% { color: #041e42; letter-spacing: 0px; opacity: 1; }
+        }
+
+        .performer-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #D7827E;
+            object-fit: cover;
+            margin: 0 auto 8px;
+            display: block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition:
+                transform 0.24s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.24s ease,
+                border-color 0.24s ease;
+        }
+        .performer-image:hover {
+            transform: scale(1.08) rotate(-3deg);
+            box-shadow: 0 4px 12px rgba(191,13,61,0.3);
+            border-color: #bf0d3d;
+        }
+
+        .top-performer {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 10px;
+            animation: playSlideIn 0.4s ease-out both;
+        }
+        .top-performer:nth-child(1) { animation-delay: 0.05s; }
+        .top-performer:nth-child(2) { animation-delay: 0.15s; }
+        .top-performer:nth-child(3) { animation-delay: 0.25s; }
+
+        .performer-name {
+            font-weight: 400;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        .performer-name span { display: block; }
+
+        .performer-stats { font-size: 12px; color: #bf0d3d; font-weight: 500; }
+
+        .winning-pitcher, .losing-pitcher { color: #bf0d3d; font-weight: 500; }
+        .starter-hand { color: #bf0d3d; font-style: italic; }
+
+        .video-button { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .avg-progress-bar {
+            width: 40px;
+            height: 3px;
+            background-color: #f7fafc;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        .avg-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #bf0d3d 0%, #d63761 100%);
+            border-radius: 2px;
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+            width: 0%;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
     </style>
 </head>
 <body>
