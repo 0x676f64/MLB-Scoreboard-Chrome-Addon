@@ -1351,6 +1351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let _lastPitcherId  = '';   // live pitcher id
     let _lastPitchCount = -1;   // number of pitches in current at-bat
     let _lastResultEvt  = '';   // result event text of current play
+    let _lastIsTopInning = null; // tracks inning half — flips force a slot swap
 
     let mainRefreshTimer = null;
 
@@ -1715,6 +1716,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const fmtAvg=(n)=>{if(!n||n==='---')return'---';const f=parseFloat(n);return f<1?'.'+String(Math.round(f*1000)).padStart(3,'0'):f.toFixed(3);};
 
+            // ── Slot routing ──────────────────────────────────────────────
+            // awayPS = left slot (image-left layout); homePS = right slot
+            // (mirror: badge-then-name, image-right). Route each player to
+            // their team's slot so away is always on the left, home on the
+            // right — matches the score bug convention.
+            const isTopInning = data.liveData?.linescore?.isTopInning ?? true;
+            if (_lastIsTopInning !== null && _lastIsTopInning !== isTopInning) {
+                awayPS.innerHTML = '';
+                homePS.innerHTML = '';
+                _lastBatterId = '';
+                _lastPitcherId = '';
+            }
+            _lastIsTopInning = isTopInning;
+            const batterSlot  = isTopInning ? awayPS : homePS;
+            const pitcherSlot = isTopInning ? homePS : awayPS;
+
             if(batter){
                 // Only rebuild if the batter changed — skipping prevents image flicker
                 if(String(batterId) !== _lastBatterId){
@@ -1723,17 +1740,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     _lastPitchCount = -1;
                     _lastResultEvt  = '';
                     const batHand=currentPlay.matchup?.batSide?.code||'';
-                    const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${batHand}HB</span>`:'';
-                    awayPS.innerHTML=`
-                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
-                                style="width:30px;height:30px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
-                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                            <div style="min-width:0;">
-                                <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}${batBadge}</div>
-                                <div style="font-size:8px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Batter</div>
-                            </div>
-                        </div>
+                    // Badge has no inline margin — spacing handled by flex gap,
+                    // so the same span works before or after the name in the
+                    // mirrored home-side layout.
+                    const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;vertical-align:middle;flex-shrink:0;">${batHand}HB</span>`:'';
+                    const batImg=`<img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
+                        style="width:30px;height:30px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
+                        onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">`;
+                    const batName=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${batter.fullName}</span>`;
+                    // isLeft controls layout mirror. Left slot: img → name/badge.
+                    // Right slot: badge/name → img (name-column right-aligned).
+                    const isLeft=(batterSlot===awayPS);
+                    const batNameRow=`<div style="font-weight:700;font-size:10px;color:#041e42;display:flex;align-items:center;gap:3px;min-width:0;${isLeft?'':'justify-content:flex-end;'}">${isLeft?batName+batBadge:batBadge+batName}</div>`;
+                    const batRole=`<div style="font-size:8px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;${isLeft?'':'text-align:right;'}">Batter</div>`;
+                    const batCol=`<div style="min-width:0;flex:1;">${batNameRow}${batRole}</div>`;
+                    batterSlot.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">${isLeft?batImg+batCol:batCol+batImg}</div>
                         <div style="display:flex;gap:3px;">
                             <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
                                 <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">AVG</div>
@@ -1756,17 +1778,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if(String(pitcherId) !== _lastPitcherId){
                     _lastPitcherId = String(pitcherId);
                     const pitHand=currentPlay.matchup?.pitchHand?.code||'';
-                    const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;">${pitHand}HP</span>`:'';
-                    homePS.innerHTML=`
-                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
-                                style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
-                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                            <div style="min-width:0;">
-                                <div style="font-weight:700;font-size:10px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}${pitBadge}</div>
-                                <div style="font-size:8px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Pitcher</div>
-                            </div>
-                        </div>
+                    const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:6px;font-weight:800;padding:1px 3px;border-radius:2px;vertical-align:middle;flex-shrink:0;">${pitHand}HP</span>`:'';
+                    const pitImg=`<img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
+                        style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
+                        onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">`;
+                    const pitName=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${pitcher.fullName}</span>`;
+                    const isLeft=(pitcherSlot===awayPS);
+                    const pitNameRow=`<div style="font-weight:700;font-size:10px;color:#041e42;display:flex;align-items:center;gap:3px;min-width:0;${isLeft?'':'justify-content:flex-end;'}">${isLeft?pitName+pitBadge:pitBadge+pitName}</div>`;
+                    const pitRole=`<div style="font-size:8px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;${isLeft?'':'text-align:right;'}">Pitcher</div>`;
+                    const pitCol=`<div style="min-width:0;flex:1;">${pitNameRow}${pitRole}</div>`;
+                    pitcherSlot.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">${isLeft?pitImg+pitCol:pitCol+pitImg}</div>
                         <div style="display:flex;gap:3px;">
                             <div style="background:rgba(4,30,66,0.04);border-radius:4px;padding:2px 4px;text-align:center;flex:1;">
                                 <div style="font-size:6px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">ERA</div>
@@ -1840,7 +1862,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const isInPlay=p.details?.isInPlay,isStrike=p.details?.isStrike;
             const isFoul=p.details?.description?.toLowerCase().includes('foul');
             const resCls=isInPlay?'pr-contact':isFoul?'pr-foul':isStrike?'pr-strike':'pr-ball';
-            const resLbl=isInPlay?'IN PLAY':isFoul?'FOUL':isStrike?'STR':'BALL';
+            const resLbl=isInPlay?'IN PLAY':isFoul?'FOUL':isStrike?'STRIKE':'BALL';
             return`<div class="lab-pitch-row">
                 <div class="lab-pitch-num">${pitches.length-i}</div>
                 <div class="lab-pitch-badge" style="background:${info.color}">${info.abbr}</div>
