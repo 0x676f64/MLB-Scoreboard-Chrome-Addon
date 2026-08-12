@@ -797,7 +797,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: transparent;
             padding: 8px 10px;
             border-top: 1px solid rgba(4,30,66,0.06);
-            margin-top: 1rem;
         }
 
         .top-performers-row {

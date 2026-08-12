@@ -23,7 +23,7 @@ body {
     border-radius: 8px; /* Slightly rounded corners */
     cursor: pointer; /* Indicate it's clickable */
     font-weight: 500; /* Make the text bold */
-    width: 70%;
+    width: 10%;
     transition: background-color 0.5s ease, color 0.5s ease; /* Smooth transition for hover effects */
 }
 

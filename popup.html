@@ -61,7 +61,92 @@
             background: #f7fafc;
         }
 
+        /* ══════════════════════════════════════════════════════════
+           v5 NEW #6 — PAGE HEADER (mirrors home page, thinner)
+
+           Same navy gradient + MLB logo + "MLB LIVE DASHBOARD"
+           title as default.html's header, so the popup feels like
+           the same product surface. Proportions are ~2/3 the size
+           of the home version — subordinate to the game info
+           header immediately below it, but still a clear
+           anchor when scrolling.
+
+           The Back button is nested inside the header rather than
+           floating in as a fixed overlay, so we don't stack two
+           chrome elements in the top-left. It keeps id="backButton"
+           so button.js still binds its click handler.
+
+           position: sticky pins it to the top of the viewport
+           during long scrolls (box score, all plays), matching
+           default.html's behavior.
+           ══════════════════════════════════════════════════════════ */
+        .page-header {
+            background: linear-gradient(135deg, #041e42, #0d2d5e);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(4,30,66,0.15);
+            animation: fadeInPopup 0.28s ease-out;
+        }
+
+        .header-back {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0;   /* hides "Go Back" text */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .header-back::before {
+            content: '←';
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .header-back:hover {
+            background: rgba(255,255,255,0.16);
+            transform: translateX(-1px);
+        }
+        .header-back:active {
+            transform: scale(0.94);
+        }
+
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
         /* ── Interior content centering (v3, unchanged) ──────────── */
+        .page-header,
         #game-info,
         #gameplay-info-container,
         #tabs-container,
@@ -310,8 +395,8 @@
            ══════════════════════════════════════════════════════════ */
         #away-player-stats img,
         #home-player-stats img {
-            width: 50px !important;
-            height: 50px !important;
+            width: 40px !important;
+            height: 40px !important;
         }
 
         /* ══════════════════════════════════════════════════════════
@@ -404,47 +489,6 @@
         .decision-pitcher-image:hover {
             transform: scale(1.06);
             box-shadow: 0 5px 14px rgba(191,13,61,0.25);
-        }
-
-        /* Back button */
-        #backButton {
-            position: fixed;
-            top: 8px;
-            left: 8px;
-            z-index: 100;
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            border: none;
-            background: rgba(4,30,66,0.88);
-            color: white;
-            border-radius: 20%;
-            cursor: pointer;
-            font-size: 0;
-            box-shadow: 0 2px 8px rgba(4,30,66,0.28);
-            transition:
-                transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
-                background 0.18s ease,
-                box-shadow 0.18s ease;
-            animation: fadeInBackBtn 0.6s ease-out 0.35s both;
-        }
-        #backButton::before {
-            content: '←';
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1;
-        }
-        #backButton:hover {
-            background: #bf0d3c9d;
-            transform: scale(1.1);
-            box-shadow: 0 3px 12px rgba(191,13,61,0.45);
-        }
-        #backButton:active {
-            transform: scale(0.92);
-        }
-        @keyframes fadeInBackBtn {
-            from { opacity: 0; transform: translateX(-8px); }
-            to   { opacity: 1; transform: translateX(0); }
         }
 
         /* Live indicator + pitch dots + tabs + play items */
@@ -556,7 +600,13 @@
     </style>
 </head>
 <body>
-<button id="backButton">Go Back</button>
+<header class="page-header">
+    <button id="backButton" class="header-back" title="Go back"></button>
+    <div class="header-brand">
+        <img src="assets/teams-darkmode/1.svg" alt="MLB Logo" class="header-logo">
+        <span class="header-title">MLB LIVE DASHBOARD</span>
+    </div>
+</header>
 <script src="button.js"></script>
 </body>
 </html>
