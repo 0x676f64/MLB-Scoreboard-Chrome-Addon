@@ -1,58 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-    // ── Weather helpers ───────────────────────────────────────────────────────
-    // Maps an MLB weather.condition string to (a) a CSS class name that
-    // popup.html's stylesheet colors, and (b) an inline SVG glyph.
-    // Kept small and dependency-free — the SVGs use stroke:currentColor
-    // so they pick up the pill's text color automatically.
-    function weatherClass(cond) {
-        const c = (cond || '').toLowerCase();
-        if (/thunder|storm|lightning/.test(c)) return 'wx-storm';
-        if (/snow|flurr/.test(c))              return 'wx-snow';
-        if (/rain|drizzle|shower/.test(c))     return 'wx-rain';
-        if (/overcast/.test(c))                return 'wx-cloudy';
-        if (/partly.*cloud|mostly.*sunny/.test(c)) return 'wx-partly';
-        if (/cloud/.test(c))                   return 'wx-cloudy';
-        if (/clear|sunny|fair/.test(c))        return 'wx-sunny';
-        if (/dome|roof|indoor/.test(c))        return 'wx-dome';
-        return 'wx-neutral';
-    }
-
-    function weatherIconSVG(cond) {
-        const c = (cond || '').toLowerCase();
-        const sw = 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"';
-        // Sun (clear / sunny)
-        if (/clear|sunny|fair/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`;
-        }
-        // Partly cloudy (sun peeking behind cloud)
-        if (/partly.*cloud|mostly.*sunny/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M13.5 3.5l-.7.7M3.5 13.5l.7-.7"/><path d="M17.5 20a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 7 15.5"/></svg>`;
-        }
-        // Rain (cloud with drops)
-        if (/rain|drizzle|shower/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><path d="M8 17v2M12 15v3M16 17v2"/></svg>`;
-        }
-        // Snow (cloud with dots)
-        if (/snow|flurr/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><circle cx="8" cy="18" r="0.6" fill="currentColor"/><circle cx="12" cy="20" r="0.6" fill="currentColor"/><circle cx="16" cy="18" r="0.6" fill="currentColor"/></svg>`;
-        }
-        // Storm (cloud with lightning)
-        if (/thunder|storm|lightning/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 12a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 8.5"/><path d="m13 14-3 4h3l-2 4"/></svg>`;
-        }
-        // Cloudy / overcast
-        if (/overcast|cloud/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A7 7 0 1 0 5 15.5"/></svg>`;
-        }
-        // Dome / roof
-        if (/dome|roof|indoor/.test(c)) {
-            return `<svg viewBox="0 0 24 24" ${sw}><path d="M2 12l10-8 10 8v9H2z"/><path d="M8 21v-6a4 4 0 0 1 8 0v6"/></svg>`;
-        }
-        // Neutral / unknown
-        return `<svg viewBox="0 0 24 24" ${sw}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>`;
-    }
-
     // ── DOM Construction ──────────────────────────────────────────────────────
 
     const popupContainer = document.createElement("div");
@@ -797,6 +744,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             background: transparent;
             padding: 8px 10px;
             border-top: 1px solid rgba(4,30,66,0.06);
+            margin-top: 2rem;
         }
 
         .top-performers-row {
@@ -816,8 +764,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         .performer-image {
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             border: 2px solid #bf0d3d;
             background: #041e42;
@@ -1429,6 +1377,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let _lastPitcherId  = '';   // live pitcher id
     let _lastPitchCount = -1;   // pitches in current at-bat
     let _lastResultEvt  = '';   // result event of current play
+    let _lastIsTopInning = null; // tracks inning half — flips force a slot swap
 
     // Persists which team tab the user last clicked in the pregame card.
     // Survives the 2-second refresh cycle — never resets to 'away'.
@@ -1593,15 +1542,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             const homeTeam=data.gameData.teams.home;
 
             // ── Fingerprint guard ────────────────────────────────────────────
-            // Includes weather condition + temp so the card rebuilds
-            // when weather data arrives (or changes), letting the pill
-            // slide in/out via its CSS transition.
-            const _wx = data.gameData.weather || {};
             const pregameKey=[
                 awayPitcher?.id||'', homePitcher?.id||'',
                 ...awayPlayers.map(p=>p.id||''),
-                ...homePlayers.map(p=>p.id||''),
-                _wx.condition||'', _wx.temp||''
+                ...homePlayers.map(p=>p.id||'')
             ].join('|');
 
             if(pregameKey===_lastPregameKey&&document.getElementById('pregame-lineup-card')){
@@ -1667,29 +1611,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const card=document.createElement('div');
             card.id='pregame-lineup-card';
 
-            // ── Weather pill (between selector and panels) ────────────────────
-            // Extracts weather from data.gameData.weather (MLB API provides
-            // condition/temp/wind here). If condition + temp are both blank
-            // (which happens for games many hours out), the pill stays in
-            // the DOM without the .show class — CSS keeps it collapsed at
-            // max-height: 0 and animates it open the moment `.show` is
-            // added on a later refresh.
-            const wxCond = (_wx.condition || '').trim();
-            const wxTemp = (_wx.temp || '').trim();
-            const wxWind = (_wx.wind || '').trim();
-            const wxHas  = !!(wxCond && wxCond.toLowerCase() !== 'unknown') && !!wxTemp;
-            const wxClass = weatherClass(wxCond);
-            const wxIcon  = weatherIconSVG(wxCond);
-            const weatherHTML = `
-                <div class="plc-weather ${wxHas?'show':''} ${wxClass}">
-                    <div class="plc-wx-icon">${wxIcon}</div>
-                    <div class="plc-wx-text">
-                        ${wxCond?`<span class="plc-wx-cond">${wxCond}</span>`:''}
-                        ${wxTemp?`<span class="plc-wx-temp">${wxTemp}°</span>`:''}
-                    </div>
-                    ${wxWind?`<div class="plc-wx-wind">${wxWind}</div>`:''}
-                </div>`;
-
             const active=_pregameActiveTeam;
             card.innerHTML=`
                 <div class="plc-selector">
@@ -1703,7 +1624,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="plc-team-abbr">${homeTeam.abbreviation||homeTeam.teamName||'Home'}</span>
                     </button>
                 </div>
-                ${weatherHTML}
                 <div class="plc-panel" id="plc-away-panel" style="display:${active==='away'?'block':'none'};">${buildPanelHTML(awayPitcher,awayHand,awaySS,awayPlayers)}</div>
                 <div class="plc-panel" id="plc-home-panel" style="display:${active==='home'?'block':'none'};">${buildPanelHTML(homePitcher,homeHand,homeSS,homePlayers)}</div>`;
 
@@ -1787,6 +1707,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const fmtAvg=(n)=>{if(!n||n==='---')return'---';const f=parseFloat(n);return f<1?'.'+String(Math.round(f*1000)).padStart(3,'0'):f.toFixed(3);};
 
+            // ── Slot routing ──────────────────────────────────────────────
+            // awayPS = left slot (image-left layout); homePS = right slot
+            // (mirror: badge-then-name, image-right). Route each player to
+            // their team's slot so away is always on the left, home on the
+            // right — matching the score bug convention.
+            const isTopInning = data.liveData?.linescore?.isTopInning ?? true;
+            if (_lastIsTopInning !== null && _lastIsTopInning !== isTopInning) {
+                awayPS.innerHTML = '';
+                homePS.innerHTML = '';
+                _lastBatterId = '';
+                _lastPitcherId = '';
+            }
+            _lastIsTopInning = isTopInning;
+            const batterSlot  = isTopInning ? awayPS : homePS;
+            const pitcherSlot = isTopInning ? homePS : awayPS;
+
             if(batter){
                 // Only rebuild when batter changes — prevents headshot blink
                 if(String(batterId)!==_lastBatterId){
@@ -1795,17 +1731,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     _lastPitchCount=-1;
                     _lastResultEvt='';
                     const batHand=currentPlay.matchup?.batSide?.code||'';
-                    const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;">${batHand}HB</span>`:'';
-                    awayPS.innerHTML=`
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
-                                style="width:36px;height:36px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
-                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                            <div style="min-width:0;">
-                                <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${batter.fullName}${batBadge}</div>
-                                <div style="font-size:9px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Batter</div>
-                            </div>
-                        </div>
+                    // Badge has no inline margin — spacing handled by flex gap
+                    // so the same span works whether it sits before or after
+                    // the name in the mirrored layout.
+                    const batBadge=batHand?`<span style="display:inline-block;background:#bf0d3d;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;vertical-align:middle;flex-shrink:0;">${batHand}HB</span>`:'';
+                    const batImg=`<img src="https://midfield.mlbstatic.com/v1/people/${batterId}/spots/60"
+                        style="width:36px;height:36px;border-radius:50%;border:1.5px solid #bf0d3d;background:#041e42;object-fit:cover;flex-shrink:0;"
+                        onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">`;
+                    const batName=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${batter.fullName}</span>`;
+                    // isLeft controls layout mirror. Left slot: img → name-badge.
+                    // Right slot: badge-name → img (name-column right-aligned).
+                    const isLeft=(batterSlot===awayPS);
+                    const batNameRow=`<div style="font-weight:700;font-size:11px;color:#041e42;display:flex;align-items:center;gap:4px;min-width:0;${isLeft?'':'justify-content:flex-end;'}">${isLeft?batName+batBadge:batBadge+batName}</div>`;
+                    const batRole=`<div style="font-size:9px;color:#bf0d3d;font-weight:600;text-transform:uppercase;letter-spacing:.3px;${isLeft?'':'text-align:right;'}">Batter</div>`;
+                    const batCol=`<div style="min-width:0;flex:1;">${batNameRow}${batRole}</div>`;
+                    batterSlot.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">${isLeft?batImg+batCol:batCol+batImg}</div>
                         <div style="display:flex;gap:4px;">
                             <div style="background:rgba(4,30,66,0.04);border-radius:5px;padding:3px 5px;text-align:center;flex:1;">
                                 <div style="font-size:7px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">AVG</div>
@@ -1828,17 +1769,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if(String(pitcherId)!==_lastPitcherId){
                     _lastPitcherId=String(pitcherId);
                     const pitHand=currentPlay.matchup?.pitchHand?.code||'';
-                    const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;">${pitHand}HP</span>`:'';
-                    homePS.innerHTML=`
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-                            <img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
-                                style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
-                                onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">
-                            <div style="min-width:0;">
-                                <div style="font-weight:700;font-size:11px;color:#041e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pitcher.fullName}${pitBadge}</div>
-                                <div style="font-size:9px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;">Pitcher</div>
-                            </div>
-                        </div>
+                    const pitBadge=pitHand?`<span style="display:inline-block;background:#041e42;color:white;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;vertical-align:middle;flex-shrink:0;">${pitHand}HP</span>`:'';
+                    const pitImg=`<img src="https://midfield.mlbstatic.com/v1/people/${pitcherId}/spots/60"
+                        style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(4,30,66,0.3);background:#041e42;object-fit:cover;flex-shrink:0;"
+                        onerror="this.src='https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_60,q_auto:best/v1/people/generic/headshot/67/current.png'">`;
+                    const pitName=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${pitcher.fullName}</span>`;
+                    const isLeft=(pitcherSlot===awayPS);
+                    const pitNameRow=`<div style="font-weight:700;font-size:11px;color:#041e42;display:flex;align-items:center;gap:4px;min-width:0;${isLeft?'':'justify-content:flex-end;'}">${isLeft?pitName+pitBadge:pitBadge+pitName}</div>`;
+                    const pitRole=`<div style="font-size:9px;color:rgba(4,30,66,0.45);font-weight:600;text-transform:uppercase;letter-spacing:.3px;${isLeft?'':'text-align:right;'}">Pitcher</div>`;
+                    const pitCol=`<div style="min-width:0;flex:1;">${pitNameRow}${pitRole}</div>`;
+                    pitcherSlot.innerHTML=`
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">${isLeft?pitImg+pitCol:pitCol+pitImg}</div>
                         <div style="display:flex;gap:4px;">
                             <div style="background:rgba(4,30,66,0.04);border-radius:5px;padding:3px 5px;text-align:center;flex:1;">
                                 <div style="font-size:7px;color:rgba(4,30,66,0.4);font-weight:700;text-transform:uppercase;">ERA</div>
@@ -1923,7 +1864,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const isInPlay=p.details?.isInPlay,isStrike=p.details?.isStrike;
             const isFoul=p.details?.description?.toLowerCase().includes('foul');
             const resCls=isInPlay?'pr-contact':isFoul?'pr-foul':isStrike?'pr-strike':'pr-ball';
-            const resLbl=isInPlay?'IN PLAY':isFoul?'FOUL':isStrike?'STR':'BALL';
+            const resLbl=isInPlay?'IN PLAY':isFoul?'FOUL':isStrike?'STRIKE':'BALL';
             return`<div class="lab-pitch-row">
                 <div class="lab-pitch-num">${pitches.length-i}</div>
                 <div class="lab-pitch-badge" style="background:${info.color}">${info.abbr}</div>

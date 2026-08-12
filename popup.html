@@ -190,7 +190,7 @@
         #game-info {
             padding-block: 12px !important;
             justify-content: center !important;
-            gap: 20px !important;
+            gap: 8rem !important;
             border-bottom: 1px solid rgba(4,30,66,0.06) !important;
         }
 
@@ -397,6 +397,30 @@
         #home-player-stats img {
             width: 40px !important;
             height: 40px !important;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           v6 NEW — expand the live at-bat pitch log
+
+           Original: .lab-pitchlog capped at max-height: 90px, and
+           .lab-main-row used align-items: flex-start. Result: when
+           the strike zone column was taller than 90px of pitch rows,
+           .lab-info-col ended short and left visible dead space
+           between it and .lab-result-section.
+
+           Fix: stretch the row (both columns match heights) and
+           let .lab-pitchlog flex to fill the info column. Content
+           still overflows to scroll — just at whatever height the
+           strike zone column reaches, not a hardcoded 90px.
+           ══════════════════════════════════════════════════════════ */
+        .lab-main-row {
+            align-items: stretch !important;
+        }
+
+        .lab-pitchlog {
+            max-height: none !important;
+            flex: 1 !important;
+            min-height: 0 !important;
         }
 
         /* ══════════════════════════════════════════════════════════
