@@ -1,0 +1,188 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "mlb-scores",
+
+  "marketingAssets": {
+    "icon": "assets/mlb-scores-logo.png"
+  },
+
+  "permissions": {
+    "http": {
+      "enable": true,
+      "domains": [
+        "statsapi.mlb.com",
+        "img.mlbstatic.com",
+        "midfield.mlbstatic.com",
+        "prod-gameday.mlbstatic.com",
+        "content.mlb.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    },
+    "redis": true,
+    "reddit": {
+      "enable": true
+    }
+  },
+
+  "post": {
+    "dir": "public",
+    "entrypoints": {
+      "default": {
+        "entry": "splash.html",
+        "inline": true
+      },
+      "game": {
+        "entry": "game.html"
+      }
+    }
+  },
+
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.js"
+  },
+
+  "settings": {
+    "subreddit": {
+      "teamId": {
+        "type": "select",
+        "label": "MLB Team Filter",
+        "helpText": "Pick the team this subreddit follows. Game threads will only post for that team's games. Choose 'All Teams' for sport-wide subs that cover every game.",
+        "options": [
+          { "label": "All Teams (post every game)", "value": "" },
+          { "label": "Arizona Diamondbacks",   "value": "109" },
+          { "label": "Athletics",              "value": "133" },
+          { "label": "Atlanta Braves",         "value": "144" },
+          { "label": "Baltimore Orioles",      "value": "110" },
+          { "label": "Boston Red Sox",         "value": "111" },
+          { "label": "Chicago Cubs",           "value": "112" },
+          { "label": "Chicago White Sox",      "value": "145" },
+          { "label": "Cincinnati Reds",        "value": "113" },
+          { "label": "Cleveland Guardians",    "value": "114" },
+          { "label": "Colorado Rockies",       "value": "115" },
+          { "label": "Detroit Tigers",         "value": "116" },
+          { "label": "Houston Astros",         "value": "117" },
+          { "label": "Kansas City Royals",     "value": "118" },
+          { "label": "Los Angeles Angels",     "value": "108" },
+          { "label": "Los Angeles Dodgers",    "value": "119" },
+          { "label": "Miami Marlins",          "value": "146" },
+          { "label": "Milwaukee Brewers",      "value": "158" },
+          { "label": "Minnesota Twins",        "value": "142" },
+          { "label": "New York Mets",          "value": "121" },
+          { "label": "New York Yankees",       "value": "147" },
+          { "label": "Philadelphia Phillies",  "value": "143" },
+          { "label": "Pittsburgh Pirates",     "value": "134" },
+          { "label": "San Diego Padres",       "value": "135" },
+          { "label": "San Francisco Giants",   "value": "137" },
+          { "label": "Seattle Mariners",       "value": "136" },
+          { "label": "St. Louis Cardinals",    "value": "138" },
+          { "label": "Tampa Bay Rays",         "value": "139" },
+          { "label": "Texas Rangers",          "value": "140" },
+          { "label": "Toronto Blue Jays",      "value": "141" },
+          { "label": "Washington Nationals",   "value": "120" }
+        ],
+        "defaultValue": ""
+      },
+      "autoPostgame": {
+        "type": "boolean",
+        "label": "Auto-post postgame threads",
+        "helpText": "When enabled, the bot will automatically post a Postgame Thread the moment a game ends. Recommended for active subreddits. Disable for single-thread discussion style.",
+        "defaultValue": true
+      },
+      "postgameWinTitle": {
+        "type": "string",
+        "label": "Postgame Win Title (optional)",
+        "helpText": "Custom title for postgame threads when your configured team WINS. Leave blank for default format. Placeholders: {team} = your team's name, {opp} = opponent's name, {teamScore} and {oppScore} = scores. Example: 'THEEEE YANKEES WIN! {team} {teamScore}, {opp} {oppScore}'. Only used when a specific team is configured in the Team Filter.",
+        "defaultValue": ""
+      },
+      "postgameLossTitle": {
+        "type": "string",
+        "label": "Postgame Loss Title (optional)",
+        "helpText": "Custom title for postgame threads when your configured team LOSES. Leave blank for default format. Same placeholders as the win title. Only used when a specific team is configured in the Team Filter.",
+        "defaultValue": ""
+      },
+      "threadType": {
+        "type": "select",
+        "label": "Thread type",
+        "helpText": "\"Game Thread\" is the standard mode — posts a Game Thread for each game, plus an automatic Postgame Thread if enabled above. \"Broadcast Thread\" runs the app as an advanced/analytics companion to your existing game threads: posts use the Broadcast label below instead of \"Game Thread\", and NO automatic postgame or postponement threads are posted (the app only posts the threads you create from the menu).",
+        "options": [
+          { "label": "Game Thread (standard — posts game + postgame threads)", "value": "game" },
+          { "label": "Broadcast Thread (companion — no automatic posts)", "value": "broadcast" }
+        ],
+        "defaultValue": "game"
+      },
+      "broadcastLabel": {
+        "type": "string",
+        "label": "Broadcast label (optional)",
+        "helpText": "Only used in Broadcast Thread mode — the wording used in place of \"Game Thread\" in the post title. Examples: \"Broadcast Thread\", \"Advanced View\", \"Live Scoreboard\". Leave blank to use \"Broadcast Thread\".",
+        "defaultValue": "Broadcast Thread"
+      },
+      "broadcastDelay": {
+        "type": "select",
+        "label": "Broadcast delay",
+        "helpText": "Delay the live scoreboard by a few seconds so fans following along on a TV or streaming feed aren't spoiled by seeing plays before they happen on their screen. Off shows real-time data. Pick the delay that best matches how far behind your feed runs. No plays are skipped — the game just runs this far behind.",
+        "options": [
+          { "label": "Off (real-time)", "value": "0" },
+          { "label": "5 seconds", "value": "5" },
+          { "label": "8 seconds", "value": "8" },
+          { "label": "10 seconds", "value": "10" },
+          { "label": "12 seconds", "value": "12" },
+          { "label": "15 seconds", "value": "15" },
+          { "label": "20 seconds", "value": "20" }
+        ],
+        "defaultValue": "0"
+      }
+    }
+  },
+
+  "menu": {
+    "items": [
+      {
+        "label": "Post today's MLB game threads",
+        "description": "Create a Game Thread for every scheduled game (filtered by team if configured).",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-all-today"
+      },
+      {
+        "label": "Post postgame threads for completed games",
+        "description": "Manually create Postgame Threads (or postponement notices) for any completed/postponed games that don't yet have one. Use as backup if the cron missed one.",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-postgame"
+      },
+      {
+        "label": "Allow re-posting removed game threads",
+        "description": "Use this if a Game Thread was deleted or removed and you need the bot to post it again.",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/clear-today-dedup"
+      }
+    ]
+  },
+
+  "triggers": {
+    "onAppInstall": "/internal/triggers/on-app-install",
+    "onPostDelete": "/internal/triggers/on-post-delete",
+    "onModAction": "/internal/triggers/on-mod-action"
+  },
+
+  "scheduler": {
+    "tasks": {
+      "postgame-sweep": {
+        "endpoint": "/internal/scheduler/postgame-sweep",
+        "cron": "* * * * *"
+      }
+    }
+  },
+
+  "scripts": {
+    "dev": "node --experimental-strip-types ./tools/build.ts --watch",
+    "build": "node --experimental-strip-types ./tools/build.ts --minify"
+  },
+
+  "dev": {
+    "subreddit": "mlb_scores_dev"
+  }
+}

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLB Scoreboards — Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Oswald:wght@500;600;700&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#01091a;
+    --bg-card:#0a1828;
+    --elev-1:rgba(255,255,255,.04);
+    --elev-2:rgba(255,255,255,.07);
+    --accent:#bf0d3d;
+    --accent-dim:rgba(191,13,61,.55);
+    --good:#2d6a4f;
+    --txt:#fff;
+    --txt-2:rgba(255,255,255,.72);
+    --txt-3:rgba(255,255,255,.45);
+    --line:rgba(255,255,255,.10);
+    --sans:'Rubik',system-ui,-apple-system,sans-serif;
+    --disp:'Oswald','Rubik',sans-serif;
+    --mono:'DM Mono','SF Mono',Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg-deep);color:var(--txt);font-family:var(--sans);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    padding:32px 20px 72px;
+  }
+  .wrap{max-width:1060px;margin:0 auto}
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-family:var(--disp);font-size:clamp(34px,7vw,60px);font-weight:700;
+    line-height:.98;letter-spacing:.005em;text-transform:uppercase}
+  .sub{color:var(--txt-2);margin-top:12px;max-width:60ch}
+  .masthead{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:30px}
+
+  /* ── Answer callout ───────────────────────────────────── */
+  .callout{
+    border:1px solid var(--accent-dim);border-left:5px solid var(--accent);
+    background:rgba(191,13,61,.07);border-radius:4px;
+    padding:16px 20px;margin-bottom:38px;
+  }
+  .callout-l{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .callout p{color:var(--txt);font-size:15px}
+  .callout p+p{margin-top:8px;color:var(--txt-2);font-size:13.5px}
+
+  /* ── Sections ─────────────────────────────────────────── */
+  section{margin-bottom:46px}
+  h2{font-family:var(--disp);font-size:19px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .hint{font-family:var(--sans);font-size:12.5px;color:var(--txt-3);
+    margin:-10px 0 18px;max-width:70ch}
+
+  /* ── Cards / bands ────────────────────────────────────── */
+  .band{background:var(--bg-card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+  .band.framed{border:2px solid var(--accent)}
+  .band-hd{font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase;margin-bottom:3px}
+  .band-sub{font-family:var(--mono);font-size:10.5px;color:var(--txt-3);
+    letter-spacing:.06em;margin-bottom:14px}
+
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:760px){.g2,.g4{grid-template-columns:1fr}}
+
+  .cell{background:var(--elev-1);border:1px solid var(--line);border-radius:5px;padding:12px 13px}
+  .cell-t{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.05em;
+    text-transform:uppercase;margin-bottom:7px}
+  .cell-t.red{color:var(--accent)}
+  .cell li{list-style:none;font-family:var(--mono);font-size:11px;color:var(--txt-2);
+    padding:2.5px 0;word-break:break-word}
+
+  /* ── Flow arrow ───────────────────────────────────────── */
+  .arrow{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0}
+  .arrow .stem{width:2px;height:20px;background:linear-gradient(var(--accent-dim),var(--accent))}
+  .arrow .head{color:var(--accent);font-size:13px;line-height:1}
+  .arrow .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--txt-3);text-align:center;padding:0 12px}
+
+  /* ── Tables ───────────────────────────────────────────── */
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+  th{font-family:var(--sans);font-size:9.5px;font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--txt-3);text-align:left;
+    padding:0 10px 8px;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.05);
+    color:var(--txt-2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.k{color:var(--txt);white-space:nowrap}
+  .ttl{display:inline-block;font-size:10px;font-weight:500;padding:1.5px 7px;border-radius:3px;
+    background:var(--elev-2);color:var(--txt-2);white-space:nowrap}
+  .ttl.long{background:rgba(45,106,79,.22);color:#7fc7a4}
+  .ttl.short{background:rgba(191,13,61,.16);color:#f08ba6}
+  .note{color:var(--txt-3);font-family:var(--sans);font-size:11px;font-style:italic}
+  .scroller{overflow-x:auto}
+
+  /* ── Lifecycle (a real sequence, so it's numbered) ─────── */
+  .steps{border-left:2px solid var(--line);margin-left:9px;padding-left:0}
+  .step{position:relative;padding:0 0 20px 26px}
+  .step:last-child{padding-bottom:0}
+  .step .n{position:absolute;left:-11px;top:0;width:20px;height:20px;border-radius:50%;
+    background:var(--accent);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;
+    display:flex;align-items:center;justify-content:center}
+  .step .t{font-weight:700;font-size:13px;margin-bottom:3px}
+  .step .d{color:var(--txt-2);font-size:12.5px}
+  .step code{font-family:var(--mono);font-size:11px;color:var(--txt);
+    background:var(--elev-2);padding:1px 5px;border-radius:3px}
+
+  /* ── Pipeline ─────────────────────────────────────────── */
+  .pipe{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px}
+  @media(max-width:760px){.pipe{grid-template-columns:1fr;gap:6px}
+    .pipe .chev{transform:rotate(90deg);padding:2px 0}}
+  .chev{color:var(--accent);font-size:16px;text-align:center}
+  .pipe .cell{height:100%}
+
+  footer{border-top:1px solid var(--line);padding-top:18px;color:var(--txt-3);font-size:11.5px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">System Architecture</div>
+    <h1>MLB Scoreboards</h1>
+    <p class="sub">A Devvit Web app: a live MLB scoreboard rendered inside a Reddit game thread, with the threads themselves posted automatically. Everything below reflects the code as it currently ships.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-l">Data source</div>
+    <p>Straight from the MLB Stats API. No wrapper library, no SDK, no third-party service — plain HTTPS calls to <span style="font-family:var(--mono)">statsapi.mlb.com</span>.</p>
+    <p>The client never calls MLB directly. It calls this app's own endpoints, and the server fetches upstream and caches the response in Redis, so a hundred readers on one thread collapse into one upstream call every few seconds.</p>
+  </div>
+
+  <section>
+    <h2>Data path</h2>
+    <p class="hint">Four things can wake the app: someone viewing a post, a moderator using the menu, the once-a-minute scheduler, or a Reddit event trigger. All of them land on the same server.</p>
+
+    <div class="band">
+      <div class="band-hd">Reddit</div>
+      <div class="band-sub">Entry points — where every request originates</div>
+      <div class="grid g4">
+        <div class="cell">
+          <div class="cell-t red">Post web view</div>
+          <ul>
+            <li>splash.html in an iframe</li>
+            <li>inline — button paged</li>
+            <li>expanded — native scroll</li>
+          </ul>
+        </div>
+        <div class="cell">
+          <div class="cell-t red">Mod menu</div>
+          <ul>
+            <li>Post today's threads</li>
+            <li>Post postgame threads</li>
+            <li>Allow re-posting</li>
+          </ul>
+        </div>
+        <div class="cell">
+          <div class="cell-t red">Scheduler</div>
+          <ul>
+            <li>postgame-sweep</li>
+            <li>cron * * * * *</li>
+            <li>every minute</li>
+          </ul>
+        </div>
+        <div class="cell">
+          <div class="cell-t red">Triggers</div>
+          <ul>
+            <li>onAppInstall</li>
+            <li>onPostDelete</li>
+            <li>onModAction</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="lbl">HTTP</div><div class="stem"></div><div class="head">&#9660;</div></div>
+
+    <div class="band framed">
+      <div class="band-hd">mlb-scores</div>
+      <div class="band-sub">Your app — client bundle + Node server + Redis</div>
+      <div class="grid g2">
+        <div class="cell">
+          <div class="cell-t">Client &nbsp;<span style="color:var(--txt-3);font-weight:400">public/splash.js</span></div>
+          <ul>
+            <li>selectGameForThisPost() → gamePk</li>
+            <li>fetchAndRender() every 10s</li>
+            <li>pauses when hidden, stops when final</li>
+            <li>states: pregame · live · final</li>
+            <li>· postponed · suspended · ended</li>
+            <li>tabs: dynamic · box · scoring</li>
+            <li>· plays · win%</li>
+            <li>theme follows Reddit light/dark</li>
+          </ul>
+        </div>
+        <div class="cell">
+          <div class="cell-t">Server &nbsp;<span style="color:var(--txt-3);font-weight:400">dist/server/index.js</span></div>
+          <ul>
+            <li>router → /api/* and /internal/*</li>
+            <li>proxyMlbJsonCached() — fetch + cache</li>
+            <li>submitCustomPost() — creates threads</li>
+            <li>title builders — series, DH, custom</li>
+            <li>settings: teamId · autoPostgame</li>
+            <li>· win title · loss title</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cell" style="margin-top:12px">
+        <div class="cell-t">Redis</div>
+        <ul><li>render bindings · dedup locks · upstream response cache &nbsp;— see Storage below</li></ul>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="lbl">fetch() — allowlisted in devvit.json</div><div class="stem"></div><div class="head">&#9660;</div></div>
+
+    <div class="band">
+      <div class="band-hd">MLB Stats API</div>
+      <div class="band-sub">statsapi.mlb.com — public, unauthenticated, no wrapper</div>
+      <div class="grid g2">
+        <div class="cell">
+          <div class="cell-t red">Endpoints called</div>
+          <ul>
+            <li>/api/v1/schedule?sportId=1&amp;date=</li>
+            <li>/api/v1.1/game/{pk}/feed/live</li>
+            <li>/api/v1/game/{pk}/winProbability</li>
+          </ul>
+        </div>
+        <div class="cell">
+          <div class="cell-t red">Other hosts</div>
+          <ul>
+            <li>mlbstatic.com — imagery</li>
+            <li>content.mlb.com</li>
+            <li>fonts.googleapis.com / gstatic</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Endpoints</h2>
+    <p class="hint">Everything the client can call, and what each one does upstream. Cached routes serve from Redis first and only reach MLB when the entry has expired.</p>
+    <div class="band scroller">
+      <table>
+        <thead><tr><th>Route</th><th>Purpose</th><th>Upstream</th><th>Cache</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">GET /api/game/:pk</td>
+            <td>Full live feed — score, count, box, plays</td>
+            <td>v1.1 feed/live</td>
+            <td><span class="ttl short">8s</span></td>
+          </tr>
+          <tr>
+            <td class="k">GET /api/winprob/:pk</td>
+            <td>Win probability series</td>
+            <td>v1 winProbability</td>
+            <td><span class="ttl short">12s</span></td>
+          </tr>
+          <tr>
+            <td class="k">GET /api/schedule</td>
+            <td>Day's games <span class="note">— no longer called by the client</span></td>
+            <td>v1 schedule</td>
+            <td><span class="ttl short">30s</span></td>
+          </tr>
+          <tr>
+            <td class="k">GET /api/post-game</td>
+            <td>Which game this post is bound to</td>
+            <td>Redis only</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="k">POST /api/postgame-check</td>
+            <td>Client reports a final; server may post the wrap</td>
+            <td>v1.1 feed/live</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Storage</h2>
+    <p class="hint">Three kinds of key, three very different lifetimes. The split matters: render bindings must outlive the game, dedup locks must not.</p>
+    <div class="band scroller">
+      <table>
+        <thead><tr><th>Key</th><th>Holds</th><th>Job</th><th>Lifetime</th></tr></thead>
+        <tbody>
+          <tr><td class="k">post-game:{postId}</td><td>gamePk</td><td>Which game a post renders</td><td><span class="ttl long">180 days</span></td></tr>
+          <tr><td class="k">post-type:{postId}</td><td>game · postgame · postponed</td><td>Which view to force</td><td><span class="ttl long">180 days</span></td></tr>
+          <tr><td class="k">offday-key:{postId}</td><td>off-day key</td><td>Cleanup pointer</td><td><span class="ttl long">180 days</span></td></tr>
+          <tr><td class="k">posted:{sub}:{pk}</td><td>postId</td><td>Don't post a game thread twice</td><td><span class="ttl short">3 days</span></td></tr>
+          <tr><td class="k">postgame:{sub}:{pk}</td><td>postId</td><td>Don't post a wrap twice</td><td><span class="ttl short">3 days</span></td></tr>
+          <tr><td class="k">postponed:{sub}:{pk}</td><td>postId</td><td>Don't post a notice twice</td><td><span class="ttl short">3 days</span></td></tr>
+          <tr><td class="k">offday:{sub}:{team}:{date}</td><td>postId</td><td>One off-day thread per day</td><td><span class="ttl short">3 days</span></td></tr>
+          <tr><td class="k">mlbcache:*</td><td>raw JSON</td><td>Collapse readers into one upstream call</td><td><span class="ttl short">8–30s</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Life of a game thread</h2>
+    <p class="hint">Order matters here — each step depends on the one before it.</p>
+    <div class="band">
+      <div class="steps">
+        <div class="step"><div class="n">1</div>
+          <div class="t">A moderator posts the day's threads</div>
+          <div class="d">The menu item fetches today's schedule in US Eastern, filtered to the configured team.</div></div>
+        <div class="step"><div class="n">2</div>
+          <div class="t">One post per game</div>
+          <div class="d">Each game without a <code>posted:</code> lock gets a thread, then the app writes the render binding and the lock.</div></div>
+        <div class="step"><div class="n">3</div>
+          <div class="t">A reader opens the post</div>
+          <div class="d">The web view asks <code>/api/post-game</code> which game it belongs to. No binding means the thread has aged out, and it shows the ended card instead.</div></div>
+        <div class="step"><div class="n">4</div>
+          <div class="t">The scoreboard refreshes every 10 seconds</div>
+          <div class="d">Polling pauses when the post scrolls out of view and stops entirely once the game is over.</div></div>
+        <div class="step"><div class="n">5</div>
+          <div class="t">The game ends</div>
+          <div class="d">The client reports the final once. The server re-verifies it upstream, checks the game is under 36 hours old and that auto-posting is on, then posts the wrap.</div></div>
+        <div class="step"><div class="n">6</div>
+          <div class="t">The sweeper catches anything missed</div>
+          <div class="d">Every minute, a job re-checks today and yesterday for finals and postponements — so a thread nobody had open still gets its follow-up.</div></div>
+        <div class="step"><div class="n">7</div>
+          <div class="t">Removing a post frees it</div>
+          <div class="d">Delete or remove clears that post's locks, so the same game can be posted again.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Build and release</h2>
+    <div class="band">
+      <div class="pipe">
+        <div class="cell">
+          <div class="cell-t red">Source</div>
+          <ul><li>splash.html / .css / .ts</li><li>server.ts · index.ts</li><li>devvit.json</li></ul>
+        </div>
+        <div class="chev">&#9654;</div>
+        <div class="cell">
+          <div class="cell-t red">Build</div>
+          <ul><li>esbuild → public/splash.js</li><li>server → dist/server</li></ul>
+        </div>
+        <div class="chev">&#9654;</div>
+        <div class="cell">
+          <div class="cell-t red">Release</div>
+          <ul><li>devvit upload</li><li>devvit publish</li><li>bump version on the sub</li></ul>
+        </div>
+      </div>
+      <p class="hint" style="margin:14px 0 0">A post runs the app version it was created with, so a new build only shows up on posts made after the installed version is bumped.</p>
+    </div>
+  </section>
+
+  <footer>
+    Data from the MLB Stats API. Not affiliated with Major League Baseball.
+  </footer>
+
+</div>
+</body>
+</html>
